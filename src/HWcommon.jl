@@ -116,8 +116,9 @@ end
          x_::Ptr{Float64}, f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
          ipar_::Ptr{FInt})
   
-  This is the right-hand side given as callback to Fortran-solvers that
-  can handle problems with "special structure", see `OPT_M1`, e.g. radau5.
+  This is the right-hand side given as callback to Fortran-solvers
+  (e.g. radau5 and radau) that can handle problems with "special structure", 
+  see `help_specialstructure`.
   
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.

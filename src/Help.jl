@@ -5,8 +5,12 @@ macro import_help()
   quote
     using ODEInterface: help_overview, help_callsolvers, help_options, 
           help_outputfcn, help_solversupport, help_install, 
-          help_loadsolvers, help_internals
+          help_loadsolvers, help_specialstructure,
+          help_internals
     @ODEInterface.import_dopri5_help
+    @ODEInterface.import_odex_help
+    @ODEInterface.import_radau5_help
+    @ODEInterface.import_radau_help
   end
 end
 
@@ -28,19 +32,20 @@ using Base.Markdown
   
   ## Help topics
   
-       help_install         requirements, installation, compiling the solvers
-       help_solversupport   supported ODE solvers
-       help_loadsolvers     loading the ODE solvers
-       help_callsolvers     how to call the ODE solvers
-       help_options         how to use parameters/options for solvers
-       help_outputfcn       how to use "output functions", dense output
+       help_install          requirements, installation, compiling the solvers
+       help_solversupport    supported ODE solvers
+       help_loadsolvers      loading the ODE solvers
+       help_callsolvers      how to call the ODE solvers
+       help_options          how to use parameters/options for solvers
+       help_outputfcn        how to use "output functions", dense output
+       help_specialstructure support for problems with "special structure"
        
-       help_internals       some internal/developer information
+       help_internals        some internal/developer information
   
   ## Help for each solver
   
   Each solver has its own help page. Just look at the documentation of
-  `dopri5`, `dop853`, `odex`, `radau5`.
+  `dopri5`, `dop853`, `odex`, `radau5`, `radau`.
   """
 function help_overview()
   return Docs.doc(help_overview)
@@ -371,6 +376,90 @@ function help_outputfcn()
 end
 
 """
+  ## Special Structure
+  
+  Some solvers (e.g. radau5 and radau) supports ODEs with a
+  "special structure". In this context an ODE has special structure 
+  if there exists M1>0 and M2>0 and M1 = M⋅M2 for some integer M
+  and
+  
+                   x'(k) = x(k+M2)   for all k = 1,…,M1            (*)
+  
+  There are the options `OPT_M1` and `OPT_M2` to tell the solvers, if the
+  ODE has this special structure. In this case only the non-trivial parts
+  of the right-hand side, of the mass matrix and of the Jacobian matrix 
+  had to be supplied.
+  
+  If an ODE has the special structure, then the right-hand side 
+  for `OPT_RHS_CALLMODE == RHS_CALL_RETURNS_ARRAY` has to return
+  a vector of length d-M1 because the right-hand side for the first M1 entries
+  are known from (*). For `OPT_RHS_CALLMODE == RHS_CALL_INSITU` the
+  right-hand side gets (a reference) to the array of length d, but only
+  the last d-M1 components need to be filled in.
+  
+  The mass matrix has the form
+  
+           ⎛ 1    │    ⎞ ⎫
+           ⎜  ⋱   │    ⎟ ⎪
+           ⎜   ⋱  │    ⎟ ⎬ M1
+           ⎜    ⋱ │    ⎟ ⎪
+      M =  ⎜     1│    ⎟ ⎭
+           ⎜──────┼────⎟
+           ⎜      │    ⎟ ⎫
+           ⎜      │ M̃  ⎟ ⎬ d-M1
+           ⎝      │    ⎠ ⎭
+  
+  Then there has to be only the (d-M1)×(d-M1) matrix M̃ in `OPT_MASSMATRIX`.
+  Of course, M̃ can be banded. Then `OPT_MASSMATRIX` is a `BandedMatrix` with
+  lower bandwidth < d-M1.
+  
+  If an ODE has the special structure, then the Jacobian matrix has the form
+
+           ⎛0   1      ⎞ ⎫
+           ⎜ ⋱   ⋱     ⎟ ⎪
+           ⎜  ⋱   ⋱    ⎟ ⎬ M1
+           ⎜   ⋱   ⋱   ⎟ ⎪
+      J =  ⎜    0   1  ⎟ ⎭
+           ⎜───────────⎟
+           ⎜           ⎟ ⎫
+           ⎜      J̃    ⎟ ⎬ d-M1
+           ⎝           ⎠ ⎭
+  
+  Then there has to be only the (d-M1)×d matrix J̃ in `OPT_JACOBIMATRIX`.
+  In this case banded Jacobian matrices are only supported for the
+  case M1 + M2 == d. Then in this case J̃ is divided into d/M2 = 1+(M1/M2)
+  blocks of the size M2×M2. All this blocks can be banded with a (common)
+  lower bandwidth < M2. 
+  
+  The option `OPT_JACOBIBANDSTRUCT` is used to describe the banded structure
+  of the Jacobian. It is eigher `nothing` if the Jacobian is full or a
+  tuple `(l,u)` with the lower and upper bandwidth.
+  
+  The function for providing the Jacobian for ∂f/∂x can have the following
+  forms:
+  
+       function (t,x,J)       -> nothing       (A)
+       function (t,x,J1,…,JK) -> nothing       (B)
+  
+  The following table shows when `OPT_JACOBIMATRIX` has the form (A) 
+  and when it has the form (B):
+  
+       ╔══════╤═════════════════════════════╤════════════════════════════════╗
+       ║      │ JACOBIBANDSTRUCT == nothing │ JACOBIBANDSTRUCT == (l,u)      ║
+       ╟──────┼─────────────────────────────┼────────────────────────────────╢
+       ║ M1==0│ (A), J full, size: d×d      │ (A) J (l,u)-banded, size d×d   ║
+       ╟──────┼─────────────────────────────┼────────────────────────────────╢
+       ║ M1>0 │ (A), J full, size: (d-M1)×d │ (B) J1,…,JK (l,u)-banded       ║
+       ║      │                             │     each with size M2×M2 and   ║
+       ║      │                             │     K = 1 + M1/M2              ║
+       ║      │                             │     M1 + M2 == d               ║
+       ╚══════╧═════════════════════════════╧════════════════════════════════╝
+  """
+function help_specialstructure()
+  return Docs.doc(help_specialstructure)
+end
+
+"""
   ## Internals
 
   1. The Fortran solvers use callback-functions. Where are all the
@@ -380,7 +469,7 @@ end
   `Radau5InternalCallInfos`.
   1. How are these unique call-ids generated? see `uniqueToken`
   1. What closures (and how many) are generated to support the eval_sol_fcn?
-  see `create_radau5_eval_sol_fcn_closure`
+  see `create_radau_eval_sol_fcn_closure`
   1. Can this module be made `precompilable`? I guess so, but I've to read
   http://docs.julialang.org/en/latest/manual/modules/#man-modules-initialization-precompilation
   again more carefully.

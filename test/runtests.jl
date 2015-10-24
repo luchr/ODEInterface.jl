@@ -4,7 +4,7 @@
 module ODEInterfaceTest
 
 using Base.Test
-
+ 
 # This is for julia v0.4 
 #   No @testset, @testloop
 
@@ -12,13 +12,14 @@ using ODEInterface
 @ODEInterface.import_huge
 
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
-                    DL_RADAU5, DL_RADAU5_I32) 
+                    DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32) 
 const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
-                 odex, odex_i32, radau5, radau5_i32
+                 odex, odex_i32, 
+                 radau5, radau5_i32, radau, radau_i32,
                 )
 
-const solvers_mas = ( radau5, radau5_i32, )
-const solvers_jac = ( radau5, radau5_i32, )
+const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,)
+const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,)
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
@@ -412,12 +413,14 @@ function test_DLSolvers()
     end
     
     #testloop 
-    for dl in dl_solvers, 
-                  method in result[dl].methods
-      @test method.error == nothing
-      @test method.method_ptr ≠ C_NULL
-      @test method.generic_name ≠ ""
-      @test method.methodname_found ≠ ""
+    for dl in dl_solvers 
+      #testloop 
+      for method in result[dl].methods
+        @test method.error == nothing
+        @test method.method_ptr ≠ C_NULL
+        @test method.generic_name ≠ ""
+        @test method.methodname_found ≠ ""
+      end
     end
   end
 end

@@ -26,16 +26,22 @@ Prof. E. Hairer and Prof. G. Wanner, are supported:
 * dop853: explicit Runge-Kutta method of order 8(5,3) due to Dormand & Prince
 * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
 * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
+* radau: implicit Runge-Kutta method (Radau IIA) of variable order between 5 and 13
 
 see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 
+Description: [Calling the Solvers](./doc/CallSolvers.md) 
+
 The following features of this solvers are supported by this ODEInterface:
 
-* providing an output function (e.g. for dense output or for event location)
-to the solvers
+* providing an [output function](./doc/OutputFunction.md) (e.g. 
+for dense output or for event location) to the solvers
 * providing mass- and jacobi-matrices for the solvers (with support for
 banded matrices)
-* all the solvers' parameters for fine-tuning them
+* all the solvers' parameters for fine-tuning them, 
+see [Options for Solvers](./doc/SolverOptions.md)
+* support for problems with "special structure", 
+see [special structure](./doc/SpecialStructure.md)
 
 ## What are the requirements for this module
 

@@ -55,5 +55,17 @@ gcc -shared -fPIC -Wl,-soname,libradau5_i32.so  -lgfortran  -o radau5_i32.so \
               radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
 rm ./radau5_i32.o
 
+echo "radau"
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o radau.o   radau.f
+gcc -shared -fPIC -Wl,-soname,libradau5.so  -lgfortran  -o radau.so \
+              radau.o dc_lapack.o lapack.o lapackc.o
+rm ./radau.o
+
+echo "radau_i32"
+gfortran -c -fPIC "${FLAGS_I32[@]}"  -o radau_i32.o   radau.f
+gcc -shared -fPIC -Wl,-soname,libradau5_i32.so  -lgfortran  -o radau_i32.so \
+              radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+rm ./radau_i32.o
+
 rm ./dc_lapack.o ./lapack.o ./lapackc.o
 rm ./dc_lapack_i32.o ./lapack_i32.o ./lapackc_i32.o

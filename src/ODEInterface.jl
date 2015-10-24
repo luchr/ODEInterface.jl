@@ -1,7 +1,7 @@
 __precompile__(false)
 
 """
-  # ODEInterface (Version $VERSION)
+  # ODEInterface
   
   This julia module provides an interface to solvers for 
   ordinary differential equations (ODEs) written in Fortran
@@ -29,6 +29,8 @@ __precompile__(false)
   * dop853: explicit Runge-Kutta method of order 8(5,3) due to Dormand & Prince
   * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
   * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
+  * radau: implicit Runge-Kutta method (Radau IIA) of variable order 
+  between 5 and 13
   
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
   
@@ -62,7 +64,7 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.1"
+const VERSION = "0.0.2-dev"
 
 using Base
 
@@ -92,6 +94,8 @@ macro import_huge()
     @ODEInterface.import_odecall
     @ODEInterface.import_radau5
     @ODEInterface.import_DLradau5
+    @ODEInterface.import_radau
+    @ODEInterface.import_DLradau
   end
 end
 
@@ -105,6 +109,7 @@ macro import_normal()
     @ODEInterface.import_dop853
     @ODEInterface.import_odex
     @ODEInterface.import_radau5
+    @ODEInterface.import_radau
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -218,7 +223,10 @@ macro import_OPTcommon()
                           OPT_STEPSIZESTRATEGY, OPT_M1, OPT_M2,
                           OPT_JACRECOMPFACTOR, OPT_NEWTONSTOPCRIT, 
                           OPT_FREEZESSLEFT, OPT_FREEZESSRIGHT, OPT_MASSMATRIX,
-                          OPT_JACOBIMATRIX, OPT_JACOBIBANDSTRUCT
+                          OPT_JACOBIMATRIX, OPT_JACOBIBANDSTRUCT,
+                          OPT_MAXSTAGES, OPT_MINSTAGES, OPT_INITSTAGES,
+                          OPT_ORDERDECFACTOR, OPT_ORDERINCFRAC,
+                          OPT_ORDERDECSTEPFAC1, OPT_ORDERDECSTEPFAC2
   )
 end
 
@@ -280,6 +288,15 @@ const OPT_FREEZESSRIGHT    = "FreezeStepSizeRightBound"
 const OPT_MASSMATRIX       = "MassMatrix"
 const OPT_JACOBIMATRIX     = "JacobiMatrix"
 const OPT_JACOBIBANDSTRUCT = "JacobiBandStructure"
+
+const OPT_MAXSTAGES        = "MaximalNumberOfStages"
+const OPT_MINSTAGES        = "MinimalNumberOfStages"
+const OPT_INITSTAGES       = "InitialNumberOfStages"
+const OPT_ORDERINCFACTOR   = "OrderIncreaseFactor"
+const OPT_ORDERDECFACTOR   = "OrderDecreaseFactor"
+const OPT_ORDERDECSTEPFAC1 = "OrderDecreaseStepFactor1"
+const OPT_ORDERDECSTEPFAC2 = "OrderDecreaseStepFactor2"
+
 
 @enum(RHS_CALL_MODE,
       RHS_CALL_RETURNS_ARRAY, RHS_CALL_INSITU)
@@ -479,7 +496,7 @@ include("./Dopri.jl")
 include("./Dopri5.jl")
 include("./Dop853.jl")
 include("./Odex.jl")
-include("./Radau5.jl")
+include("./Radau.jl")
 
 include("./Call.jl")
 include("./Help.jl")
