@@ -64,6 +64,7 @@ function formatTable(io,s::AbstractString)
     end
   end
   write(io,"</table>",NL)
+  return nothing
 end
 
 function formatMDelement(io,e::Base.Markdown.MD)
@@ -71,6 +72,7 @@ function formatMDelement(io,e::Base.Markdown.MD)
     formatMDelement(io,element)
     write(io,"\n")
   end
+  return nothing
 end
 
 function formatMDelement(io,code::Base.Markdown.Code)
@@ -80,17 +82,27 @@ function formatMDelement(io,code::Base.Markdown.Code)
   else
     Base.Markdown.plain(io,code)
   end
+  return nothing
 end
 
 function formatMDelement(io,rest::Any)
   Base.Markdown.plain(io,rest)
+  return nothing
+end
+
+function introHeader(io)
+  write(io,"[ This file was auto-generated from the module's documentation ",
+           "included in the doc-strings. Use julia's help system to get ",
+           "these informations in a nicer output format. ]",NL,NL)
+  return nothing
 end
 
 function docSolverOptions(filename)
   io = open(filename,"w")
+  introHeader(io)
   namewomodule = r"\.([^.]+)$"
 
-  for solver in (dopri5,dop853,odex,radau5,radau)
+  for solver in (dopri5,dop853,odex,)
     solvername = string(solver)
     mo = match(namewomodule,solvername)
     if mo ≠ nothing
@@ -99,6 +111,9 @@ function docSolverOptions(filename)
     write(io,"# ",solvername,NL,NL)
     formatMDelement(io,Base.Docs.doc(solver))
   end
+  # radau5 and radau share same documentation
+  write(io,"# radau and radau5",NL,NL)
+  formatMDelement(io,Base.Docs.doc(radau))
 
   close(io)
   return nothing
@@ -106,6 +121,7 @@ end
 
 function docstringToFile(filename,docobjs)
   io = open(filename,"w")
+  introHeader(io)
   for docobj in docobjs
     formatMDelement(io,Base.Docs.doc(docobj))
     write(io,NL)

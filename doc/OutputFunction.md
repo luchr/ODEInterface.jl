@@ -1,3 +1,5 @@
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+
 ## `OPT_OUTPUTMODE`
 
 This option determines if the `OPT_OUTPUTFCN` is called, and if dense output (the `eval_sol_fcn`) is prepared/supported.

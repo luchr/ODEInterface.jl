@@ -1,3 +1,5 @@
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+
 ## Special Structure
 
 Some solvers (e.g. radau5 and radau) supports ODEs with a "special structure". In this context an ODE has special structure  if there exists M1>0 and M2>0 and M1 = M⋅M2 for some integer M and

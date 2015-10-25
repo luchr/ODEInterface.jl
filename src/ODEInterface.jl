@@ -41,6 +41,7 @@ __precompile__(false)
   * providing mass- and jacobi-matrices for the solvers (with support for
   banded matrices)
   * all the solvers' parameters for fine-tuning them
+  * support for problems with "special structure", see `help_specialstructure`
   
   ## What are the requirements for this module
   
@@ -64,7 +65,7 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.2-dev"
+const VERSION = "0.0.2"
 
 using Base
 

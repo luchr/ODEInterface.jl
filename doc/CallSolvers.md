@@ -1,3 +1,5 @@
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+
 ## Calling the Solvers
 
 There are two ways of calling the solvers.
