@@ -156,4 +156,254 @@ const unsafe_HW2RHSCallbacki32_c = cfunction(
   unsafe_HW2RHSCallback, Void, (Ptr{Int32},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}))
 
+"""
+       function unsafe_HW1MassCallback{FInt}(n_::Ptr{FInt}, 
+                   am_::Ptr{Float64}, lmas_::Ptr{FInt}, 
+                   rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
+  
+  This is the MAS callback given to radau5, radau and seulex.
+  
+  The `unsafe` prefix in the name indicates that no validations are 
+  performed on the `Ptr`-pointers.
+  
+  This function takes the values of  the mass matrix saved in 
+  the InternalCallInfos.
+  """
+function unsafe_HW1MassCallback{FInt}(n_::Ptr{FInt}, am_::Ptr{Float64},
+            lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
+  n = unsafe_load(n_)
+  lmas = unsafe_load(lmas_)
+  am = pointer_to_array(am_,(lmas,n,),false)
+  cid = unpackUInt64FromPtr(ipar_)
+  lprefix = string(int2logstr(cid),"unsafe_HW1MassCallback: ")
+  cbi = get(GlobalCallInfoDict,cid,nothing)
+  cbi==nothing && throw(InternalErrorODE(
+      string("Cannot find call-id ",int2logstr(cid[1]),
+             " in GlobalCallInfoDict")))
+
+  (lio,l)=(cbi.logio,cbi.loglevel)
+  l_mas = l & LOG_MASS>0
+  
+  l_mas && println(lio,lprefix,"called with n=",n," lmas=",lmas)
+
+  mas = cbi.massmatrix
+
+  if isa(mas,BandedMatrix)
+    @assert n == size(mas,2)
+    @assert lmas == 1+mas.l+mas.u
+    bm = BandedMatrix{Float64}(mas.m,mas.n, mas.l, mas.u, am::Matrix{Float64})
+    setdiagonals!(bm,mas)
+  else
+    @assert (lmas,n) == size(mas)
+    am[:] = mas
+  end
+  
+  l_mas && println(lio,lprefix,"am=",am)
+  return nothing
+end
+
+"""
+  `cfunction` pointer for unsafe_HW1MassCallback with 32bit integers.
+  """
+const unsafe_HW1MassCallbacki32_c = cfunction(
+  unsafe_HW1MassCallback, Void, (Ptr{Int32},
+    Ptr{Float64}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}))
+
+"""
+  `cfunction` pointer for unsafe_HW1MassCallback with 64bit integers.
+  """
+const unsafe_HW1MassCallback_c = cfunction(
+  unsafe_HW1MassCallback, Void, (Ptr{Int64},
+    Ptr{Float64}, Ptr{Int64}, Ptr{Float64}, Ptr{Int64}))
+
+
+"""
+       function extractSpecialStructureOpt{FInt}(d::FInt,
+                  opt::AbstractOptionsODE) -> (M1,M2,NM1)
+
+  extracts parameters for special structure (M1, M2).
+  """
+function extractSpecialStructureOpt{FInt}(d::FInt,opt::AbstractOptionsODE)
+  OPT = nothing
+  M1 = 0; M2 = 0; NM1 = 0
+  try
+    OPT=OPT_M1; M1 = convert(FInt,getOption(opt,OPT,0))
+    @assert M1 ≥ 0
+    OPT=OPT_M2; M2 = convert(FInt,getOption(opt,OPT,M1))
+    @assert M2 ≥ 0
+
+    OPT=string(OPT_M1," & ",OPT_M2)
+    @assert M1+M2 ≤ d
+    @assert (M1==M2==0) || (M1≠0≠M2)
+    @assert (M1==0) || (0 == M1 % M2)
+    NM1 = d - M1
+  catch e
+    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
+  end
+  return (M1,M2,NM1)
+end
+
+"""
+       function extractMassMatrix{FInt}(M1::FInt, M2::FInt, NM1::FInt,
+           args::AbstractArgumentsODESolver,opt::AbstractOptionsODE)
+  
+  extracts mass matrix and fills `MAS`, `IMAS`, `MLMAS` und `MUMAS` in args.
+  """
+function extractMassMatrix{FInt}(M1::FInt, M2::FInt, NM1::FInt,
+    args::AbstractArgumentsODESolver{FInt},opt::AbstractOptionsODE)
+  OPT = nothing
+  massmatrix = nothing
+  try
+    OPT = OPT_MASSMATRIX
+    massmatrix = getOption(opt,OPT,nothing)
+    if massmatrix == nothing
+      args.IMAS = [0]; args.MLMAS = [0]; args.MUMAS=[0]
+    else
+      @assert 2==ndims(massmatrix)
+      @assert (NM1,NM1,) == size(massmatrix)
+      massmatrix = deepcopy(massmatrix)
+      args.IMAS = [1]; 
+      # A BandedMatrix with lower bandwidth == NM1 is treated as full!
+      if isa(massmatrix,BandedMatrix) && massmatrix.l == NM1
+        massmatrix=full(massmatrix)
+      end
+      if isa(massmatrix,BandedMatrix)
+        @assert massmatrix.l < NM1
+        args.MLMAS = [ massmatrix.l ]
+        args.MUMAS = [ massmatrix.u ]
+      else
+        massmatrix = convert(Matrix{Float64},massmatrix)
+        args.MLMAS = [ NM1 ]; args.MUMAS = [ NM1 ]
+      end
+    end
+  catch e
+    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
+  end
+  args.MAS = (FInt == Int64)? unsafe_HW1MassCallback_c:
+                              unsafe_HW1MassCallbacki32_c
+  return massmatrix
+end
+
+"""
+       function unsafe_HW1JacCallback{FInt}(n_::Ptr{FInt},
+               t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
+               ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
+  
+  This is the JAC callback given to radau5, radau and seulex.
+  
+  The `unsafe` prefix in the name indicates that no validations are 
+  performed on the `Ptr`-pointers.
+  
+  This function calls the user-given Julia function cbi.jacobimatrix
+  with the appropriate arguments (depending on M1 and jacobibandstruct).
+  """
+function unsafe_HW1JacCallback{FInt}(n_::Ptr{FInt},
+        t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
+        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
+  n = unsafe_load(n_)
+  t = unsafe_load(t_)
+  x = pointer_to_array(x_,(n,),false)
+  ldfx = unsafe_load(ldfx_)
+  cid = unpackUInt64FromPtr(ipar_)
+  cbi = get(GlobalCallInfoDict,cid,nothing)
+  cbi==nothing && throw(InternalErrorODE(
+      string("Cannot find call-id ",int2logstr(cid[1]),
+             " in GlobalCallInfoDict")))
+  lprefix = cbi.jac_lprefix
+  (lio,l)=(cbi.logio,cbi.loglevel)
+  l_jac = l & LOG_JAC>0
+  
+  l_jac && println(lio,lprefix,"called with n=",n," ldfx=",ldfx)
+  jac = cbi.jacobimatrix
+  jb = cbi.jacobibandstruct
+  if jb == nothing
+    @assert ldfx==n-cbi.M1
+    J = pointer_to_array(dfx_,(ldfx,n,),false)
+    jac(t,x,J)
+  else
+    @assert ldfx==1+jb[1]+jb[2]
+    if cbi.M1==0
+      J = BandedMatrix{Float64}(n,n, jb[1],jb[2], 
+            pointer_to_array(dfx_,(ldfx,n,),false)::Matrix{Float64})
+      jac(t,x,J)
+    else
+      no = Int(cbi.M1/cbi.M2+1)
+      J = Vector{BandedMatrix{Float64}}(no)
+      for k in 1:no
+        ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
+        darr =  pointer_to_array(ptr, (ldfx,cbi.M2,), false)
+        J[k] = BandedMatrix{Float64}(cbi.M2,cbi.M2, jb[1],jb[2],darr)
+      end
+      jac(t,x,J...)
+    end
+  end
+  
+  l_jac && println(lio,lprefix,"dfx=",pointer_to_array(dfx_,(ldfx,n,),false))
+  return nothing
+end
+
+"""
+  `cfunction` pointer for unsafe_HW1JacCallback with 32bit integers.
+  """
+const unsafe_HW1JacCallbacki32_c = cfunction(
+  unsafe_HW1JacCallback, Void, (Ptr{Int32},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
+    Ptr{Int32}, Ptr{Float64}, Ptr{Int32}))
+
+"""
+  `cfunction` pointer for unsafe_HW1JacCallback with 64bit integers.
+  """
+const unsafe_HW1JacCallback_c = cfunction(
+  unsafe_HW1JacCallback, Void, (Ptr{Int64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
+    Ptr{Int64}, Ptr{Float64}, Ptr{Int64}))
+
+"""
+       function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
+            cid_str, args::AbstractArgumentsODESolver,opt::AbstractOptionsODE)
+  
+  extracts jacobi options and
+  fills `JAC`, `IJAC`, `MLJAC` und `MUJAC` in args.
+  """
+function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
+    cid_str, args::AbstractArgumentsODESolver{FInt},opt::AbstractOptionsODE)
+  OPT = nothing
+  jacobimatrix = nothing
+  jacobibandstruct = nothing
+  try
+    OPT = OPT_JACOBIMATRIX
+    jacobimatrix = getOption(opt,OPT,nothing)
+    @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    
+    if jacobimatrix ≠ nothing
+      OPT = OPT_JACOBIBANDSTRUCT
+      bs = getOption(opt,OPT,nothing)
+      
+      if bs ≠ nothing
+        jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
+        if jacobibandstruct[1] == NM1 
+          # A BandedMatrix with lower bandwidth == NM1 is treated as full!
+          jacobibandstruct = nothing
+        end
+      end
+      if jacobibandstruct ≠ nothing
+        @assert (M1==0) || (M1+M2==d)
+        @assert 0 ≤ jacobibandstruct[1] < NM1
+        @assert  (M1==0 && 0 ≤ jacobibandstruct[2] ≤ d)  ||
+                 (M1>0  && 0 ≤ jacobibandstruct[2] ≤ M2)
+      end
+    end
+  catch e
+    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
+  end
+
+  args.IJAC = [ jacobimatrix==nothing? 0 : 1] 
+  args.MLJAC = [ jacobibandstruct==nothing? d : jacobibandstruct[1]  ];
+  args.MUJAC=[ jacobibandstruct==nothing? d : jacobibandstruct[2] ]
+  args.JAC = (FInt == Int64)? unsafe_HW1JacCallback_c:
+                              unsafe_HW1JacCallbacki32_c
+  jac_lprefix = string(cid_str,"unsafe_HW1JacCallback: ")
+  return (jacobimatrix,jacobibandstruct,jac_lprefix)
+end
+
 # vim:syn=julia:cc=79:fdm=indent:

@@ -27,6 +27,7 @@ Prof. E. Hairer and Prof. G. Wanner, are supported:
 * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
 * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
 * radau: implicit Runge-Kutta method (Radau IIA) of variable order between 5 and 13
+* seulex: extrapolation-algorithm based on the linear implicit Euler method
 
 see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 

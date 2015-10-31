@@ -35,7 +35,9 @@ type DopriInternalCallInfos{FInt} <: ODEinternalCallInfos
   output_mode  :: OUTPUTFCN_MODE        # what mode for output function
   output_fcn   :: Function              # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
+  out_lprefix  :: AbstractString        # saved log-prefix for solout
   eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
   xNew         :: Vector{Float64}       # xNew of current solout interval
@@ -107,13 +109,12 @@ function create_dopri_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
              method_contd::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    lprefix = string(int2logstr(cid),"eval_sol_fcn_closure: ")
     cbi = get(GlobalCallInfoDict,cid,nothing)
     cbi==nothing && throw(InternalErrorODE(
         string("Cannot find call-id ",int2logstr(cid[1]),
                " in GlobalCallInfoDict")))
 
-    (lio,l)=(cbi.logio,cbi.loglevel)
+    (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
 
     l_eval && println(lio,lprefix,"called with s=",s)
@@ -173,13 +174,12 @@ function unsafe_dopriSoloutCallback{FInt}(nr_::Ptr{FInt},
   ipar = pointer_to_array(ipar_,(2,),false)
   irtrn = pointer_to_array(irtrn_,(1,),false)
   cid = unpackUInt64FromVector(ipar)
-  lprefix = string(int2logstr(cid),"unsafe_dopriSoloutCallback: ")
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi==nothing && throw(InternalErrorODE(
       string("Cannot find call-id ",int2logstr(cid[1]),
              " in GlobalCallInfoDict")))
   
-  (lio,l)=(cbi.logio,cbi.loglevel)
+  (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,

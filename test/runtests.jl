@@ -4,7 +4,7 @@
 module ODEInterfaceTest
 
 using Base.Test
- 
+
 # This is for julia v0.4 
 #   No @testset, @testloop
 
@@ -12,14 +12,20 @@ using ODEInterface
 @ODEInterface.import_huge
 
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
-                    DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32) 
+                    DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
+                    DL_SEULEX, DL_SEULEX_I32,
+                    ) 
 const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
                  odex, odex_i32, 
                  radau5, radau5_i32, radau, radau_i32,
+                 seulex, seulex_i32,
                 )
 
-const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,)
-const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,)
+const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
+                      seulex, seulex_i32, )
+
+const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
+                      seulex, seulex_i32, )
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
@@ -334,7 +340,7 @@ function test_odecall2(solver::Function)
 end
 
 function test_Banded()
-  #testset "Banded" 
+  #@testset "Banded" 
   begin
     @test_throws ArgumentErrorODE  BandedMatrix{Float64}(
                                    5,4,1,2,zeros(Float64,(4,5)))
@@ -384,7 +390,7 @@ function test_Banded()
 end
 
 function test_Options()
-  #testset "Options" 
+  #@testset "Options" 
   begin
     opt1 = OptionsODE("test1");
     @test isa(opt1, OptionsODE)
@@ -403,18 +409,18 @@ function test_Options()
 end
 
 function test_DLSolvers()
-  #testset "DLSolvers" 
+  #@testset "DLSolvers" 
   begin
     result = loadODESolvers()
-    #testloop 
+    #@testloop 
     for dl in dl_solvers
       @test result[dl].error == nothing
       @test result[dl].libhandle ≠ C_NULL
     end
     
-    #testloop 
+    #@testloop 
     for dl in dl_solvers 
-      #testloop 
+      #@testloop 
       for method in result[dl].methods
         @test method.error == nothing
         @test method.method_ptr ≠ C_NULL
@@ -427,9 +433,9 @@ end
 
 function test_solvers()
   problems = (test_ode1,test_ode2,test_ode3,)
-  #testset "solvers" 
+  #@testset "solvers" 
   begin
-    #testloop 
+    #@testloop 
     for solver in solvers,
                   problem in problems
       @test problem(solver)
@@ -437,9 +443,9 @@ function test_solvers()
   end
 
   problems = (test_massode1,test_massode2,test_massode3,test_massode4)
-  #testset "mas-solvers" 
+  #@testset "mas-solvers" 
   begin
-    #testloop 
+    #@testloop 
     for solver in solvers_mas,
                   problem in problems
       @test problem(solver)
@@ -447,9 +453,9 @@ function test_solvers()
   end
 
   problems = (test_jacode1,test_jacode2,test_jacode3,test_jacode4)
-  #testset "jac-solvers" 
+  #@testset "jac-solvers" 
   begin
-    #testloop 
+    #@testloop 
     for solver in solvers_jac,
                   problem in problems
       @test problem(solver)
@@ -459,9 +465,9 @@ end
 
 function test_odecall()
   problems = (test_odecall1,test_odecall2,)
-  #testset "odecall" 
+  #@testset "odecall" 
   begin
-    #testloop 
+    #@testloop 
     for solver in solvers,
                   problem in problems
       @test problem(solver)

@@ -45,7 +45,7 @@ using Base.Markdown
   ## Help for each solver
   
   Each solver has its own help page. Just look at the documentation of
-  `dopri5`, `dop853`, `odex`, `radau5`, `radau`.
+  `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `seulex`.
   """
 function help_overview()
   return Docs.doc(help_overview)

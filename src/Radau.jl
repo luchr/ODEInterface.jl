@@ -63,7 +63,7 @@ end
            call_julia_output_fcn(  ... INIT ... )
                output_fcn ( ... INIT ...)
            ccall( RADAU5_/RADAU_ ... )
-               unsafe_radauMassCallback_c
+               unsafe_HW1MassCallback_c
               ┌───────────────────────────────────────────┐  ⎫
               │unsafe_HW2RHSCallback_c                    │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
@@ -76,7 +76,7 @@ end
               │                ccall(CONTR5_/CONTRA_ ... )│  ⎪
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_radauJacCallback:                   │  ⎬ cb. jacobian
+              │unsafe_HW1JacCallback:                     │  ⎬ cb. jacobian
               │    call_julia_jac_fcn(             )      │  ⎪
               └───────────────────────────────────────────┘  ⎭
            call_julia_output_fcn(  ... DONE ... )
@@ -97,7 +97,9 @@ type RadauInternalCallInfos{FInt} <: ODEinternalCallInfos
   output_mode  :: OUTPUTFCN_MODE        # what mode for output function
   output_fcn   :: Function              # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
+  out_lprefix  :: AbstractString        # saved log-prefix for solout
   eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
   xNew         :: Vector{Float64}       # xNew of current solout interval
@@ -187,13 +189,12 @@ function unsafe_radauSoloutCallback{FInt}(nr_::Ptr{FInt},
   x = pointer_to_array(x_,(n,),false)
   irtrn = pointer_to_array(irtrn_,(1,),false)
   cid = unpackUInt64FromPtr(ipar_)
-  lprefix = string(int2logstr(cid),"unsafe_radauSoloutCallback: ")
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi==nothing && throw(InternalErrorODE(
       string("Cannot find call-id ",int2logstr(cid[1]),
              " in GlobalCallInfoDict")))
 
-  (lio,l)=(cbi.logio,cbi.loglevel)
+  (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
@@ -267,13 +268,12 @@ function create_radau_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
              method_cont::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    lprefix = string(int2logstr(cid),"eval_sol_fcn_closure: ")
     cbi = get(GlobalCallInfoDict,cid,nothing)
     cbi==nothing && throw(InternalErrorODE(
         string("Cannot find call-id ",int2logstr(cid[1]),
                " in GlobalCallInfoDict")))
 
-    (lio,l)=(cbi.logio,cbi.loglevel)
+    (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
 
     l_eval && println(lio,lprefix,"called with s=",s)
@@ -298,254 +298,6 @@ function create_radau_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
   return eval_sol_fcn_closure
 end
 
-"""
-       function unsafe_radauMassCallback{FInt}(n_::Ptr{FInt}, 
-                   am_::Ptr{Float64}, lmas_::Ptr{FInt}, 
-                   rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
-  
-  This is the MAS callback given to radau5 and radau.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
-  performed on the `Ptr`-pointers.
-  
-  This function takes the values of  the mass matrix saved in 
-  the `RadauInternalCallInfos`.
-  """
-function unsafe_radauMassCallback{FInt}(n_::Ptr{FInt}, am_::Ptr{Float64},
-            lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
-  n = unsafe_load(n_)
-  lmas = unsafe_load(lmas_)
-  am = pointer_to_array(am_,(lmas,n,),false)
-  cid = unpackUInt64FromPtr(ipar_)
-  lprefix = string(int2logstr(cid),"unsafe_radauMassCallback: ")
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
-
-  (lio,l)=(cbi.logio,cbi.loglevel)
-  l_mas = l & LOG_MASS>0
-  
-  l_mas && println(lio,lprefix,"called with n=",n," lmas=",lmas)
-
-  mas = cbi.massmatrix
-
-  if isa(mas,BandedMatrix)
-    @assert n == size(mas,2)
-    @assert lmas == 1+mas.l+mas.u
-    bm = BandedMatrix{Float64}(mas.m,mas.n, mas.l, mas.u, am::Matrix{Float64})
-    setdiagonals!(bm,mas)
-  else
-    @assert (lmas,n) == size(mas)
-    am[:] = mas
-  end
-  
-  l_mas && println(lio,lprefix,"am=",am)
-  return nothing
-end
-
-"""
-  `cfunction` pointer for unsafe_radauMassCallback with 32bit integers.
-  """
-const unsafe_radauMassCallbacki32_c = cfunction(
-  unsafe_radauMassCallback, Void, (Ptr{Int32},
-    Ptr{Float64}, Ptr{Int32}, Ptr{Float64}, Ptr{Int32}))
-
-"""
-  `cfunction` pointer for unsafe_radauMassCallback with 64bit integers.
-  """
-const unsafe_radauMassCallback_c = cfunction(
-  unsafe_radauMassCallback, Void, (Ptr{Int64},
-    Ptr{Float64}, Ptr{Int64}, Ptr{Float64}, Ptr{Int64}))
-
-"""
-       function unsafe_radauJacCallback{FInt}(n_::Ptr{FInt},
-               t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-               ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
-  
-  This is the JAC callback given to radau5 and radau.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
-  performed on the `Ptr`-pointers.
-  
-  This function calls the user-given Julia function cbi.jacobimatrix
-  with the appropriate arguments (depending on M1 and jacobibandstruct).
-  """
-function unsafe_radauJacCallback{FInt}(n_::Ptr{FInt},
-        t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
-  n = unsafe_load(n_)
-  t = unsafe_load(t_)
-  x = pointer_to_array(x_,(n,),false)
-  ldfx = unsafe_load(ldfx_)
-  cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
-  lprefix = cbi.jac_lprefix
-  (lio,l)=(cbi.logio,cbi.loglevel)
-  l_jac = l & LOG_JAC>0
-  
-  l_jac && println(lio,lprefix,"called with n=",n," ldfx=",ldfx)
-  jac = cbi.jacobimatrix
-  jb = cbi.jacobibandstruct
-  if jb == nothing
-    @assert ldfx==n-cbi.M1
-    J = pointer_to_array(dfx_,(ldfx,n,),false)
-    jac(t,x,J)
-  else
-    @assert ldfx==1+jb[1]+jb[2]
-    if cbi.M1==0
-      J = BandedMatrix{Float64}(n,n, jb[1],jb[2], 
-            pointer_to_array(dfx_,(ldfx,n,),false)::Matrix{Float64})
-      jac(t,x,J)
-    else
-      no = Int(cbi.M1/cbi.M2+1)
-      J = Vector{BandedMatrix{Float64}}(no)
-      for k in 1:no
-        ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
-        darr =  pointer_to_array(ptr, (ldfx,cbi.M2,), false)
-        J[k] = BandedMatrix{Float64}(cbi.M2,cbi.M2, jb[1],jb[2],darr)
-      end
-      jac(t,x,J...)
-    end
-  end
-  
-  l_jac && println(lio,lprefix,"dfx=",pointer_to_array(dfx_,(ldfx,n,),false))
-  return nothing
-end
-
-"""
-  `cfunction` pointer for unsafe_radauJacCallback with 32bit integers.
-  """
-const unsafe_radauJacCallbacki32_c = cfunction(
-  unsafe_radauJacCallback, Void, (Ptr{Int32},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Int32}, Ptr{Float64}, Ptr{Int32}))
-
-"""
-  `cfunction` pointer for unsafe_radauJacCallback with 64bit integers.
-  """
-const unsafe_radauJacCallback_c = cfunction(
-  unsafe_radauJacCallback, Void, (Ptr{Int64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Int64}, Ptr{Float64}, Ptr{Int64}))
-
-"""
-       function extractSpecialStructureOpt{FInt}(d::FInt,
-                  opt::AbstractOptionsODE) -> (M1,M2,NM1)
-
-  extracts parameters for special structure (M1, M2).
-  """
-function extractSpecialStructureOpt{FInt}(d::FInt,opt::AbstractOptionsODE)
-  OPT = nothing
-  M1 = 0; M2 = 0; NM1 = 0
-  try
-    OPT=OPT_M1; M1 = convert(FInt,getOption(opt,OPT,0))
-    @assert M1 ≥ 0
-    OPT=OPT_M2; M2 = convert(FInt,getOption(opt,OPT,M1))
-    @assert M2 ≥ 0
-
-    OPT=string(OPT_M1," & ",OPT_M2)
-    @assert M1+M2 ≤ d
-    @assert (M1==M2==0) || (M1≠0≠M2)
-    @assert (M1==0) || (0 == M1 % M2)
-    NM1 = d - M1
-  catch e
-    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
-  end
-  return (M1,M2,NM1)
-end
-
-"""
-       function extractMassMatrix{FInt}(M1::FInt, M2::FInt, NM1::FInt,
-           args::RadauArguments,opt::AbstractOptionsODE) -> massmatrix
-  
-  extracts mass matrix and fills `MAS`, `IMAS`, `MLMAS` und `MUMAS` in args.
-  """
-function extractMassMatrix{FInt}(M1::FInt, M2::FInt, NM1::FInt,
-    args::RadauArguments,opt::AbstractOptionsODE)
-  OPT = nothing
-  massmatrix = nothing
-  try
-    OPT = OPT_MASSMATRIX
-    massmatrix = getOption(opt,OPT,nothing)
-    if massmatrix == nothing
-      args.IMAS = [0]; args.MLMAS = [0]; args.MUMAS=[0]
-    else
-      @assert 2==ndims(massmatrix)
-      @assert (NM1,NM1,) == size(massmatrix)
-      massmatrix = deepcopy(massmatrix)
-      args.IMAS = [1]; 
-      # A BandedMatrix with lower bandwidth == NM1 is treated as full!
-      if isa(massmatrix,BandedMatrix) && massmatrix.l == NM1
-        massmatrix=full(massmatrix)
-      end
-      if isa(massmatrix,BandedMatrix)
-        @assert massmatrix.l < NM1
-        args.MLMAS = [ massmatrix.l ]
-        args.MUMAS = [ massmatrix.u ]
-      else
-        massmatrix = convert(Matrix{Float64},massmatrix)
-        args.MLMAS = [ NM1 ]; args.MUMAS = [ NM1 ]
-      end
-    end
-  catch e
-    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
-  end
-  args.MAS = (FInt == Int64)? unsafe_radauMassCallback_c:
-                              unsafe_radauMassCallbacki32_c
-  return massmatrix
-end
-
-"""
-       function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
-                cid_str, args::RadauArguments,opt::AbstractOptionsODE)
-  
-  extracts jacobi options and
-  fills `JAC`, `IJAC`, `MLJAC` und `MUJAC` in args.
-  """
-function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
-    cid_str, args::RadauArguments,opt::AbstractOptionsODE)
-  OPT = nothing
-  jacobimatrix = nothing
-  jacobibandstruct = nothing
-  try
-    OPT = OPT_JACOBIMATRIX
-    jacobimatrix = getOption(opt,OPT,nothing)
-    @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
-    
-    if jacobimatrix ≠ nothing
-      OPT = OPT_JACOBIBANDSTRUCT
-      bs = getOption(opt,OPT,nothing)
-      
-      if bs ≠ nothing
-        jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
-        if jacobibandstruct[1] == NM1 
-          # A BandedMatrix with lower bandwidth == NM1 is treated as full!
-          jacobibandstruct = nothing
-        end
-      end
-      if jacobibandstruct ≠ nothing
-        @assert (M1==0) || (M1+M2==d)
-        @assert 0 ≤ jacobibandstruct[1] < NM1
-        @assert  (M1==0 && 0 ≤ jacobibandstruct[2] ≤ d)  ||
-                 (M1>0  && 0 ≤ jacobibandstruct[2] ≤ M2)
-      end
-    end
-  catch e
-    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
-  end
-
-  args.IJAC = [ jacobimatrix==nothing? 0 : 1] 
-  args.MLJAC = [ jacobibandstruct==nothing? d : jacobibandstruct[1]  ];
-  args.MUJAC=[ jacobibandstruct==nothing? d : jacobibandstruct[2] ]
-  args.JAC = (FInt == Int64)? unsafe_radauJacCallback_c:
-                              unsafe_radauJacCallbacki32_c
-  jac_lprefix = string(cid_str,"unsafe_radauJacCallback: ")
-  return (jacobimatrix,jacobibandstruct,jac_lprefix)
-end
 
 """
   extracts options specific to radau5 and to radau.
@@ -630,16 +382,18 @@ function extractCommonRadauOpt{FInt}(d::FInt,T,t0,cid_str,
   rhs_lprefix = string(cid_str,"unsafe_HW2RHSCallback: ")
   args.SOLOUT = (FInt == Int64)? unsafe_radauSoloutCallback_c:
                                  unsafe_radauSoloutCallbacki32_c
+  out_lprefix = string(cid_str,"unsafe_radauSoloutCallback: ")
+  eval_lprefix = string(cid_str,"eval_sol_fcn_closure: ")
   
-  return rhs_lprefix
+  return (rhs_lprefix,out_lprefix,eval_lprefix)
 end
 
 """
   calls the radau5 or radau solver after all solver arguments are prepared.
   """
-function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,
+function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,lprefix,
    d::FInt,M1::FInt,M2::FInt, rhs,rhs_mode,rhs_lprefix,
-   output_mode,output_fcn,massmatrix,
+   output_mode,output_fcn,out_lprefix,eval_lprefix,massmatrix,
    jacobimatrix,jacobibandstruct,jac_lprefix,args,method_solver,method_cont)
   try
     eval_sol_fcn =
@@ -650,7 +404,7 @@ function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,
     GlobalCallInfoDict[cid[1]] =
       RadauInternalCallInfos{FInt}(cid,lio,l,M1,M2,rhs,rhs_mode,rhs_lprefix,
         output_mode,output_fcn,
-        Dict(),eval_sol_fcn,NaN,NaN,Vector{Float64}(),
+        Dict(),out_lprefix,eval_sol_fcn,eval_lprefix,NaN,NaN,Vector{Float64}(),
         Vector{FInt}(1),Vector{Float64}(1),C_NULL,C_NULL,
         massmatrix==nothing?zeros(0,0):massmatrix,
         jacobimatrix==nothing?dummy_func:jacobimatrix,
@@ -780,7 +534,8 @@ function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   args.IWORK = zeros(FInt,args.LIWORK[1])
 
   args.IWORK[9] = M1; args.IWORK[10] = M2
-  rhs_lprefix = extractCommonRadauOpt(d,T,t0,cid_str,args,opt)
+  (rhs_lprefix,out_lprefix,eval_lprefix) = 
+    extractCommonRadauOpt(d,T,t0,cid_str,args,opt)
 
   OPT = nothing
   try
@@ -796,8 +551,9 @@ function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
 
-  return doRadauSolverCall(cid,lio,l,l_g,l_solver,d,M1,M2,
-         rhs,rhs_mode,rhs_lprefix,output_mode,output_fcn,massmatrix,
+  return doRadauSolverCall(cid,lio,l,l_g,l_solver,lprefix,d,M1,M2,
+         rhs,rhs_mode,rhs_lprefix,output_mode,output_fcn,
+         out_lprefix,eval_lprefix,massmatrix,
          jacobimatrix,jacobibandstruct,jac_lprefix,args,
          method_radau5,method_contr5)
 end
@@ -901,8 +657,8 @@ end
       ║ MAXSTEPS        │ maximal number of allowed steps          │  100000 ║
       ║                 │ OPT_MAXSTEPS > 0                         │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ MAXS            │ maximal step size                        │  T - t0 ║
-      ║                 │ OPT_MAXS ≠ 0                             │         ║
+      ║ MAXSS           │ maximal step size                        │  T - t0 ║
+      ║                 │ OPT_MAXSS ≠ 0                            │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ INITIALSS       │ initial step size guess                  │    1e-6 ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
@@ -1065,7 +821,8 @@ function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   args.IWORK = zeros(FInt,args.LIWORK[1])
 
   args.IWORK[9] = M1; args.IWORK[10] = M2
-  rhs_lprefix = extractCommonRadauOpt(d,T,t0,cid_str,args,opt)
+  (rhs_lprefix,out_lprefix,eval_lprefix) = 
+    extractCommonRadauOpt(d,T,t0,cid_str,args,opt)
 
   try
     OPT=OPT_MAXNEWTONITER; args.IWORK[3] = convert(FInt,getOption(opt,OPT,7))
@@ -1100,8 +857,9 @@ function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
   
-  return doRadauSolverCall(cid,lio,l,l_g,l_solver,d,M1,M2,
-         rhs,rhs_mode,rhs_lprefix,output_mode,output_fcn,massmatrix,
+  return doRadauSolverCall(cid,lio,l,l_g,l_solver,lprefix,d,M1,M2,
+         rhs,rhs_mode,rhs_lprefix,output_mode,output_fcn,
+         out_lprefix,eval_lprefix,massmatrix,
          jacobimatrix,jacobibandstruct,jac_lprefix,args,
          method_radau,method_contra)
 end

@@ -88,8 +88,8 @@ end
       ║                 │ OPT_SSBETA ≤ 0.2                         │         ║
       ║                 │ if OPT_SSBETA < 0 then OPT_SSBETA = 0    │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ MAXS            │ maximal step size                        │  T - t0 ║
-      ║                 │ OPT_MAXS ≠ 0                             │         ║
+      ║ MAXSS           │ maximal step size                        │  T - t0 ║
+      ║                 │ OPT_MAXSS ≠ 0                            │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ INITIALSS       │ initial step size                        │     0.0 ║
       ║                 │ if OPT_INITIALSS == 0 then a initial     │         ║
@@ -179,6 +179,8 @@ function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   rhs_lprefix = string(cid_str,"unsafe_HW1RHSCallback: ")
   args.SOLOUT = (FInt == Int64)? unsafe_dopriSoloutCallback_c:
                                  unsafe_dopriSoloutCallbacki32_c
+  out_lprefix = string(cid_str,"unsafe_dopriSoloutCallback: ")
+  eval_lprefix = string(cid_str,"eval_sol_fcn_closure: ")
 
   try
     eval_sol_fcn = 
@@ -189,7 +191,8 @@ function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     GlobalCallInfoDict[cid[1]] = 
       DopriInternalCallInfos{FInt}(cid,lio,l,rhs,rhs_mode,rhs_lprefix,
         output_mode,output_fcn,
-        Dict(), eval_sol_fcn,NaN,NaN,Vector{Float64}(),
+        Dict(), out_lprefix, eval_sol_fcn,eval_lprefix,
+        NaN,NaN,Vector{Float64}(),
         Vector{FInt}(1),Vector{Float64}(1),C_NULL,C_NULL,C_NULL)
 
     args.IPAR = Vector{FInt}(2)   # enough for cid[1] even in 32bit case

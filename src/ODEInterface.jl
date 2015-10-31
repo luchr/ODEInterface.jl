@@ -65,7 +65,7 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.2"
+const VERSION = "0.0.3"
 
 using Base
 
@@ -97,6 +97,8 @@ macro import_huge()
     @ODEInterface.import_DLradau5
     @ODEInterface.import_radau
     @ODEInterface.import_DLradau
+    @ODEInterface.import_seulex
+    @ODEInterface.import_DLseulex
   end
 end
 
@@ -111,6 +113,7 @@ macro import_normal()
     @ODEInterface.import_odex
     @ODEInterface.import_radau5
     @ODEInterface.import_radau
+    @ODEInterface.import_seulex
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -227,7 +230,10 @@ macro import_OPTcommon()
                           OPT_JACOBIMATRIX, OPT_JACOBIBANDSTRUCT,
                           OPT_MAXSTAGES, OPT_MINSTAGES, OPT_INITSTAGES,
                           OPT_ORDERDECFACTOR, OPT_ORDERINCFRAC,
-                          OPT_ORDERDECSTEPFAC1, OPT_ORDERDECSTEPFAC2
+                          OPT_ORDERDECSTEPFAC1, OPT_ORDERDECSTEPFAC2,
+                          OPT_RHSAUTONOMOUS, OPT_LAMBDADENSE,
+                          OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
+                          OPT_WORKFORSOL
   )
 end
 
@@ -297,6 +303,13 @@ const OPT_ORDERINCFACTOR   = "OrderIncreaseFactor"
 const OPT_ORDERDECFACTOR   = "OrderDecreaseFactor"
 const OPT_ORDERDECSTEPFAC1 = "OrderDecreaseStepFactor1"
 const OPT_ORDERDECSTEPFAC2 = "OrderDecreaseStepFactor2"
+
+const OPT_RHSAUTONOMOUS    = "AutonomousRHS"
+const OPT_LAMBDADENSE      = "LambdaForDenseOutput"
+const OPT_WORKFORRHS       = "WorkForRightHandSide"
+const OPT_WORKFORJAC       = "WorkForJacobimatrix"
+const OPT_WORKFORDEC       = "WorkForLuDecomposition"
+const OPT_WORKFORSOL       = "WorkForSubstitution"
 
 
 @enum(RHS_CALL_MODE,
@@ -498,6 +511,7 @@ include("./Dopri5.jl")
 include("./Dop853.jl")
 include("./Odex.jl")
 include("./Radau.jl")
+include("./Seulex.jl")
 
 include("./Call.jl")
 include("./Help.jl")
