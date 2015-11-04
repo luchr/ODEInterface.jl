@@ -65,7 +65,7 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.3"
+const VERSION = "0.0.4"
 
 using Base
 

@@ -25,8 +25,8 @@ The ODEInterface.jl package is licensed under the MIT "Expat" License:
 This package contains Fortran source code files from
 http://www.unige.ch/~hairer/software.html
 
-This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`) are
-licensed under the following license,
+This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`, 
+`seulex.f`) are licensed under the following license,
 see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 
 

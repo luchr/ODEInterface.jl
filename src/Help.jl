@@ -11,6 +11,7 @@ macro import_help()
     @ODEInterface.import_odex_help
     @ODEInterface.import_radau5_help
     @ODEInterface.import_radau_help
+    @ODEInterface.import_seulex_help
   end
 end
 

@@ -135,7 +135,9 @@ function loadODESolvers(extrapaths::Vector=ASCIIString[],
         if endswith(path_to_module,"ODEInterface")
           path_to_module = path_to_module[1:end-12]
         end
-        path_to_module = string(path_to_module,Base.path_separator)
+        if !endswith(path_to_module,Base.path_separator)
+          path_to_module = string(path_to_module,Base.path_separator)
+        end
         extrapaths = [ path_to_module ]
       end
     catch 
