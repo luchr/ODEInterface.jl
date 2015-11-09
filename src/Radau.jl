@@ -865,7 +865,7 @@ function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
 end
 
 """  
-  ## Compile RADAU5
+  ## Compile RADAU5 
 
   The Fortran source code can be found at:
   
@@ -873,52 +873,96 @@ end
   
   See `help_radau5_license` for the licsense information.
   
-  ### Using `gcc` and 64bit integers
+  ### Using `gfortran` and 64bit integers (Linux and Mac)
   
   Here is an example how to compile RADAU5 with `Float64` reals and
-  `Int64` integers with `gcc`:
+  `Int64` integers with `gfortran`:
   
-       gfortran -c -fPIC  -fdefault-integer-8  
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o radau5.o   radau5.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o dc_lapack.o dc_lapack.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o dc_lapack.o   dc_lapack.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o lapack.o lapack.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapack.o   lapack.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o lapackc.o lapackc.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc.o   lapackc.f
+                -o radau5.o radau5.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+
+       gfortran -shared -fPIC -o radau5.so 
+                radau5.o dc_lapack.o lapack.o lapackc.o
+       gfortran -shared -fPIC -o radau5.dylib
+                radau5.o dc_lapack.o lapack.o lapackc.o
   
-       gcc  -shared -fPIC -Wl,-soname,libradau5.so 
-            -lgfortran -o radau5.so  radau5.o dc_lapack.o lapack.o lapackc.o
-  
-  ### Using `gcc` and 32bit integers
+  ### Using `gfortran` and 64bit integers (Windows)
   
   Here is an example how to compile RADAU5 with `Float64` reals and
-  `Int32` integers with `gcc`:
+  `Int64` integers with `gfortran`:
   
-       gfortran -c -fPIC  
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o radau5_i32.o   radau5.f
-       gfortran -c -fPIC  
+                -o dc_lapack.o dc_lapack.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o dc_lapack_i32.o   dc_lapack.f
-       gfortran -c -fPIC  
+                -o lapack.o lapack.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapack_i32.o   lapack.f
-       gfortran -c -fPIC  
+                -o lapackc.o lapackc.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o   lapackc.f
+                -o radau5.o radau5.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
   
-       gcc  -shared -fPIC -Wl,-soname,librdau5_i32.so 
-            -lgfortran -o radau5_i32.so 
-            radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -o radau5.so 
+                radau5.o dc_lapack.o lapack.o lapackc.o
+  
+  ### Using `gfortran` and 32bit integers (Linux and Mac)
+  
+  Here is an example how to compile RADAU5 with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o dc_lapack_i32.o dc_lapack.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o lapack_i32.o lapack.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o lapackc_i32.o lapackc.f 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o radau5_i32.o radau5.f
+  
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+  
+       gfortran -shared -fPIC -o radau5_i32.so 
+                 radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -fPIC -o radau5_i32.dylib
+                 radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+  
+  ### Using `gfortran` and 32bit integers (Windows)
+  
+  Here is an example how to compile RADAU5 with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o dc_lapack_i32.o dc_lapack.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o lapack_i32.o lapack.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o lapackc_i32.o lapackc.f 
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o radau5_i32.o radau5.f
+  
+  In order to get create a shared library (from the object file above) use:
+
+       gfortran -shared -o radau5_i32.dll
+                 radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+  
   """
 function help_radau5_compile()
   return Docs.doc(help_radau5_compile)
@@ -931,7 +975,7 @@ end
 @doc(@doc(hw_license),help_radau5_license)
 
 """  
-  ## Compile RADAU
+  ## Compile RADAU 
 
   The Fortran source code can be found at:
   
@@ -939,52 +983,96 @@ end
   
   See `help_radau_license` for the licsense information.
   
-  ### Using `gcc` and 64bit integers
+  ### Using `gfortran` and 64bit integers (Linux and Mac)
   
-  Here is an example how to compile RADAU5 with `Float64` reals and
-  `Int64` integers with `gcc`:
+  Here is an example how to compile RADAU with `Float64` reals and
+  `Int64` integers with `gfortran`:
   
-       gfortran -c -fPIC  -fdefault-integer-8  
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o radau.o   radau.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o dc_lapack.o dc_lapack.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o dc_lapack.o   dc_lapack.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o lapack.o lapack.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapack.o   lapack.f
-       gfortran -c -fPIC  -fdefault-integer-8  
+                -o lapackc.o lapackc.f
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc.o   lapackc.f
+                -o radau.o radau.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+
+       gfortran -shared -fPIC -o radau.so 
+                radau.o dc_lapack.o lapack.o lapackc.o
+       gfortran -shared -fPIC -o radau.dylib
+                radau.o dc_lapack.o lapack.o lapackc.o
   
-       gcc  -shared -fPIC -Wl,-soname,libradau.so 
-            -lgfortran -o radau.so  radau.o dc_lapack.o lapack.o lapackc.o
+  ### Using `gfortran` and 64bit integers (Windows)
   
-  ### Using `gcc` and 32bit integers
+  Here is an example how to compile RADAU with `Float64` reals and
+  `Int64` integers with `gfortran`:
   
-  Here is an example how to compile RADAU5 with `Float64` reals and
-  `Int32` integers with `gcc`:
-  
-       gfortran -c -fPIC  
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o radau_i32.o   radau.f
-       gfortran -c -fPIC  
+                -o dc_lapack.o dc_lapack.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o dc_lapack_i32.o   dc_lapack.f
-       gfortran -c -fPIC  
+                -o lapack.o lapack.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapack_i32.o   lapack.f
-       gfortran -c -fPIC  
+                -o lapackc.o lapackc.f
+       gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o   lapackc.f
+                -o radau.o radau.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
   
-       gcc  -shared -fPIC -Wl,-soname,librdau5_i32.so 
-            -lgfortran -o radau_i32.so 
-            radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -o radau.so 
+                radau.o dc_lapack.o lapack.o lapackc.o
+  
+  ### Using `gfortran` and 32bit integers (Linux and Mac)
+  
+  Here is an example how to compile RADAU with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o dc_lapack_i32.o dc_lapack.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o lapack_i32.o lapack.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o lapackc_i32.o lapackc.f 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+                -o radau_i32.o radau.f
+  
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+  
+       gfortran -shared -fPIC -o radau_i32.so 
+                 radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -fPIC -o radau_i32.dylib
+                 radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+  
+  ### Using `gfortran` and 32bit integers (Windows)
+  
+  Here is an example how to compile RADAU with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o dc_lapack_i32.o dc_lapack.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o lapack_i32.o lapack.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o lapackc_i32.o lapackc.f 
+       gfortran -c -fdefault-real-8 -fdefault-double-8 
+                -o radau_i32.o radau.f
+  
+  In order to get create a shared library (from the object file above) use:
+
+       gfortran -shared -o radau_i32.dll
+                 radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+  
   """
 function help_radau_compile()
   return Docs.doc(help_radau_compile)

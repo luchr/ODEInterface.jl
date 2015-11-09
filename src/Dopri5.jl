@@ -256,33 +256,62 @@ end
   
   See `help_dopri5_license` for the licsense information.
   
-  ### Using `gcc` and 64bit integers
+  ### Using `gfortran` and 64bit integers (Linux and Mac)
   
   Here is an example how to compile DOPRI5 with `Float64` reals and
-  `Int64` integers with `gcc`:
-  
-       gfortran -c -fPIC  -fdefault-integer-8  
+  `Int64` integers with `gfortran`:
+
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o dopri5.o   dopri5.f
+                -o dopri5.o dopri5.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
   
-       gcc  -shared -fPIC -Wl,-soname,libdorpi5.so 
-            -lgfortran -o dopri5.so  dopri5.o
+       gfortran -shared -fPIC -o dopri5.so dopri5.o
+       gfortran -shared -fPIC -o dopri5.dylib dopri5.o
   
-  ### Using `gcc` and 32bit integers
+  ### Using `gfortran` and 64bit integers (Windows)
   
   Here is an example how to compile DOPRI5 with `Float64` reals and
-  `Int32` integers with `gcc`:
+  `Int64` integers with `gfortran`:
+
+       gfortran -c -fdefault-integer-8 
+                -fdefault-real-8 -fdefault-double-8 
+                -o dopri5.o dopri5.f
+  
+  In order to get create a shared library (from the object file above) use
+  
+       gfortran -shared -o dopri5.dll dopri5.o
+  
+  ### Using `gfortran` and 32bit integers (Linux and Mac)
+  
+  Here is an example how to compile DOPRI5 with `Float64` reals and
+  `Int32` integers with `gfortran`:
   
        gfortran -c -fPIC  
                 -fdefault-real-8 -fdefault-double-8 
                 -o dopri5_i32.o   dopri5.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+
+       gfortran -shared -fPIC -o dopri5_i32.so dopri5_i32.o
+       gfortran -shared -fPIC -o dopri5_i32.dylib dopri5_i32.o
   
-       gcc  -shared -fPIC -Wl,-soname,libdorpi5_i32.so 
-            -lgfortran -o dopri5_i32.so  dopri5_i32.o
+  ### Using `gfortran` and 32bit integers (Windows)
+  
+  Here is an example how to compile DOPRI5 with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c
+                -fdefault-real-8 -fdefault-double-8 
+                -o dopri5_i32.o   dopri5.f
+  
+  In order to get create a shared library (from the object file above) use:
+
+       gfortran -shared -o dopri5_i32.dll dopri5_i32.o
+  
   """
 function help_dopri5_compile()
   return Docs.doc(help_dopri5_compile)

@@ -1,16 +1,11 @@
-unix_flag = @unix ? true : false
-
-if !unix_flag
-  error(string("Sorry. ",OS_NAME," is not yet supported."))
-end
-
-file_extension = @osx ? ".dylib" : ".so"
-
+windows_flag = @windows? true : false
+file_extension = @osx ? ".dylib" : @windows ? ".dll" : ".so" 
 obj_files = []
+verbose = false
 
 function search_prog(progname::AbstractString)
   output = ""
-  search_cmd = `which $progname`
+  search_cmd = windows_flag ? `where "$progname"` : `which $progname`
   try
     output = readall(search_cmd)
   catch e
@@ -23,14 +18,25 @@ function compile_gfortran(path::AbstractString, basename::AbstractString)
   flags_i64 = [ "-fdefault-integer-8", "-fdefault-real-8",
                 "-fdefault-double-8" ]
   flags_i32 = [ "-fdefault-real-8", "-fdefault-double-8" ]
+  comp_flags = windows_flag ? [ "-c" ] : [ "-c", "-fPIC" ]
 
   ofile = joinpath(path,string(basename,".o"))
-  cmd_i64=`gfortran  -c  -fPIC $flags_i64 -o $ofile  $ffile`
+  if windows_flag
+    cmd_i64 = `gfortran  $comp_flags $flags_i64 -o "$ofile"  "$ffile"`
+  else
+    cmd_i64 = `gfortran  $comp_flags $flags_i64 -o $ofile  $ffile` 
+  end
+  verbose && println(cmd_i64)
   run(cmd_i64)
   push!(obj_files,ofile)
 
   ofile = joinpath(path,string(basename,"_i32.o"))
-  cmd_i32=`gfortran  -c  -fPIC $flags_i32 -o $ofile  $ffile`
+  if windows_flag
+    cmd_i32 = `gfortran  $comp_flags $flags_i32 -o "$ofile"  "$ffile"`
+  else
+    cmd_i32 = `gfortran  $comp_flags $flags_i32 -o $ofile  $ffile`
+  end
+  verbose && println(cmd_i32)
   run(cmd_i32)
   push!(obj_files,ofile)
 
@@ -38,14 +44,25 @@ function compile_gfortran(path::AbstractString, basename::AbstractString)
 end
 
 function link_gfortran(path::AbstractString, basenames)
+  link_flags = windows_flag ? [ "-shared" ] : [ "-shared", "-fPIC" ]
   i64_obj = map( name -> joinpath(path,string(name,".o")), basenames )
   sofile = joinpath(path,string(basenames[1],file_extension))
-  cmd_i64 = `gfortran -shared -fPIC -o $sofile $i64_obj`
+  if windows_flag
+    cmd_i64 = `gfortran $link_flags -o "$sofile" "$i64_obj"`
+  else
+    cmd_i64 = `gfortran $link_flags -o $sofile $i64_obj`
+  end
+  verbose && println(cmd_i64)
   run(cmd_i64)
 
   i32_obj = map( name -> joinpath(path,string(name,"_i32.o")), basenames )
   sofile = joinpath(path,string(basenames[1],"_i32",file_extension))
-  cmd_i32 = `gfortran -shared -fPIC -o $sofile $i32_obj`
+  if windows_flag
+    cmd_i32 = `gfortran $link_flags -o "$sofile" "$i32_obj"`
+  else
+    cmd_i32 = `gfortran $link_flags -o $sofile $i32_obj`
+  end
+  verbose && println(cmd_i32)
   run(cmd_i32)
   return nothing
 end

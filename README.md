@@ -48,8 +48,17 @@ see [special structure](./doc/SpecialStructure.md)
 
 ## What are the requirements for this module
 
-In order to use this module, you have to *compile* the supported
-Fortran solvers and provide a shared library for each solver. Just call
+This module needs the *compiled* Fortran solvers as shared libraries 
+(i.e. `.so`, `.dylib` or `.dll` files, respectively). 
+The build script of this module tries to do this compilation. 
+It was tested with:
+
+* Linux (64bit) and `gfortran`
+* MacOS and `gfortran`
+* Windows 7 (64bit) and `gfortran` of mingw-w64 (`x86_64`)
+
+If you want to compile the solvers yourself (perhaps with different
+options and/or a different compiler), then just call
 `ODEInterface.help_solversupport` for further informations (help topics)
 on how to compile the solvers and how to create shared libraries.
 

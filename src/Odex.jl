@@ -560,33 +560,62 @@ end
   
   See `help_odex_license` for the licsense information.
   
-  ### Using `gcc` and 64bit integers
+  ### Using `gfortran` and 64bit integers (Linux and Mac)
   
   Here is an example how to compile ODEX with `Float64` reals and
-  `Int64` integers with `gcc`:
-  
-       gfortran -c -fPIC  -fdefault-integer-8  
+  `Int64` integers with `gfortran`:
+
+       gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o odex.o   odex.f
+                -o odex.o odex.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
   
-       gcc  -shared -fPIC -Wl,-soname,libodex.so 
-            -lgfortran -o odex.so  odex.o
+       gfortran -shared -fPIC -o odex.so odex.o
+       gfortran -shared -fPIC -o odex.dylib odex.o
   
-  ### Using `gcc` and 32bit integers
+  ### Using `gfortran` and 64bit integers (Windows)
   
   Here is an example how to compile ODEX with `Float64` reals and
-  `Int32` integers with `gcc`:
+  `Int64` integers with `gfortran`:
+
+       gfortran -c -fdefault-integer-8 
+                -fdefault-real-8 -fdefault-double-8 
+                -o odex.o odex.f
+  
+  In order to get create a shared library (from the object file above) use
+  
+       gfortran -shared -o odex.dll odex.o
+  
+  ### Using `gfortran` and 32bit integers (Linux and Mac)
+  
+  Here is an example how to compile ODEX with `Float64` reals and
+  `Int32` integers with `gfortran`:
   
        gfortran -c -fPIC  
                 -fdefault-real-8 -fdefault-double-8 
                 -o odex_i32.o   odex.f
   
-  In order to get create a shared library (from the object file above):
+  In order to get create a shared library (from the object file above) use
+  one of the forms below (1st for Linux, 2nd for Mac):
+
+       gfortran -shared -fPIC -o odex_i32.so odex_i32.o
+       gfortran -shared -fPIC -o odex_i32.dylib odex_i32.o
   
-       gcc  -shared -fPIC -Wl,-soname,libodex_i32.so 
-            -lgfortran -o odex_i32.so  odex_i32.o
+  ### Using `gfortran` and 32bit integers (Windows)
+  
+  Here is an example how to compile ODEX with `Float64` reals and
+  `Int32` integers with `gfortran`:
+  
+       gfortran -c
+                -fdefault-real-8 -fdefault-double-8 
+                -o odex_i32.o   odex.f
+  
+  In order to get create a shared library (from the object file above) use:
+
+       gfortran -shared -o odex_i32.dll odex_i32.o
+  
   """
 function help_odex_compile()
   return Docs.doc(help_odex_compile)
