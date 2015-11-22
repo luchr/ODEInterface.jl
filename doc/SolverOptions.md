@@ -1089,3 +1089,117 @@ In `opt` the following options are used:
 </table>
 
 
+# bvpsol
+
+```
+ function bvpsol(rhs::Function, bc::Function,
+   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
+     -> (t,x,retcode,stats)
+```
+
+The `bc` has to be a function of the following form:
+
+```
+ function bc(xa,xb,r) -> nothing
+```
+
+It has to calculate the residual for the boundary conditions and save them in `r`.
+
+`t` is a Vector with all the multiple-shooting nodes.
+
+`x` gives the initial guess for all multiple-shooting nodes. Hence `size(x,2)==length(t)`.
+
+`odesolver`: Either `nothing`: then the internal solver of `bvpsol` is used. Or `odesolver` is a ode-solver (like `dopri5`, `dop853`, `seulex`,  etc.).
+
+`retcode` can have the following values:
+
+```
+  >0: computation successful: number of iterations
+  -1:        Iteration stops at stationary point for OPT_SOLMETHOD==0
+             Gaussian elimination failed due to singular 
+             Jacobian for OPT_SOLMETHOD==1
+  -2: Iteration stops after OPT_MAXSTEPS 
+  -3: Integrator failed to complete the trajectory
+  -4: Gauss Newton method failed to converge
+  -5: Given initial values inconsistent with separable linear bc
+  -6:        Iterative refinement faild to converge for OPT_SOLMETHOD==0
+             Termination since multiple shooting condition or
+             condition of Jacobian is too bad for OPT_SOLMETHOD==1
+  -7: wrong EPS (should not happen; checked by ODEInterface module)
+  -8: Condensing algorithm for linear block system fails, try
+      OPT_SOLMETHOD==1
+  -9: Sparse linear solver failed
+ -10: Real or integer work-space exhausted
+ -11: Rank reduction failed - resulting rank is zero
+```
+
+In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> RTOL
+</pre></td>
+<td><pre> relative accuracy for soltuion
+</pre></td>
+<td><pre>    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> MAXSTEPS
+</pre></td>
+<td><pre> maximum permitted number of iteration
+ steps
+</pre></td>
+<td><pre>      40
+</pre></td>
+</tr>
+<tr><td><pre> BVPCLASS
+</pre></td>
+<td><pre> boundary value problem classification&#58;
+ 0&#58; linear
+ 1&#58; nonlinear with good initial data
+ 2&#58; highly nonlinear &#38; bad initial data
+ 3&#58; highly nonlinear &#38; bad initial data &#38;
+    initial rank reduction to separable
+    linear boundary conditions
+</pre></td>
+<td><pre>       2
+</pre></td>
+</tr>
+<tr><td><pre> SOLMETHOD
+</pre></td>
+<td><pre> switch for solution method
+ 0&#58; use local linear solver with
+    condensing algorithm
+ 1&#58; use global sparse linear solver
+</pre></td>
+<td><pre>       0
+</pre></td>
+</tr>
+<tr><td><pre> IVPOPT
+</pre></td>
+<td><pre> An OptionsODE&#45;object with the options
+ for the solver of the initial value
+ problem&#46;
+ In this OptionsODE&#45;object bvpsol changes
+ OPT&#95;MAXSS&#44; OPT&#95;INITIALSS&#44; OPT&#95;RTOL
+ to give the IVP&#45;solver solution hints&#46;
+</pre></td>
+<td><pre> empty
+ options
+</pre></td>
+</tr>
+<tr><td><pre> RHS&#95;CALLMODE
+</pre></td>
+<td><pre> see help&#95;callsolvers&#40;&#41;
+</pre></td>
+<td><pre></pre></td>
+</tr>
+</table>
+
+

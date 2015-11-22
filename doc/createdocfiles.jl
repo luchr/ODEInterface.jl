@@ -114,6 +114,10 @@ function docSolverOptions(filename)
   # radau5 and radau share same documentation
   write(io,"# radau and radau5",NL,NL)
   formatMDelement(io,Base.Docs.doc(radau))
+  
+  # bvpsol
+  write(io,"# bvpsol",NL,NL)
+  formatMDelement(io,Base.Docs.doc(bvpsol))
 
   close(io)
   return nothing

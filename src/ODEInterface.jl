@@ -65,7 +65,7 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.5"
+const VERSION = "0.0.6"
 
 using Base
 
@@ -99,6 +99,8 @@ macro import_huge()
     @ODEInterface.import_DLradau
     @ODEInterface.import_seulex
     @ODEInterface.import_DLseulex
+    @ODEInterface.import_bvpsol
+    @ODEInterface.import_DLbvpsol
   end
 end
 
@@ -114,6 +116,7 @@ macro import_normal()
     @ODEInterface.import_radau5
     @ODEInterface.import_radau
     @ODEInterface.import_seulex
+    @ODEInterface.import_bvpsol
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -233,7 +236,8 @@ macro import_OPTcommon()
                           OPT_ORDERDECSTEPFAC1, OPT_ORDERDECSTEPFAC2,
                           OPT_RHSAUTONOMOUS, OPT_LAMBDADENSE,
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
-                          OPT_WORKFORSOL
+                          OPT_WORKFORSOL, OPT_BVPCLASS, OPT_SOLMETHOD,
+                          OPT_IVPOPT
   )
 end
 
@@ -311,6 +315,10 @@ const OPT_WORKFORJAC       = "WorkForJacobimatrix"
 const OPT_WORKFORDEC       = "WorkForLuDecomposition"
 const OPT_WORKFORSOL       = "WorkForSubstitution"
 
+const OPT_BVPCLASS         = "BoundaryValueProblemClass"
+const OPT_SOLMETHOD        = "SolutionMethod"
+const OPT_IVPOPT           = "OptionsForIVPsolver"
+
 
 @enum(RHS_CALL_MODE,
       RHS_CALL_RETURNS_ARRAY, RHS_CALL_INSITU)
@@ -358,7 +366,7 @@ function extractTOLs(d::Integer,opt::AbstractOptionsODE)
       atol = [ convert(Float64,atol) ]
     catch e
       throw(ArgumentErrorODE(
-        string("$OPT_RTOL and $OPT_ATOL are scalars. ",
+        string("OPT_RTOL and OPT_ATOL are scalars. ",
                "But I've a problem converting rtol=$rtol,",
                " and/or atol=$atol to Float64"),:opt,e))
     end
@@ -368,7 +376,7 @@ function extractTOLs(d::Integer,opt::AbstractOptionsODE)
       atol = getVectorCheckLength(atol,Float64,d)
     catch e
       throw(ArgumentErrorODE(
-        string("$OPT_RTOL and/or $OPT_ATOL is not a real scalar. ",
+        string("OPT_RTOL and/or OPT_ATOL is not a real scalar. ",
                "But I've also a problem converting them to Float64 ",
                "vectors of length $d"),:opt,e))
     end
@@ -424,6 +432,23 @@ function extractOutputFcn(opt::AbstractOptionsODE)
 end
 
 """
+       function solver_init(solver_name::AbstractString, 
+                            opt::AbstractOptionsODE, cid=nothing)
+          ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+  """
+function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE,
+                     cid=nothing)
+  (lio,l) = extractLogOptions(opt);
+  (l_g,l_solver)=( l & LOG_GENERAL>0, l & LOG_SOLVERARGS>0 )
+  if cid==nothing
+    cid = uniqueToken()
+  end
+  cid_str = int2logstr(cid[1])
+  lprefix = string(cid_str,solver_name,": ")
+  return (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+end
+
+"""
        function solver_start(solver_name::AbstractString, rhs::Function, 
                    t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
           ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
@@ -433,11 +458,7 @@ end
 function solver_start(solver_name::AbstractString, rhs::Function, 
             t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
   
-  (lio,l) = extractLogOptions(opt);
-  (l_g,l_solver)=( l & LOG_GENERAL>0, l & LOG_SOLVERARGS>0 )
-  cid = uniqueToken()
-  cid_str = int2logstr(cid[1])
-  lprefix = string(cid_str,solver_name,": ")
+  (lio,l,l_g,l_solver,lprefix,cid,cid_str) = solver_init(solver_name,opt)
 
   if l_g
     println(lio,lprefix,
@@ -446,6 +467,22 @@ function solver_start(solver_name::AbstractString, rhs::Function,
   end
   
   return (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+end
+
+"""
+       function solver_extract_rhsMode(opt::AbstractOptionsODE)
+                   -> rhs_mode
+  
+  extracts `rhs_mode` from `opt`.
+  """
+function solver_extract_rhsMode(opt::AbstractOptionsODE)
+  try
+    rhs_mode = getOption(opt,OPT_RHS_CALLMODE,RHS_CALL_RETURNS_ARRAY)
+    @assert rhs_mode ∈ (RHS_CALL_RETURNS_ARRAY,RHS_CALL_INSITU)
+    return rhs_mode
+  catch e
+    throw(ArgumentErrorODE("Option 'OPT_RHS_CALLMODE' is invalid",:opt,e))
+  end
 end
 
 """
@@ -485,13 +522,7 @@ function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector,
 
   (scalarFlag,args.RTOL,args.ATOL) = extractTOLs(d,opt)
 
-  rhs_mode = nothing
-  try
-    rhs_mode = getOption(opt,OPT_RHS_CALLMODE,RHS_CALL_RETURNS_ARRAY)
-    @assert rhs_mode ∈ (RHS_CALL_RETURNS_ARRAY,RHS_CALL_INSITU)
-  catch e
-    throw(ArgumentErrorODE("Option 'OPT_RHS_CALLMODE' is invalid",:opt,e))
-  end
+  rhs_mode = solver_extract_rhsMode(opt)
 
   (output_mode,output_fcn) = extractOutputFcn(opt)
   if output_mode == OUTPUTFCN_NEVER
@@ -512,6 +543,7 @@ include("./Dop853.jl")
 include("./Odex.jl")
 include("./Radau.jl")
 include("./Seulex.jl")
+include("./Bvpsol.jl")
 
 include("./Call.jl")
 include("./Help.jl")

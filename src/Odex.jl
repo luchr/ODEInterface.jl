@@ -82,7 +82,7 @@ end
   Stores Arguments for Odex solver.
   
   FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int4)
+  FInt ∈ (Int32,Int64)
   """
 type OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
@@ -370,7 +370,7 @@ end
        function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                         opt::AbstractOptionsODE, args::OdexArguments{FInt})
   
-  implementation of odex for FInt ∈ (Int32,Int4)
+  implementation of odex for FInt ∈ (Int32,Int64)
   """
 function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::OdexArguments{FInt})
@@ -379,7 +379,7 @@ function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     solver_start("odex",rhs,t0,T,x0,opt)
   
   FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int4) allowed"))
+    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
   
   (method_odex, method_contex) = getAllMethodPtrs(
      (FInt == Int64)? DL_ODEX : DL_ODEX_I32 )
@@ -543,6 +543,7 @@ function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
+    "step_predict"       => args.H,
     "no_rhs_calls"       => args.IWORK[17],
     "no_steps"           => args.IWORK[18],
     "no_steps_accepted"  => args.IWORK[19],

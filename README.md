@@ -4,13 +4,18 @@
 
 This julia module provides an interface to solvers for 
 ordinary differential equations (ODEs) written in Fortran
-for solving initial value problems of the form
+for solving initial value problems (IVP) of the form
 
     x' = rhs(t,x),      x(t₀) = x₀
 
 or (for solvers supporting a "mass matrix" M)
 
     M⋅x' = rhs(t,x),    x(t₀) = x₀.
+
+Additionally a boundary value solver (called `bvpsol`) is
+supported for boundary value problems (BVP) of the form
+
+    x' = rhs(t,x),      r = bc( xa, xb ) = 0
 
 ## What does "Interface" mean?
 
@@ -33,9 +38,18 @@ Prof. E. Hairer and Prof. G. Wanner, are supported:
 
 see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 
+Also supported:
+
+* bvpsol: a boundary value problem solver for highly nonlinear two point
+  boundary value problems using either a local linear solver or a global
+  sparse linear solver
+
+written by P. Deuflhard, G. Bader, L. Weimann, see
+[CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
+
 Description: [Calling the Solvers](./doc/CallSolvers.md) 
 
-The following features of this solvers are supported by this ODEInterface:
+The following features of the IVP-solvers are supported by this ODEInterface:
 
 * providing an [output function](./doc/OutputFunction.md) (e.g. 
 for dense output or for event location) to the solvers

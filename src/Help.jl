@@ -12,6 +12,7 @@ macro import_help()
     @ODEInterface.import_radau5_help
     @ODEInterface.import_radau_help
     @ODEInterface.import_seulex_help
+    @ODEInterface.import_bvpsol_help
   end
 end
 

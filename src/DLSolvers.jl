@@ -125,6 +125,13 @@ end
   """
 function loadODESolvers(extrapaths::Vector=ASCIIString[],
           loadlibnames::Tuple=() )
+  path_sep = ""
+  if isdefined(Base,:path_separator)
+    path_sep = Base.path_separator
+  end
+  if isdefined(Base,:Filesystem) && isdefined(Base.Filesystem,:path_separator)
+    path_sep = Base.Filesystem.path_separator
+  end
   if isempty(extrapaths)
     try
       path_to_module = Base.find_in_path("ODEInterface")
@@ -135,12 +142,12 @@ function loadODESolvers(extrapaths::Vector=ASCIIString[],
         if endswith(path_to_module,"ODEInterface")
           path_to_module = path_to_module[1:end-12]
         end
-        if !endswith(path_to_module,Base.path_separator)
-          path_to_module = string(path_to_module,Base.path_separator)
+        if !endswith(path_to_module,path_sep)
+          path_to_module = string(path_to_module,path_sep)
         end
         extrapaths = [ path_to_module ]
       end
-    catch 
+    catch e
       # At least we tried
     end
   end

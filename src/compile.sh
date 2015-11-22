@@ -79,5 +79,23 @@ gcc -shared -fPIC -Wl,-soname,libseulex_i32.so  -lgfortran  -o seulex_i32.so \
               seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
 rm ./seulex_i32.o
 
+echo "bvpsol"
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o bvpsol.o   bvpsol.f
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o linalg_bvpsol.o   linalg_bvpsol.f
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o zibconst.o   zibconst.f
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o ma28_bvpsol.o   ma28_bvpsol.f
+gcc -shared -fPIC -Wl,-soname,libbvpsol.so  -lgfortran  -o bvpsol.so \
+              bvpsol.o linalg_bvpsol.o zibconst.o ma28_bvpsol.o
+rm ./bvpsol.o ./linalg_bvpsol.o ./zibconst.o
+
+echo "bvpsol_i32"
+gfortran -c -fPIC "${FLAGS_I32[@]}"  -o bvpsol_i32.o   bvpsol.f
+gfortran -c -fPIC "${FLAGS_I32[@]}"  -o linalg_bvpsol_i32.o   linalg_bvpsol.f
+gfortran -c -fPIC "${FLAGS_I32[@]}"  -o zibconst_i32.o   zibconst.f
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o ma28_bvpsol_i32.o   ma28_bvpsol.f
+gcc -shared -fPIC -Wl,-soname,libbvpsol_i32.so  -lgfortran  -o bvpsol_i32.so \
+              bvpsol_i32.o linalg_bvpsol_i32.o zibconst_i32.o ma28_bvpsol_i32.o
+rm ./bvpsol_i32.o ./linalg_bvpsol_i32.o ./zibconst_i32.o
+
 rm ./dc_lapack.o ./lapack.o ./lapackc.o
 rm ./dc_lapack_i32.o ./lapack_i32.o ./lapackc_i32.o

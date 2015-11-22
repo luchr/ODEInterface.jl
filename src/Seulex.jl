@@ -36,7 +36,6 @@ end
            call_julia_output_fcn(  ... INIT ... )
                output_fcn ( ... INIT ...)
            ccall( SEULEX_  ... )
-               unsafe_HW1MassCallback_c
               ┌───────────────────────────────────────────┐  ⎫
               │unsafe_HW2RHSCallback_c                    │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
@@ -96,7 +95,7 @@ end
   Stores Arguments for Seulex solver.
   
   FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int4)
+  FInt ∈ (Int32,Int64)
   """
 type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
@@ -428,7 +427,7 @@ end
 function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::SeulexArguments{FInt})
   FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int4) allowed"))
+    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
   
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("seulex",rhs,t0,T,x0,opt)
@@ -642,6 +641,7 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
+    "step_predict"       => args.H,
     "no_rhs_calls"       => args.IWORK[14],
     "no_jac_calls"       => args.IWORK[15],
     "no_steps"           => args.IWORK[16],

@@ -142,6 +142,13 @@ const LOG_MASS       = UInt64(1)<<6
 """Bitmask: log calls to jacobian function."""
 const LOG_JAC        = UInt64(1)<<7
 
+"""Bitmask: log calls to boundary condition function."""
+const LOG_BC         = UInt64(1)<<8
+
+"""Bitmask: during boundary value problems: 
+  log calls to initial value solver."""
+const LOG_BVPIVPSOL  = UInt64(1)<<9
+
 """Bitmask: log everything."""
 const LOG_ALL        = UInt64(0xFFFFFFFFFFFFFFFF)
 
@@ -152,7 +159,8 @@ macro import_LOG()
   :(
     using ODEInterface: LOG_NOTHING, LOG_GENERAL, LOG_RHS,
                         LOG_SOLVERARGS, LOG_SOLOUT, LOG_OUTPUTFCN,
-                        LOG_EVALSOL, LOG_ALL
+                        LOG_EVALSOL, LOG_MASS, LOG_JAC, LOG_BC, 
+                        LOG_BVPIVPSOL, LOG_ALL
   )
 end
 
@@ -180,6 +188,38 @@ function getVectorCheckLength(vec,T::DataType,d::Integer,docopy=true)
     string("vec has wrong length: expected $d found ",length(result)),:vec))
   if docopy && result ≡ vec
     result = copy(vec)
+  end
+  return result
+end
+
+"""
+       function getMatrixCheckSize(mat,T::DataType,
+                    m::Integer,n::Integer,docopy=true) -> Matrix{T}
+  
+  try to convert to `Matrix{T}' and checks the size.
+  if the `docopy` argument is `true` then the return value will
+  always be a different object than `mat`: If `convert` didn't need
+  to create a copy then this is done by this function.
+  
+  throws ArgumentErrorODE this is not possible.
+  """
+function getMatrixCheckSize(mat,T::DataType,m::Integer,n::Integer,docopy=true)
+  result = nothing
+  try
+    result = convert(Matrix{T},mat)
+  catch e
+    throw(ArgumentErrorODE(
+      string("Cannot convert mat with type ",typeof(mat),
+             "to Matrix{",T,"}"),:mat,e))
+  end
+  size(mat,1) ≠ m && throw(ArgumentErrorODE(
+    string("mat has wrong number of rows: expedted $m found ",size(mat,1)),
+    :mat))
+  size(mat,2) ≠ n && throw(ArgumentErrorODE(
+    string("mat has wrong number of columns: expedted $n found ",size(mat,2)),
+    :mat))
+  if docopy && result ≡ mat
+    result = copy(mat)
   end
   return result
 end

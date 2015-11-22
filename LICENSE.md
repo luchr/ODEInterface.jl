@@ -1,3 +1,5 @@
+# Licenses
+
 The ODEInterface.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2015: Christian Ludwig.
@@ -29,7 +31,6 @@ This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`,
 `seulex.f`) are licensed under the following license,
 see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 
-
 > Copyright (c) 2004, Ernst Hairer
 > 
 > Redistribution and use in source and binary forms, with or without 
@@ -54,4 +55,25 @@ see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 > LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
 > NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This package contains Fortran source code files from
+http://elib.zib.de/pub/elib/codelib/bvpsol/
+
+This files (`bvpsol.f`, `linalg_bvpsol.f`, `zibconst.f`) are licenced 
+under the following license:
+
+> You may use or modify this code for your own non commercial
+> purposes for an unlimited time.
+> This code can be distributed in unmodified form as part of the
+> complete ODEInterface packet. Apart from that, you should not
+> deliver it without a special permission of the Zuse Institute
+> Berlin (ZIB).
+> In case you intend to use the code commercially, we oblige you
+> to sign an according licence agreement with ZIB.
+> 
+> Warranty
+> This code has been tested up to a certain level. Defects and
+> weaknesses, which may be included in the code, do not establish
+> any warranties by ZIB. ZIB does not take over any liabilities
+> which may follow from aquisition or application of this code.
 

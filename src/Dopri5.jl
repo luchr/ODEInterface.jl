@@ -114,7 +114,7 @@ end
        function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                         opt::AbstractOptionsODE, args::DopriArguments{FInt})
   
-  implementation of dopri5 for FInt ∈ (Int32,Int4)
+  implementation of dopri5 for FInt ∈ (Int32,Int64)
   """
 function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector, 
                  opt::AbstractOptionsODE, args::DopriArguments{FInt})
@@ -123,7 +123,7 @@ function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     solver_start("dopri5",rhs,t0,T,x0,opt)
 
   FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int4) allowed"))
+    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
 
   (method_dopri5,method_contd5) = getAllMethodPtrs(
      (FInt == Int64)? DL_DOPRI5 : DL_DOPRI5_I32 )
@@ -239,6 +239,7 @@ function dopri5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
+    "step_predict"       => args.WORK[7],
     "no_rhs_calls"       => args.IWORK[17],
     "no_steps"           => args.IWORK[18],
     "no_steps_accepted"  => args.IWORK[19],

@@ -121,7 +121,7 @@ end
   Stores Arguments for Radau5 and Radau solver.
   
   FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int4)
+  FInt ∈ (Int32,Int64)
   """
 type RadauArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
@@ -461,6 +461,7 @@ function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,lprefix,
 
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
+    "step_predict"       => args.H,
     "no_rhs_calls"       => args.IWORK[14],
     "no_jac_calls"       => args.IWORK[15],
     "no_steps"           => args.IWORK[16],
@@ -491,12 +492,12 @@ end
        function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                        opt::AbstractOptionsODE, args::RadauArguments{FInt})
   
-  implementation of radau5 for FInt ∈ (Int32,Int4)
+  implementation of radau5 for FInt ∈ (Int32,Int64)
   """
 function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
   FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int4) allowed"))
+    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("radau5",rhs,t0,T,x0,opt)
@@ -769,12 +770,12 @@ end
        function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                        opt::AbstractOptionsODE, args::RadauArguments{FInt})
   
-  implementation of radau for FInt ∈ (Int32,Int4)
+  implementation of radau for FInt ∈ (Int32,Int64)
   """
 function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
   FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int4) allowed"))
+    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("radau5",rhs,t0,T,x0,opt)

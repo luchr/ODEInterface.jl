@@ -54,7 +54,7 @@ end
   Stores Arguments for Dopri solver.
   
   FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int4)
+  FInt ∈ (Int32,Int64)
   """
 type DopriArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension

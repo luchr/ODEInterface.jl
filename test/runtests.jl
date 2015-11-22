@@ -14,6 +14,7 @@ using ODEInterface
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
                     DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
                     DL_SEULEX, DL_SEULEX_I32,
+                    DL_BVPSOL, DL_BVPSOL_I32,
                     ) 
 const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
                  odex, odex_i32, 
@@ -26,6 +27,8 @@ const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
 
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
                       seulex, seulex_i32, )
+
+const solvers_bv  = ( bvpsol, bvpsol_i32 )
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
@@ -339,6 +342,123 @@ function test_odecall2(solver::Function)
   return true
 end
 
+function test_bvp1(solver::Function)
+  ivpopt = OptionsODE("ivpoptions",
+                   OPT_RHS_CALLMODE => RHS_CALL_INSITU)
+                 
+  opt = OptionsODE("bvp1",
+                   OPT_RHS_CALLMODE => RHS_CALL_INSITU,
+                   OPT_MAXSTEPS     => 10,
+                   OPT_RTOL         => 1e-6,
+                   OPT_BVPCLASS     => 0,
+                   OPT_SOLMETHOD    => 0,
+                   OPT_IVPOPT       => ivpopt)
+
+  tNodes = [0,5]
+  xInit = [ 5.0  0.45938665265299; 1  1];
+  odesolver = nothing
+
+  function f(t,x,dx)
+    dx[1] =  x[2]
+    dx[2] = -x[1]
+    return nothing
+  end
+
+  function bc(xa,xb,r)
+    r[1] = xa[1] - 5
+    r[2] = xb[1] - 0.45938665265299
+    return nothing
+  end
+
+  (t,x,code,stats) = solver(f,bc,tNodes,xInit,odesolver,opt)
+  @assert tNodes == [0,5]
+  @assert code>0
+  @assert t == tNodes
+  @assert isapprox(x[1,1],5.0,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[2,1],1.0,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[1,2],0.459387,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[2,2],5.07828,rtol=1e-4,atol=1e-4)
+  
+  return true
+end
+
+function test_bvp2(solver::Function)
+  ivpopt = OptionsODE("ivpoptions",
+                   OPT_RHS_CALLMODE => RHS_CALL_INSITU)
+                 
+  opt = OptionsODE("bvp2",
+                   OPT_RHS_CALLMODE => RHS_CALL_INSITU,
+                   OPT_MAXSTEPS     => 10,
+                   OPT_RTOL         => 1e-6,
+                   OPT_BVPCLASS     => 0,
+                   OPT_SOLMETHOD    => 0,
+                   OPT_IVPOPT       => ivpopt)
+
+  tNodes = [0,5]
+  xInit = [ 5.0  0.45938665265299; 1  1];
+  odesolver = dop853
+
+  function f(t,x,dx)
+    dx[1] =  x[2]
+    dx[2] = -x[1]
+    return nothing
+  end
+
+  function bc(xa,xb,r)
+    r[1] = xa[1] - 5
+    r[2] = xb[1] - 0.45938665265299
+    return nothing
+  end
+
+  (t,x,code,stats) = solver(f,bc,tNodes,xInit,odesolver,opt)
+  @assert tNodes == [0,5]
+  @assert code>0
+  @assert t == tNodes
+  @assert isapprox(x[1,1],5.0,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[2,1],1.0,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[1,2],0.459387,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[2,2],5.07828,rtol=1e-4,atol=1e-4)
+  
+  return true
+end
+
+function test_bvp3(solver::Function)
+  ivpopt = OptionsODE("ivpoptions",
+                   OPT_RHS_CALLMODE => RHS_CALL_INSITU)
+                 
+  opt = OptionsODE("bvp3",
+                 OPT_RHS_CALLMODE => RHS_CALL_INSITU,
+                 OPT_MAXSTEPS     => 100,
+                 OPT_RTOL         => 1e-6,
+                 OPT_BVPCLASS     => 2,
+                 OPT_SOLMETHOD    => 1,
+                 OPT_IVPOPT       => ivpopt)
+
+  tNodes = collect(linspace(0,5,11))
+  xInit = [ones(1,length(tNodes)-1) 0 ; ones(1,length(tNodes)) ]
+  odesolver = dop853
+
+  function f(t,x,dx)
+    dx[1] = t*x[2]
+    dx[2] = 4*max(0,x[1])^1.5
+    return nothing
+  end
+
+  function bc(xa,xb,r)
+    r[1] = xa[1] - 1
+    r[2] = xb[1] - 0
+    return nothing
+  end
+
+  (t,x,code,stats) = solver(f,bc,tNodes,xInit,odesolver,opt)
+  @assert code>0
+  @assert isapprox(x[1,1],1,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[2,1],-3.17614,rtol=1e-4,atol=1e-4)
+  @assert isapprox(x[1,2],0.755201,rtol=1e-4,atol=1e-4)
+  
+  return true
+end
+
 function test_Banded()
   #@testset "Banded" 
   begin
@@ -475,12 +595,25 @@ function test_odecall()
   end
 end
 
+function test_bvp()
+  problems = (test_bvp1,test_bvp2,test_bvp3,)
+  #@testset "bvp" 
+  begin
+    #@testloop 
+    for solver in solvers_bv,
+                  problem in problems
+      @test problem(solver)
+    end
+  end
+end
+
 function test_all()
   test_Banded()
   test_Options()
   test_DLSolvers()
   test_solvers()
   test_odecall()
+  test_bvp()
 end
 
 test_all()
