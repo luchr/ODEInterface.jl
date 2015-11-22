@@ -118,6 +118,10 @@ function build_bvpsol(path::AbstractString)
   compile_gfortran(dir_of_src,"ma28_bvpsol")
   link_gfortran(dir_of_src,
     ["bvpsol","linalg_bvpsol","zibconst","ma28_bvpsol"])
+  println("\n\n!!! bvpsol: only non commercial use !!!")
+  println("Please note: bvpsol's license only covers non commercial use!")
+  println("see using ODEInterface; help_bvpsol_license() for the complete")
+  println("license text.")
   return nothing
 end
 

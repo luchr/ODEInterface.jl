@@ -42,7 +42,8 @@ Also supported:
 
 * bvpsol: a boundary value problem solver for highly nonlinear two point
   boundary value problems using either a local linear solver or a global
-  sparse linear solver
+  sparse linear solver. **Please note: The license for `bvpsol` only 
+  covers non commercial use, see [License](./LICENSE.md).**
 
 written by P. Deuflhard, G. Bader, L. Weimann, see
 [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
