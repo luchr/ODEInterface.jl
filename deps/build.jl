@@ -1,5 +1,6 @@
 windows_flag = @windows? true : false
 file_extension = @osx ? ".dylib" : @windows ? ".dll" : ".so" 
+read_from_cmd = isdefined(Base,:readstring) ? Base.readstring : Base.readall
 obj_files = []
 verbose = false
 gfortran = nothing
@@ -12,7 +13,7 @@ function search_prog(progname::AbstractString)
   else
     search_cmd = windows_flag ? `where "$progname"` : `which $progname`
     try
-      output = rstrip(readall(search_cmd))
+      output = rstrip(read_from_cmd(search_cmd))
     catch e
     end
   end
