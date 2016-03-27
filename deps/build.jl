@@ -2,13 +2,19 @@ windows_flag = @windows? true : false
 file_extension = @osx ? ".dylib" : @windows ? ".dll" : ".so" 
 obj_files = []
 verbose = false
+gfortran = nothing
 
 function search_prog(progname::AbstractString)
   output = ""
-  search_cmd = windows_flag ? `where "$progname"` : `which $progname`
-  try
-    output = readall(search_cmd)
-  catch e
+  env_key = string("ODEINTERFACE_",uppercase(progname))
+  if haskey(ENV,env_key)
+    output = ENV[env_key]
+  else
+    search_cmd = windows_flag ? `where "$progname"` : `which $progname`
+    try
+      output = rstrip(readall(search_cmd))
+    catch e
+    end
   end
   return output
 end
@@ -22,9 +28,9 @@ function compile_gfortran(path::AbstractString, basename::AbstractString)
 
   ofile = joinpath(path,string(basename,".o"))
   if windows_flag
-    cmd_i64 = `gfortran  $comp_flags $flags_i64 -o "$ofile"  "$ffile"`
+    cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o "$ofile"  "$ffile"`
   else
-    cmd_i64 = `gfortran  $comp_flags $flags_i64 -o $ofile  $ffile` 
+    cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o $ofile  $ffile` 
   end
   verbose && println(cmd_i64)
   run(cmd_i64)
@@ -32,9 +38,9 @@ function compile_gfortran(path::AbstractString, basename::AbstractString)
 
   ofile = joinpath(path,string(basename,"_i32.o"))
   if windows_flag
-    cmd_i32 = `gfortran  $comp_flags $flags_i32 -o "$ofile"  "$ffile"`
+    cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o "$ofile"  "$ffile"`
   else
-    cmd_i32 = `gfortran  $comp_flags $flags_i32 -o $ofile  $ffile`
+    cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o $ofile  $ffile`
   end
   verbose && println(cmd_i32)
   run(cmd_i32)
@@ -48,9 +54,9 @@ function link_gfortran(path::AbstractString, basenames)
   i64_obj = map( name -> joinpath(path,string(name,".o")), basenames )
   sofile = joinpath(path,string(basenames[1],file_extension))
   if windows_flag
-    cmd_i64 = `gfortran $link_flags -o "$sofile" "$i64_obj"`
+    cmd_i64 = `"$gfortran" $link_flags -o "$sofile" "$i64_obj"`
   else
-    cmd_i64 = `gfortran $link_flags -o $sofile $i64_obj`
+    cmd_i64 = `"$gfortran" $link_flags -o $sofile $i64_obj`
   end
   verbose && println(cmd_i64)
   run(cmd_i64)
@@ -58,9 +64,9 @@ function link_gfortran(path::AbstractString, basenames)
   i32_obj = map( name -> joinpath(path,string(name,"_i32.o")), basenames )
   sofile = joinpath(path,string(basenames[1],"_i32",file_extension))
   if windows_flag
-    cmd_i32 = `gfortran $link_flags -o "$sofile" "$i32_obj"`
+    cmd_i32 = `"$gfortran" $link_flags -o "$sofile" "$i32_obj"`
   else
-    cmd_i32 = `gfortran $link_flags -o $sofile $i32_obj`
+    cmd_i32 = `"$gfortran" $link_flags -o $sofile $i32_obj`
   end
   verbose && println(cmd_i32)
   run(cmd_i32)
@@ -126,7 +132,8 @@ function build_bvpsol(path::AbstractString)
 end
 
 # test for gfortran
-if isempty(search_prog("gfortran"))
+gfortran = search_prog("gfortran")
+if isempty(gfortran)
   error("Currently only gfortran is supported.")
 end
 
