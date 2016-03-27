@@ -39,6 +39,9 @@ function test_ode1(solver::Function)
   @assert x0 == [1,2]
   @assert isapprox(x[1],exp(1),rtol=1e-8,atol=1e-8)
   @assert isapprox(x[2],2*exp(1),rtol=1e-8,atol=1e-8)
+  if haskey(stats,"step_predict")
+    @assert isa(stats["step_predict"],Number)
+  end
   return true
 end
 
