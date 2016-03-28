@@ -18,7 +18,7 @@ end
 
 @doc """
   Possible reasons for calling the `OPT_OUTPUTFCN`
-  """ -> OUTPUTFCN_CALL_DONE
+  """ -> OUTPUTFCN_CALL_REASON
 
 @doc """`OPT_OUTPUTFCN` is called for 1st time.""" -> OUTPUTFCN_CALL_INIT
 @doc """

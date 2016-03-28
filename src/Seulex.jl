@@ -641,7 +641,7 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
-    "step_predict"       => args.H,
+    "step_predict"       => args.H[1],
     "no_rhs_calls"       => args.IWORK[14],
     "no_jac_calls"       => args.IWORK[15],
     "no_steps"           => args.IWORK[16],

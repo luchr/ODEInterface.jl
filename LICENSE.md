@@ -1,6 +1,6 @@
 # Licenses
 
-The ODEInterface.jl package is licensed under the MIT "Expat" License:
+# The ODEInterface.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2015: Christian Ludwig.
 >
@@ -24,7 +24,7 @@ The ODEInterface.jl package is licensed under the MIT "Expat" License:
 > SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-This package contains Fortran source code files from
+# This package contains Fortran source code files from
 http://www.unige.ch/~hairer/software.html
 
 This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`, 
@@ -56,7 +56,7 @@ see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 > NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-This package contains Fortran source code files from
+# This package contains Fortran source code files from
 http://elib.zib.de/pub/elib/codelib/bvpsol/
 
 This files (`bvpsol.f`, `linalg_bvpsol.f`, `zibconst.f`) are licenced 

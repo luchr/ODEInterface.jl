@@ -461,7 +461,7 @@ function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,lprefix,
 
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{ASCIIString,Any}(
-    "step_predict"       => args.H,
+    "step_predict"       => args.H[1],
     "no_rhs_calls"       => args.IWORK[14],
     "no_jac_calls"       => args.IWORK[15],
     "no_steps"           => args.IWORK[16],
