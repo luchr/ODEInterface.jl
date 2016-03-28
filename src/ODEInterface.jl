@@ -65,8 +65,6 @@ __precompile__(false)
   """
 module ODEInterface
 
-const VERSION = "0.0.8-dev"
-
 using Base
 
 include("./Error.jl")
