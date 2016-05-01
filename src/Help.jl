@@ -258,12 +258,15 @@ end
            LOG_NOTHING     log nothing
            LOG_GENERAL     log some general information, 
                            especially the main julia call of the solver
-           LOG_RHS         log all calls to the right-hand side
+           LOG_RHS         log all calls of the right-hand side
            LOG_SOLVERARGS  log the arguments for the C-/Fortran-calls
                            before and after the call
-           LOG_OUTPUTFCN   log calls to the julia output function
-           LOG_SOLOUT      log calls to the solution output routine
-           LOG_EVALSOL     log calls to the eval_sol_fcn
+           LOG_OUTPUTFCN   log calls of the julia output function
+           LOG_SOLOUT      log calls of the solution output routine
+           LOG_EVALSOL     log calls of the eval_sol_fcn
+           LOG_MASS        log call(s) of the mass function
+           LOG_JAC         log calls of the jacobian function
+           LOG_BC          log calls of the boundary condition function
            LOG_ALL         all of the above
   
   ### Options for the solvers
