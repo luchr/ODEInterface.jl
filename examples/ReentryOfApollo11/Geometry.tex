@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage[paperheight=11cm,paperwidth=11cm]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+\pagestyle{empty}
+
+
+\begin{document}
+\def\ra{-38.1076}  \def\sa{16.6992}
+\begin{tikzpicture}[scale=1.2]
+  \draw[very thick] (0,0)coordinate(O) circle(2cm);
+  \begin{scope}[rotate=\ra]
+    \draw[thick] (-2.5,3.1875) parabola bend (-1,2.85)  (1,3.45);  % 3 + x⋅3/10 + x²⋅(3/20)
+    \draw (O) -- (0,2) coordinate (EG) -- (0,3) coordinate(E) 
+      node[pos=0.5,above]{$\scriptstyle h$};
+    \draw[dashed] (E) -- ++(1.2,0);
+    \draw[-triangle 45] (E) +(\sa:-1cm) -- ++(\sa:1.5cm) node [above]{$\scriptstyle v$};
+    \path (E) ++(0.75,0.1)node{$\scriptstyle\gamma$};
+    \draw[<->] (E) ++(0.9,0) arc[start angle=0, end angle=\sa, radius=0.9];
+    \draw (E) ++(0.2,0) arc[start angle=0, end angle=-90, radius=0.2];
+    \fill (E) ++(-45:0.12cm) circle(0.2mm);
+    \foreach \point in {EG,E} \fill (\point) circle(.5mm);
+  \end{scope}
+  \draw[-triangle 45] (O) -- ++(0,2) coordinate (SG) node[pos=0.5,left]{$R$};
+  \draw (SG) -- ++(0,2.05095)coordinate(S);
+  \draw[<->] (SG) ++(0,0.3) arc[delta angle=\ra,start angle=90,radius=2.3]
+    node[pos=0.5,fill=white]{$\scriptstyle\xi$};
+  \foreach \point in {O,S,SG} \fill (\point) circle(.5mm);
+\end{tikzpicture}
+\end{document}

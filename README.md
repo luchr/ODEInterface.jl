@@ -81,6 +81,12 @@ on how to compile the solvers and how to create shared libraries.
 
 see `ODEInterface.help_overview` for an overview of some help topics. 
 
+## Examples
+
+* basic examples can be found in [examples/BasicExamples](./examples/BasicExamples/)
+* more complex examples can be found in [examples/ComplexExamples](./examples/ComplexExamples/)
+* the Reentry Problem of the Apollo11 mission can be found in [examples/ReentryOfApollo11](./examples/ReentryOfApollo11/)
+
 ## Contacting the author of this module
 
 The author of this julia module is 
