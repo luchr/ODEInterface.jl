@@ -1,4 +1,4 @@
-# More complex examples using ODEInterface
+# More advanced examples using ODEInterface
 
 Some well-known problems described in 
 
