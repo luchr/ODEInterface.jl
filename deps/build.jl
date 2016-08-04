@@ -1,5 +1,24 @@
-windows_flag = @windows? true : false
-file_extension = @osx ? ".dylib" : @windows ? ".dll" : ".so" 
+# backward compatible: no use of @static
+macro check_for_windows()
+  if isdefined(Base, :is_windows)
+    return is_windows()? true : false 
+  else
+    return :( @windows ? true : false )
+  end
+end
+
+macro check_for_apple()
+  if isdefined(Base, :is_apple)
+    return is_apple()? true : false
+  else
+    return :( @osx ? true : false )
+  end
+end
+
+
+windows_flag = @check_for_windows()
+apple_flag = @check_for_apple()
+file_extension = apple_flag ? ".dylib" : windows_flag ? ".dll" : ".so" 
 read_from_cmd = isdefined(Base,:readstring) ? Base.readstring : Base.readall
 obj_files = []
 verbose = false
