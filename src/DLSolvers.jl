@@ -92,7 +92,7 @@ function trytoloadmethod(libhandle::Ptr{Void},method_name::AbstractString)
 end
 
 """
-       function loadODESolvers(extrapaths::Vector=ASCIIString[],
+       function loadODESolvers(extrapaths::Vector=AbstractString[],
                  loadlibnames::Tuple=() )
                 
   tries to (dynamically) load the solvers.
@@ -123,7 +123,7 @@ end
        dump(  ODEInterface.loadODESolvers() )
        ODEInterface.help_solversupport()
   """
-function loadODESolvers(extrapaths::Vector=ASCIIString[],
+function loadODESolvers(extrapaths::Vector=AbstractString[],
           loadlibnames::Tuple=() )
   path_sep = ""
   if isdefined(Base,:path_separator)

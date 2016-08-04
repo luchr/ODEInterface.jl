@@ -16,7 +16,7 @@ end
   ODE-solvers often have serveral parameters for fine-tuning them.
   In this ODEInterface this parameters are called 'options' and 
   they are stored in key/value paris. For the key a 
-  `ASCIIString` is used. The value can be `Any`-thing.
+  `AbstractString` is used. The value can be `Any`-thing.
   The key is often called the option-name.
   
   All types for this purpose have this abstract type as super-type.
@@ -51,10 +51,10 @@ abstract AbstractOptionsODE <: Any
 type OptionsODE <: AbstractOptionsODE
   name        :: AbstractString
   lastchanged :: DateTime
-  options     :: Dict{ASCIIString,Any}
+  options     :: Dict{AbstractString,Any}
 
   function OptionsODE(name::AbstractString="")
-    obj = new(name,now(),Dict{ASCIIString,Any}())
+    obj = new(name,now(),Dict{AbstractString,Any}())
     return obj
   end
 end
@@ -80,24 +80,24 @@ function OptionsODE(pairs::Pair...)
 end
 
 """
-     function getOption(opt::AbstractOptionsODE,name::ASCIIString,
+     function getOption(opt::AbstractOptionsODE,name::AbstractString,
                         default::Any=nothing)
 
   get saved value of option with given `name` or `default` 
   if option is unknown.
   """
-function getOption(opt::AbstractOptionsODE,name::ASCIIString,
+function getOption(opt::AbstractOptionsODE,name::AbstractString,
                    default::Any=nothing)
   return haskey(opt.options,name)?opt.options[name]:default
 end
 
 """
-     function setOption!(opt::AbstractOptionsODE,name::ASCIIString,value::Any)
+     function setOption!(opt::AbstractOptionsODE,name::AbstractString,value::Any)
 
   set ODE-Option with given `name` and return old value 
   (or `nothing` if there was no old value).
   """
-function setOption!(opt::AbstractOptionsODE,name::ASCIIString,value::Any)
+function setOption!(opt::AbstractOptionsODE,name::AbstractString,value::Any)
   oldValue = getOption(opt,name)
   opt.options[name]=value
   opt.lastchanged=now()

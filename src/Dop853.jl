@@ -238,7 +238,7 @@ function dop853_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     delete!(GlobalCallInfoDict,cid[1])
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
-  stats = Dict{ASCIIString,Any}(
+  stats = Dict{AbstractString,Any}(
     "step_predict"       => args.WORK[7],
     "no_rhs_calls"       => args.IWORK[17],
     "no_steps"           => args.IWORK[18],

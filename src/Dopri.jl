@@ -170,9 +170,9 @@ function unsafe_dopriSoloutCallback{FInt}(nr_::Ptr{FInt},
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
-  x = pointer_to_array(x_,(n,),false)
-  ipar = pointer_to_array(ipar_,(2,),false)
-  irtrn = pointer_to_array(irtrn_,(1,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  ipar = unsafe_wrap(Array, ipar_,(2,),false)
+  irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromVector(ipar)
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi==nothing && throw(InternalErrorODE(
