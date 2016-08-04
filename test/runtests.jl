@@ -8,6 +8,18 @@ using Base.Test
 using ODEInterface
 @ODEInterface.import_huge
 
+# v0.4 compatibility
+if !isdefined(Base.Test, Symbol("@testset"))
+  macro testset(name, start_tag)
+    start_tag
+  end
+end
+
+if !isdefined(Base.Test, Symbol("@testloop"))
+  macro testloop()
+  end
+end
+
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
                     DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
                     DL_SEULEX, DL_SEULEX_I32,
@@ -460,8 +472,7 @@ function test_bvp3(solver::Function)
 end
 
 function test_Banded()
-  #@testset "Banded" 
-  begin
+  @testset "Banded" begin
     @test_throws ArgumentErrorODE  BandedMatrix{Float64}(
                                    5,4,1,2,zeros(Float64,(4,5)))
     @test_throws ArgumentErrorODE  BandedMatrix{Float64}(
@@ -510,8 +521,7 @@ function test_Banded()
 end
 
 function test_Options()
-  #@testset "Options" 
-  begin
+  @testset "Options" begin
     opt1 = OptionsODE("test1");
     @test isa(opt1, OptionsODE)
     @test isa(opt1, ODEInterface.AbstractOptionsODE)
@@ -529,18 +539,17 @@ function test_Options()
 end
 
 function test_DLSolvers()
-  #@testset "DLSolvers" 
-  begin
+  @testset "DLSolvers" begin
     result = loadODESolvers()
-    #@testloop 
+    @testloop 
     for dl in dl_solvers
       @test result[dl].error == nothing
       @test result[dl].libhandle ≠ C_NULL
     end
     
-    #@testloop 
+    @testloop 
     for dl in dl_solvers 
-      #@testloop 
+      @testloop 
       for method in result[dl].methods
         @test method.error == nothing
         @test method.method_ptr ≠ C_NULL
@@ -553,9 +562,8 @@ end
 
 function test_solvers()
   problems = (test_ode1,test_ode2,test_ode3,)
-  #@testset "solvers" 
-  begin
-    #@testloop 
+  @testset "solvers" begin
+    @testloop 
     for solver in solvers,
                   problem in problems
       @test problem(solver)
@@ -563,9 +571,8 @@ function test_solvers()
   end
 
   problems = (test_massode1,test_massode2,test_massode3,test_massode4)
-  #@testset "mas-solvers" 
-  begin
-    #@testloop 
+  @testset "mas-solvers" begin
+    @testloop 
     for solver in solvers_mas,
                   problem in problems
       @test problem(solver)
@@ -573,9 +580,8 @@ function test_solvers()
   end
 
   problems = (test_jacode1,test_jacode2,test_jacode3,test_jacode4)
-  #@testset "jac-solvers" 
-  begin
-    #@testloop 
+  @testset "jac-solvers" begin
+    @testloop 
     for solver in solvers_jac,
                   problem in problems
       @test problem(solver)
@@ -585,9 +591,8 @@ end
 
 function test_odecall()
   problems = (test_odecall1,test_odecall2,)
-  #@testset "odecall" 
-  begin
-    #@testloop 
+  @testset "odecall" begin
+    @testloop 
     for solver in solvers,
                   problem in problems
       @test problem(solver)
@@ -597,9 +602,8 @@ end
 
 function test_bvp()
   problems = (test_bvp1,test_bvp2,test_bvp3,)
-  #@testset "bvp" 
-  begin
-    #@testloop 
+  @testset "bvp" begin
+    @testloop 
     for solver in solvers_bv,
                   problem in problems
       @test problem(solver)
