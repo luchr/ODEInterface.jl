@@ -140,9 +140,9 @@ function unsafe_odexSoloutCallback{FInt}(nr_::Ptr{FInt},
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
-  x = pointer_to_array(x_,(n,),false)
-  ipar = pointer_to_array(ipar_,(2,),false)
-  irtrn = pointer_to_array(irtrn_,(1,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  ipar = unsafe_wrap(Array, ipar_,(2,),false)
+  irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromVector(ipar)
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi==nothing && throw(InternalErrorODE(
@@ -542,7 +542,7 @@ function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     delete!(GlobalCallInfoDict,cid[1])
   end
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
-  stats = Dict{ASCIIString,Any}(
+  stats = Dict{AbstractString,Any}(
     "step_predict"       => args.H[1],
     "no_rhs_calls"       => args.IWORK[17],
     "no_steps"           => args.IWORK[18],

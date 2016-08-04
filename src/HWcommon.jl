@@ -48,8 +48,8 @@ function unsafe_HW1RHSCallback{FInt}(n_::Ptr{FInt}, t_::Ptr{Float64},
   ipar_::Ptr{FInt})
 
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = pointer_to_array(x_,(n,),false)
-  f = pointer_to_array(f_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  f = unsafe_wrap(Array, f_,(n,),false)
   cid = unpackUInt64FromPtr(ipar_)
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi == nothing && throw(InternalErrorODE(
@@ -130,8 +130,8 @@ function unsafe_HW2RHSCallback{FInt}(n_::Ptr{FInt}, t_::Ptr{Float64},
   ipar_::Ptr{FInt})
 
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = pointer_to_array(x_,(n,),false)
-  f = pointer_to_array(f_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  f = unsafe_wrap(Array, f_,(n,),false)
   cid = unpackUInt64FromPtr(ipar_)
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi == nothing && throw(InternalErrorODE(
@@ -173,7 +173,7 @@ function unsafe_HW1MassCallback{FInt}(n_::Ptr{FInt}, am_::Ptr{Float64},
             lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
   n = unsafe_load(n_)
   lmas = unsafe_load(lmas_)
-  am = pointer_to_array(am_,(lmas,n,),false)
+  am = unsafe_wrap(Array, am_,(lmas,n,),false)
   cid = unpackUInt64FromPtr(ipar_)
   lprefix = string(int2logstr(cid),"unsafe_HW1MassCallback: ")
   cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -302,7 +302,7 @@ function unsafe_HW1JacCallback{FInt}(n_::Ptr{FInt},
         ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt})
   n = unsafe_load(n_)
   t = unsafe_load(t_)
-  x = pointer_to_array(x_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
   ldfx = unsafe_load(ldfx_)
   cid = unpackUInt64FromPtr(ipar_)
   cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -318,27 +318,27 @@ function unsafe_HW1JacCallback{FInt}(n_::Ptr{FInt},
   jb = cbi.jacobibandstruct
   if jb == nothing
     @assert ldfx==n-cbi.M1
-    J = pointer_to_array(dfx_,(ldfx,n,),false)
+    J = unsafe_wrap(Array, dfx_,(ldfx,n,),false)
     jac(t,x,J)
   else
     @assert ldfx==1+jb[1]+jb[2]
     if cbi.M1==0
       J = BandedMatrix{Float64}(n,n, jb[1],jb[2], 
-            pointer_to_array(dfx_,(ldfx,n,),false)::Matrix{Float64})
+            unsafe_wrap(Array, dfx_,(ldfx,n,),false)::Matrix{Float64})
       jac(t,x,J)
     else
       no = Int(cbi.M1/cbi.M2+1)
       J = Vector{BandedMatrix{Float64}}(no)
       for k in 1:no
         ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
-        darr =  pointer_to_array(ptr, (ldfx,cbi.M2,), false)
+        darr =  unsafe_wrap(Array, ptr, (ldfx,cbi.M2,), false)
         J[k] = BandedMatrix{Float64}(cbi.M2,cbi.M2, jb[1],jb[2],darr)
       end
       jac(t,x,J...)
     end
   end
   
-  l_jac && println(lio,lprefix,"dfx=",pointer_to_array(dfx_,(ldfx,n,),false))
+  l_jac && println(lio,lprefix,"dfx=",unsafe_wrap(Array, dfx_,(ldfx,n,),false))
   return nothing
 end
 

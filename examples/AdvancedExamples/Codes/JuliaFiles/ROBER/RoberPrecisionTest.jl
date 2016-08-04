@@ -139,7 +139,7 @@ for m = 0:32
 
     # Store the stats of the last t_end
     # for computing flops
-    stats = Dict{ASCIIString,Any};
+    stats = Dict{AbstractString,Any};
 
     # Restart the solution for each end time
     # to ensure a more accurate solution

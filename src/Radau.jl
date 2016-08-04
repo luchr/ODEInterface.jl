@@ -186,8 +186,8 @@ function unsafe_radauSoloutCallback{FInt}(nr_::Ptr{FInt},
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_);
   n = unsafe_load(n_)
-  x = pointer_to_array(x_,(n,),false)
-  irtrn = pointer_to_array(irtrn_,(1,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromPtr(ipar_)
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi==nothing && throw(InternalErrorODE(
@@ -460,7 +460,7 @@ function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,lprefix,
   end
 
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
-  stats = Dict{ASCIIString,Any}(
+  stats = Dict{AbstractString,Any}(
     "step_predict"       => args.H[1],
     "no_rhs_calls"       => args.IWORK[14],
     "no_jac_calls"       => args.IWORK[15],

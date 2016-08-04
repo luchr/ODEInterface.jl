@@ -128,8 +128,8 @@ function unsafe_bvpsolrhs{FInt}(n_::Ptr{FInt}, t_::Ptr{Float64},
   x_::Ptr{Float64}, f_::Ptr{Float64})
   
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = pointer_to_array(x_,(n,),false)
-  f = pointer_to_array(f_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  f = unsafe_wrap(Array, f_,(n,),false)
   cid = bvpsol_callid[1]
   cbi = get(GlobalCallInfoDict,cid,nothing)
   cbi == nothing && throw(InternalErrorODE(
@@ -190,9 +190,9 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
       string("Cannot find call-id ",int2logstr(cid[1]),
              " in GlobalCallInfoDict")))
   n = cbi.N
-  xa = pointer_to_array(xa_,(n,),false)
-  xb = pointer_to_array(xb_,(n,),false)
-  r  = pointer_to_array(r_ ,(n,),false)
+  xa = unsafe_wrap(Array, xa_,(n,),false)
+  xb = unsafe_wrap(Array, xb_,(n,),false)
+  r  = unsafe_wrap(Array, r_ ,(n,),false)
   bvpsolbc(xa,xb,r,cbi)
   return nothing
 end
@@ -267,12 +267,12 @@ function unsafe_bvpsolivp{FInt}(n_::Ptr{FInt}, fcn_::Ptr{Void},
       string("Cannot find call-id ",int2logstr(cid[1]),
              " in GlobalCallInfoDict")))
   n = cbi.N
-  t = pointer_to_array(t_,(1,),false)
+  t = unsafe_wrap(Array, t_,(1,),false)
   tend = unsafe_load(tend_)
-  x = pointer_to_array(x_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,),false)
   tol = unsafe_load(tol_); hmax = unsafe_load(hmax_); 
-  h = pointer_to_array(h_,(1,),false)
-  kflag = pointer_to_array(kflag_,(1,),false)
+  h = unsafe_wrap(Array, h_,(1,),false)
+  kflag = unsafe_wrap(Array, kflag_,(1,),false)
   bvpsolivp(t,x,tend,tol,hmax,h,kflag,cbi)
   return nothing
 end
@@ -549,7 +549,7 @@ function bvpsol_impl{FInt}(rhs::Function, bc::Function,
     delete!(GlobalCallInfoDict,cid[1])
   end
   l_g && println(lio,lprefix,string("done INFO=",args.INFO[1]))
-  stats = Dict{ASCIIString,Any}()
+  stats = Dict{AbstractString,Any}()
   return (args.T, args.X, args.INFO[1], stats)
 end
 
