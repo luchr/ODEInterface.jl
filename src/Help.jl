@@ -16,6 +16,14 @@ macro import_help()
   end
 end
 
+
+# takebuf_string deprecation: 358c4419
+if VERSION < v"0.6.0-dev+1254"
+  buf2str(buf) = takebuf_string(buf)
+else
+  buf2str(buf) = String(take!(buf))
+end
+
 using Base.Markdown
 
 """
@@ -47,7 +55,7 @@ using Base.Markdown
   ## Help for each solver
   
   Each solver has its own help page. Just look at the documentation of
-  `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `seulex`.
+  `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `rodas`, `seulex`.
   """
 function help_overview()
   return Docs.doc(help_overview)
@@ -127,7 +135,7 @@ function help_solversupport()
   write(io,"     ╚═════════════╧═══════════════╧══════════",
            "╧═══════════════════════════════╝\n\n",
            "For more informations: see result of `loadODESolvers`.\n")
-  return Markdown.parse(takebuf_string(io))
+  return Markdown.parse(buf2str(io))
 end
 
 """
@@ -324,7 +332,7 @@ function help_options()
   for k in 1:length(solvers);  write(io,"╧══");                  end
   write(io,"╝\n")
 
-  return Markdown.parse(takebuf_string(io))
+  return Markdown.parse(buf2str(io))
 end
 
 """

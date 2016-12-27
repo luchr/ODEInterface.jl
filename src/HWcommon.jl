@@ -1,4 +1,4 @@
-# Functions common for serveral Hairer-Wanner Solvers
+# Functions used for several Hairer-Wanner Solvers
 
 """
        function hw1rhs(n,t,x,f,cbi::ODEinternalCallInfos)
@@ -222,6 +222,8 @@ const unsafe_HW1MassCallback_c = cfunction(
                   opt::AbstractOptionsODE) -> (M1,M2,NM1)
 
   extracts parameters for special structure (M1, M2).
+
+  reads options: `OPT_M1`, `OPT_M2`
   """
 function extractSpecialStructureOpt{FInt}(d::FInt,opt::AbstractOptionsODE)
   OPT = nothing
@@ -248,6 +250,8 @@ end
            args::AbstractArgumentsODESolver,opt::AbstractOptionsODE)
   
   extracts mass matrix and fills `MAS`, `IMAS`, `MLMAS` und `MUMAS` in args.
+
+  reads options: `OPT_MASSMATRIX`
   """
 function extractMassMatrix{FInt}(M1::FInt, M2::FInt, NM1::FInt,
     args::AbstractArgumentsODESolver{FInt},opt::AbstractOptionsODE)
@@ -359,11 +363,65 @@ const unsafe_HW1JacCallback_c = cfunction(
     Ptr{Int64}, Ptr{Float64}, Ptr{Int64}))
 
 """
+        function unsafe_HWRhsTimeDerivCallback{FInt}(n_::Ptr{FInt},
+                t_::Ptr{Float64},x_::Ptr{Float64},dft_::Ptr{Float64},
+                rpar_::Ptr{Float64},ipar_::Ptr{FInt})
+  
+  This is the DFX callback given to rodas.
+
+  The `unsafe` prefix in the name indicates that no validations are 
+  performed on the `Ptr`-pointers.
+  
+  This function calls the user-given Julia function cbi.rhstimederiv
+  with the appropriate arguments.
+  """
+function unsafe_HWRhsTimeDerivCallback{FInt}(n_::Ptr{FInt},
+        t_::Ptr{Float64},x_::Ptr{Float64},dfdt_::Ptr{Float64},
+        rpar_::Ptr{Float64},ipar_::Ptr{FInt})
+  n = unsafe_load(n_)
+  t = unsafe_load(t_)
+  x = unsafe_wrap(Array, x_,(n,),false)
+  dfdt = unsafe_wrap(Array, dfdt_,(n,),false)
+  cid = unpackUInt64FromPtr(ipar_)
+  cbi = get(GlobalCallInfoDict,cid,nothing)
+  cbi == nothing && throw(InternalErrorODE(
+      string("Cannot find call-id ",int2logstr(cid[1]),
+             " in GlobalCallInfoDict")))
+  lprefix = cbi.rhsdt_prefix
+  (lio,l)=(cbi.logio,cbi.loglevel)
+  l_rhsdt = l & LOG_RHSDT>0
+
+  l_rhsdt && println(lio,lprefix,"called with n=",n," t=",t)
+  cbi.rhsdt(t,x,dfdt)
+  l_rhsdt && println(lio,lprefix,"dfdt=",dfdt)
+
+  return nothing
+end
+
+"""
+  `cfunction` pointer for unsafe_HWRhsTimeDerivCallback with 32bit integers.
+  """
+const unsafe_HWRhsTimeDerivCallbacki32_c = cfunction(
+  unsafe_HWRhsTimeDerivCallback, Void, (Ptr{Int32},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
+    Ptr{Float64}, Ptr{Int32}))
+
+"""
+  `cfunction` pointer for unsafe_HWRhsTimeDerivCallback with 64bit integers.
+  """
+const unsafe_HWRhsTimeDerivCallback_c = cfunction(
+  unsafe_HWRhsTimeDerivCallback, Void, (Ptr{Int64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
+    Ptr{Float64}, Ptr{Int64}))
+
+"""
        function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
             cid_str, args::AbstractArgumentsODESolver,opt::AbstractOptionsODE)
   
   extracts jacobi options and
-  fills `JAC`, `IJAC`, `MLJAC` und `MUJAC` in args.
+  fills `JAC`, `IJAC`, `MLJAC` and `MUJAC` in args.
+
+  reads options: `OPT_JACOBIMATRIX`, `OPT_JACOBIBANDSTRUCT`
   """
 function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
     cid_str, args::AbstractArgumentsODESolver{FInt},opt::AbstractOptionsODE)
@@ -404,6 +462,33 @@ function extractJacobiOpt{FInt}(d::FInt,M1::FInt, M2::FInt, NM1::FInt,
                               unsafe_HW1JacCallbacki32_c
   jac_lprefix = string(cid_str,"unsafe_HW1JacCallback: ")
   return (jacobimatrix,jacobibandstruct,jac_lprefix)
+end
+
+"""
+        function extractRhsTimeDerivOpt{FInt}(cid_str,
+                args::AbstractArgumentsODESolver{FInt}, 
+                opt::AbstractOptionsODE)
+  
+  extracts options for callback function for time-derivatives 
+  of the right-hand-side and
+  fills `DFX` and `IDFX` in args.
+  """
+function extractRhsTimeDerivOpt{FInt}(cid_str,
+        args::AbstractArgumentsODESolver{FInt}, opt::AbstractOptionsODE)
+  OPT = OPT_RHSTIMEDERIV
+  rhstimederiv = nothing
+  try
+    rhstimederiv = getOption(opt,OPT,nothing)
+    @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
+  catch e
+    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
+  end
+
+  args.IDFX = [rhstimederiv==nothing? 0 : 1]
+  args.DFX = (FInt == Int64)? unsafe_HWRhsTimeDerivCallback_c:
+                              unsafe_HWRhsTimeDerivCallbacki32_c
+  rhsdt_prefix = string(cid_str,"unsafe_HWRhsTimeDerivCallback: ")
+  return (rhstimederiv,rhsdt_prefix)
 end
 
 """

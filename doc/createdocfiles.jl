@@ -7,6 +7,13 @@ using ODEInterface
 
 const NL = "\n"
 
+# takebuf_string deprecation: 358c4419
+if VERSION < v"0.6.0-dev+1254"
+  buf2str(buf) = takebuf_string(buf)
+else
+  buf2str(buf) = String(take!(buf))
+end
+
 """
   escapes characters with "&#...;" HTML-notation.
   """
@@ -56,7 +63,7 @@ function formatTable(io,s::AbstractString)
       write(io,"<tr>")
       for col in columns
         write(io,table_head?"<th>":"<td>",
-          "<pre>",takebuf_string(col),"</pre>",
+          "<pre>",buf2str(col),"</pre>",
           table_head?"</th>":"</td>",NL)
       end
       write(io,"</tr>",NL)
@@ -102,7 +109,7 @@ function docSolverOptions(filename)
   introHeader(io)
   namewomodule = r"\.([^.]+)$"
 
-  for solver in (dopri5,dop853,odex,seulex,)
+  for solver in (dopri5,dop853,odex,seulex,rodas)
     solvername = string(solver)
     mo = match(namewomodule,solvername)
     if mo ≠ nothing
