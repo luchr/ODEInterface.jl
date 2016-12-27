@@ -139,7 +139,7 @@ end
 
 function build_rodas(path::AbstractString)
   compile_gfortran(dir_of_src,"rodas")
-  link_gfortran(dir_of_src,["rodas","dc_lapack","lapack"])
+  link_gfortran(dir_of_src,["rodas","dc_lapack","lapack","lapackc"])
   return nothing
 end
 
