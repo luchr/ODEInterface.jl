@@ -79,6 +79,19 @@ gcc -shared -fPIC -Wl,-soname,libseulex_i32.so  -lgfortran  -o seulex_i32.so \
               seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
 rm ./seulex_i32.o
 
+echo "rodas"
+gfortran -c -fPIC "${FLAGS_I64[@]}"  -o rodas.o   rodas.f
+gcc -shared -fPIC -Wl,-soname,librodas.so  -lgfortran  -o rodas.so \
+              rodas.o dc_lapack.o lapack.o
+rm ./rodas.o
+
+echo "rodas_i32"
+gfortran -c -fPIC "${FLAGS_I32[@]}"  -o rodas_i32.o   rodas.f
+gcc -shared -fPIC -Wl,-soname,librodas_i32.so  -lgfortran  -o rodas_i32.so \
+              rodas_i32.o dc_lapack_i32.o lapack_i32.o
+rm ./rodas_i32.o
+
+
 echo "bvpsol"
 gfortran -c -fPIC "${FLAGS_I64[@]}"  -o bvpsol.o   bvpsol.f
 gfortran -c -fPIC "${FLAGS_I64[@]}"  -o linalg_bvpsol.o   linalg_bvpsol.f

@@ -1,70 +1,77 @@
-# Functions for ODE-Solver: Seulex
+# Functions for ODE-Solver: Rodas
 
-"""Name for Loading seulex solver (64bit integers)."""
-const DL_SEULEX               = "seulex"
+"""Name for Loading rodas solver (64bit integers)."""
+const DL_RODAS                = "rodas"
 
-"""Name for Loading seulex solver (32bit integers)."""
-const DL_SEULEX_I32           = "seulex_i32"
+"""Name for Loading rodas solver (32bit integers)."""
+const DL_RODAS_I32            = "rodas_i32"
 
-"""macro for import seulex solver."""
-macro import_seulex()
+"""macro for import rodas solver."""
+macro import_rodas()
   :(
-    using ODEInterface: seulex, seulex_i32
+    using ODEInterface: rodas, rodas_i32
   )
 end
 
-"""macro for import seulex dynamic lib names."""
-macro import_DLseulex()
+"""macro for import rodas dynamic lib names."""
+macro import_DLrodas()
   :(
-    using ODEInterface: DL_SEULEX, DL_SEULEX_I32
+    using ODEInterface: DL_RODAS, DL_RODAS_I32
   )
 end
 
-"""macro for importing Seulex help."""
-macro import_seulex_help()
+"""macro for importing Rodas help."""
+macro import_rodas_help()
   :(
-    using ODEInterface: help_seulex_compile, help_seulex_license
+    using ODEInterface: help_rodas_compile, help_rodas_license
   )
 end
 
 """
-  Type encapsulating all required data for Seulex-Solver-Callbacks.
+  Type encapsulating all required data for Rodas-Solver-Callbacks.
   
   We have the typical calling stack:
 
-       seulex       
+       rodas
            call_julia_output_fcn(  ... INIT ... )
                output_fcn ( ... INIT ...)
-           ccall( SEULEX_  ... )
+           ccall( RODAS_  ... )
               ┌───────────────────────────────────────────┐  ⎫
               │unsafe_HW2RHSCallback_c                    │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_seulexSoloutCallback_c              │  ⎪
+              │unsafe_rodasSoloutCallback:                │  ⎪
               │    call_julia_output_fcn( ... STEP ...)   │  ⎪ cb. solout
               │        output_fcn ( ... STEP ...)         │  ⎬ with eval
               │            eval_sol_fcn                   │  ⎪
-              │                ccall(CONTEX_ ... )        │  ⎪
+              │                ccall(CONTRO_ ... )        │  ⎪
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
               │unsafe_HW1JacCallback:                     │  ⎬ cb. jacobian
-              │    call_julia_jac_fcn(             )      │  ⎪
+              │    call_julia_jac_fcn                     │  ⎪
+              └───────────────────────────────────────────┘  ⎭
+              ┌───────────────────────────────────────────┐  ⎫
+              │unsafe_HWRhsTimeDerivCallback:             │  ⎬ cb. ∂f/∂t
+              │    rhsdt                                  │  ⎪
               └───────────────────────────────────────────┘  ⎭
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type SeulexInternalCallInfos{FInt} <: ODEinternalCallInfos
+type RodasInternalCallInfos{FInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
   M1           :: FInt
   M2           :: FInt
-  # RHS:
+  # RHS
   rhs          :: Function              # right-hand-side 
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
+  # RHS time derivative
+  rhsdt        :: Function              # right-hand side time derivative
+  rhsdt_prefix :: AbstractString        # saved log-prefix for rhsdt
   # SOLOUT & output function
   output_mode  :: OUTPUTFCN_MODE        # what mode for output function
   output_fcn   :: Function              # the output function to call
@@ -75,12 +82,10 @@ type SeulexInternalCallInfos{FInt} <: ODEinternalCallInfos
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
   xNew         :: Vector{Float64}       # xNew of current solout interval
-  cont_i       :: Vector{FInt}          # argument to contex
-  cont_s       :: Vector{Float64}       # argument to contex
-  cont_rc      :: Ptr{Float64}          # saved pointers for contex
-  cont_lrc     :: Ptr{FInt}             # saved pointers for contex
-  cont_ic      :: Ptr{FInt}             # saved pointers for contex
-  cont_lic     :: Ptr{FInt}             # saved pointers for contex
+  cont_i       :: Vector{FInt}          # argument to contro
+  cont_s       :: Vector{Float64}       # argument to contro
+  cont_cont    :: Ptr{Float64}          # saved pointers for contro
+  cont_lrc     :: Ptr{FInt}             # saved pointers for contro
   # Massmatrix
   massmatrix   :: AbstractArray{Float64}# saved mass matrix
   # Jacobimatrix
@@ -90,14 +95,14 @@ type SeulexInternalCallInfos{FInt} <: ODEinternalCallInfos
 end
 
 """
-       type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       type RodasArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   
-  Stores Arguments for Seulex solver.
+  Stores Arguments for Rodas solver.
   
   FInt is the Integer type used for the fortran compilation:
   FInt ∈ (Int32,Int64)
   """
-type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type RodasArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   IFCN    :: Vector{FInt}      # autonomous (0) or not (1)
@@ -112,6 +117,8 @@ type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   IJAC    :: Vector{FInt}      # jacobian given as callback?
   MLJAC   :: Vector{FInt}      # lower bandwidth of jacobian
   MUJAC   :: Vector{FInt}      # upper bandwidth of jacobian
+  DFX     :: Ptr{Void}         # dFCN/dt callback
+  IDFX    :: Vector{FInt}      # DFX given as callback?
   MAS     :: Ptr{Void}
   IMAS    :: Vector{FInt}      # mass matrix given as callback?
   MLMAS   :: Vector{FInt}      # lower bandwidth of mass matrix
@@ -126,44 +133,46 @@ type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Vector{FInt}      # add. integer-array
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function SeulexArguments()
+  function RodasArguments()
     return new()
   end
 end
 
+
 """
-       function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
-         told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-         rc_::Ptr{Float64}, lrc_::Ptr{FInt}, ic_::Ptr{FInt}, lic_::Ptr{FInt},
-         n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
-         irtrn_::Ptr{FInt})
+        function unsafe_rodasSoloutCallback{FInt}(nr_::Ptr{FInt},
+            told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
+            cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+            n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
+            irtrn_::Ptr{FInt})
   
-  This is the solout given as callback to Fortran-seulex.
+  This is the solout given as callback to Fortran-rodas.
   
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
-  `SeulexInternalCallInfos`, where they can be found by
-  the `eval_sol_fcn`, see `create_seulex_eval_sol_fcn_closure`.
+  `RodasInternalCallInfos`, where they can be found by
+  the `eval_sol_fcn`, see `create_rodas_eval_sol_fcn_closure`.
   
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
   
-  The return value of the `output_fcn` is propagated to `SEULEX_`.
+  The return value of the `output_fcn` is propagated to `RODAS_`.
   
-  For the typical calling sequence, see `SeulexInternalCallInfos`.
+  For the typical calling sequence, see `RodasInternalCallInfos`.
   """
-function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
-  told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-  rc_::Ptr{Float64}, lrc_::Ptr{FInt}, ic_::Ptr{FInt}, lic_::Ptr{FInt},
-  n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+function unsafe_rodasSoloutCallback{FInt}(nr_::Ptr{FInt},
+    told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
+    cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+    n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
+    irtrn_::Ptr{FInt})
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_,(n,),false)
   ipar = unsafe_wrap(Array, ipar_,(2,),false)
-  irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
+  irtrn = unsafe_wrap(Array, irtrn_, (1,),false)
   cid = unpackUInt64FromVector(ipar)
 
   cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -176,10 +185,9 @@ function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
                                " t=",t," x=",x)
-  
-  cbi.tOld = told; cbi.tNew = t; cbi.xNew = x;
-  cbi.cont_rc = rc_; cbi.cont_lrc = lrc_; 
-  cbi.cont_ic = ic_; cbi.cont_lic = lic_;
+
+  cbi.tOld = told; cbi.tNew = t; cbi.xNew = x
+  cbi.cont_cont = cont_; cbi.cont_lrc = lrc_
   cbi.output_data["nr"] = nr
 
   ret = call_julia_output_fcn(cid,OUTPUTFCN_CALL_STEP,told,t,x,
@@ -190,60 +198,60 @@ function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
   elseif  ret == OUTPUTFCN_RET_CONTINUE
     irtrn[1] = 0
   elseif  ret == OUTPUTFCN_RET_CONTINUE_XCHANGED
-    throw(FeatureNotSupported(string("Sorry; seulex does not support ",
+    throw(FeatureNotSupported(string("Sorry; rodas does not support ",
           "to change the solution inside the output function.")))
   else
     throw(InternalErrorODE(string("Unkown ret=",ret," of output function")))
   end
-  
+
   return nothing
 end
 
 """
-  `cfunction` pointer for unsafe_seulexSoloutCallback with 64bit integers.
+  `cfunction` pointer for unsafe_rodasSoloutCallback with 64bit integers.
   """
-const unsafe_seulexSoloutCallback_c = cfunction(
-  unsafe_seulexSoloutCallback, Void, (Ptr{Int64},
+const unsafe_rodasSoloutCallback_c = cfunction(
+  unsafe_rodasSoloutCallback, Void, (Ptr{Int64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Float64}, Ptr{Int64}, Ptr{Int64}, Ptr{Int64},
+    Ptr{Float64}, Ptr{Int64}, 
     Ptr{Int64}, Ptr{Float64}, Ptr{Int64}, Ptr{Int64}))
 
 """
-  `cfunction` pointer for unsafe_seulexSoloutCallback with 32bit integers.
+  `cfunction` pointer for unsafe_rodasSoloutCallback with 32bit integers.
   """
-const unsafe_seulexSoloutCallbacki32_c = cfunction(
-  unsafe_seulexSoloutCallback, Void, (Ptr{Int32},
+const unsafe_rodasSoloutCallbacki32_c = cfunction(
+  unsafe_rodasSoloutCallback, Void, (Ptr{Int32},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Float64}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+    Ptr{Float64}, Ptr{Int32}, 
     Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}))
 
 """
-       function create_seulex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_contex::Ptr{Void})
+       function create_rodas_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
+                    method_contro::Ptr{Void})
   
-  generates a eval_sol_fcn for seulex.
+  generates a eval_sol_fcn for rodas.
   
   Why is a closure needed? We need a function `eval_sol_fcn`
-  that calls `CONTEX_` (with `ccall`).
-  But `CONTEX_` needs the informations for the current state. This
-  informations were saved by `unsafe_seulexSoloutCallback` in the
-  `SeulexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+  that calls `CONTRO_` (with `ccall`).
+  But `CONTRO_` needs the informations for the current state. This
+  informations were saved by `unsafe_rodasSoloutCallback` in the
+  `RodasInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   For finding this "callback informations" the "call id" is needed.
-  Here comes `create_seulex_eval_sol_fcn_closure` into play: this function
+  Here comes `create_rodas_eval_sol_fcn_closure` into play: this function
   takes the "call id" (and some other informations) and generates
   a `eval_sol_fcn` with this data.
   
-  Why doesn't `unsafe_seulexSoloutCallback` generate a closure (then
-  the current state needs not to be saved in `SeulexInternalCallInfos`)?
-  Because then every call to `unsafe_seulexSoloutCallback` would have
+  Why doesn't `unsafe_rodasSoloutCallback` generate a closure (then
+  the current state needs not to be saved in `RodasInternalCallInfos`)?
+  Because then every call to `unsafe_rodasSoloutCallback` would have
   generated a closure function. That's a lot of overhead: 1 closure function
   for every solout call. With the strategy above, we have 1 closure function
   per ODE-solver-call, i.e. 1 closure function per ODE.
 
-  For the typical calling sequence, see `SeulexInternalCallInfos`.
+  For the typical calling sequence, see `RodasInternalCallInfos`.
   """
-function create_seulex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_contex::Ptr{Void})
+function create_rodas_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
+             method_contro::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
     cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -259,26 +267,25 @@ function create_seulex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
     result = Vector{Float64}(d)
     if s == cbi.tNew
       result[:] = cbi.xNew
-      l_eval && println(lio,lprefix,"not calling contex because s==tNew")
+      l_eval && println(lio,lprefix,"not calling contro because s==tNew")
     else
       for k = 1:d
         cbi.cont_i[1] = k
-        result[k] = ccall(method_contex,Float64,
-          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, 
-           Ptr{FInt}, Ptr{FInt},),
-          cbi.cont_i,cbi.cont_s, cbi.cont_rc, cbi.cont_lrc,
-          cbi.cont_ic, cbi.cont_lic)
+        result[k] = ccall(method_contro,Float64,
+          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, ),
+          cbi.cont_i,cbi.cont_s, cbi.cont_cont, cbi.cont_lrc)
       end
     end
     
-    l_eval && println(lio,lprefix,"contex returned ",result)
+    l_eval && println(lio,lprefix,"contro returned ",result)
     return result
   end
   return eval_sol_fcn_closure
 end
 
+
 """
-       function seulex(rhs::Function, t0::Real, T::Real,
+        function rodas(rhs::Function, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -290,8 +297,8 @@ end
        -1: computation unsuccessful
 
 
-  main call for using Fortran seulex solver.
-  
+  main call for using Fortran rodas solver.
+
   This solver support problems with special structure, see
   `help_specialstructure`.
   
@@ -326,17 +333,14 @@ end
       ║                 │   call OPT_OUTPUTFCN with support for    │         ║
       ║                 │   dense output                           │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ LAMBDADENSE     │ parameter λ of dense output              │       0 ║
-      ║                 │ OPT_LAMBDADENSE ∈ {0,1}                  │         ║
-      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ EPS             │ the rounding unit                        │   1e-16 ║
       ║                 │ 0 < OPT_EPS < 1.0                        │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ TRANSJTOH       │ The solver transforms the jacobian       │   false ║
-      ║                 │ matrix to Hessenberg form.               │         ║
-      ║                 │ This option is not supported if the      │         ║
-      ║                 │ system is "implicit" (i.e. a mass matrix │         ║
-      ║                 │ is given) or if jacobian is banded.      │         ║
+      ║ METHODCHOICE    │ Choice of coefficients:                  │       1 ║
+      ║                 │ 1: Hairer, Wanner: Solving ODE II,       │         ║
+      ║                 │    page 452                              │         ║
+      ║                 │ 2: same as 1, with different params      │         ║
+      ║                 │ 3: G. Steinbach (1993)                   │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ MAXSTEPS        │ maximal number of allowed steps          │  100000 ║
       ║                 │ OPT_MAXSTEPS > 0                         │         ║
@@ -346,46 +350,33 @@ end
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ INITIALSS       │ initial step size guess                  │    1e-6 ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ MAXEXCOLUMN     │ the maximum number of columns in         │      12 ║
-      ║                 │ the extrapolation table                  │         ║
-      ║                 │ OPT_MAXEXCOLUMN ≥ 3                      │         ║
+      ║ STEPSIZESTRATEGY│ Switch for step size strategy            │       1 ║
+      ║                 │   1: mod. predictive controller          │         ║
+      ║                 │      (Gustafsson)                        │         ║
+      ║                 │   2: classical step size control         │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ STEPSIZESEQUENCE│ switch for the step size sequence        │       2 ║
-      ║                 │ 1: 1, 2, 3, 6, 8, 12, 16, 24, 32, 48, …  │         ║
-      ║                 │ 2: 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, …  │         ║
-      ║                 │ 3: 1, 2, 3, 4, 5,  6,  7,  8,  9, 10, …  │         ║
-      ║                 │ 4: 2, 3, 4, 5, 6,  7,  8,  9, 10, 11, …  │         ║
-      ║                 │ 1 ≤ OPT_STEPSIZESEQUENCE ≤ 4             │         ║
+      ║ OPT_RHO         │ safety factor for step control algorithm │     0.9 ║
+      ║                 │ 0.001 < OPT_RHO < 1.0                    │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ SSSELECTPAR1 &  │ parameters for step size selection       │     0.1 ║
-      ║ SSSELECTPAR2    │ the new step size for the k-th diagonal  │     4.0 ║
-      ║                 │ entry is chosen subject to               │         ║
-      ║                 │ FMIN/SSSELECTPAR2 ≤ hnewₖ/hold ≤ 1/FMIN  │         ║
-      ║                 │ with FMIN = SSSELECTPAR1^(1/(k-1))       │         ║
+      ║ SSMINSEL   &    │ parameters for step size selection       │     0.2 ║
+      ║ SSMAXSEL        │ The new step size is chosen subject to   │     6.0 ║
+      ║                 │ the restriction                          │         ║
+      ║                 │ OPT_SSMINSEL ≤ hnew/hold ≤ OPT_SSMAXSEL  │         ║
+      ║                 │ OPT_SSMINSEL ≤ 1, OPT_SSMAXSEL ≥ 1       │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ ORDERDECFRAC &  │ parameters for the order selection       │     0.7 ║
-      ║ ORDERINCFRAC    │ decrease order if                        │     0.9 ║
-      ║                 │         W(k-1) ≤   W(k)*ORDERDECFRAC     │         ║
-      ║                 │ increase order if                        │         ║
-      ║                 │         W(k)   ≤ W(k-1)*ORDERINCFRAC     │         ║
-      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ JACRECOMPFACTOR │ decides whether the jacobian should be   │ min(    ║
-      ║                 │ recomputed.                              │   1e-4, ║
-      ║                 │ small (≈ 0.001): recompute often         │ RTOL[1])║
-      ║                 │ large (≈ 0.1): recompute rarely          │         ║
-      ║                 │ i.e. this number represents how costly   │         ║
-      ║                 │ Jacobia evaluations are.                 │         ║
-      ║                 │ OPT_JACRECOMPFACTOR ≠ 0                  │         ║
-      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ OPT_RHO      &  │ safety factors for step control algorithm│    0.93 ║
-      ║ OPT_RHO2        │ hnew=h*RHO*(RHO2*TOL/ERR)^(1/(k-1) )     │    0.80 ║
-      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ MASSMATRIX      │ the mass matrix of the problem. If not   │ nothing ║
-      ║                 │ given (nothing) then the identiy matrix  │         ║
-      ║                 │ is used.                                 │         ║
-      ║                 │ The size has to be (d-M1)×(d-M1).        │         ║
-      ║                 │ It can be an full matrix or a banded     │         ║
-      ║                 │ matrix (BandedMatrix).                   │         ║
+      ║ RHSTIMEDERIV    │ A function providing the time derivative │ nothing ║
+      ║                 │ ∂f/∂t of the right-hand side or nothing. │         ║
+      ║                 │ If the value given is nothing the solver │         ║
+      ║                 │ uses finite differences to approximate   │         ║
+      ║                 │ ∂f/∂t.                                   │         ║
+      ║                 │ Obviously this options is only relevant  │         ║
+      ║                 │ for non-autonomous problems.             │         ║
+      ║                 │ The function has to be of the form:      │         ║
+      ║                 │   function (t,x,dfdt) -> nothing         │         ║
+      ║                 │ Even if the problem has special structure│         ║
+      ║                 │ (M1>0, see help_specialstructure) x and  │         ║
+      ║                 │ dfdt are always vectors with full length,│         ║
+      ║                 │ i.e. length(x)==length(dfdt)==length(x0).│         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ JACOBIMATRIX    │ A function providing the Jacobian for    │ nothing ║
       ║                 │ ∂f/∂x or nothing. For nothing the solver │         ║
@@ -403,41 +394,41 @@ end
       ║                 │ the Jacobian is full.                    │         ║
       ║                 │ see help_specialstructure                │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
-      ║ WORKFORRHS      │ estimated works (complexity) for a call  │     1.0 ║
-      ║ WORKFORJAC      │ to                                       │     5.0 ║
-      ║ WORKFORDEC      │ WORKFORRHS: right-hand side f            │     1.0 ║
-      ║ WORKFORSOL      │ WORKFORJAC: JACOBIMATRIX                 │     1.0 ║
-      ║                 │ WORKFORDEC: LU-decomposition             │         ║
-      ║                 │ WORKFORSOL: Forward- and Backward subst. │         ║
+      ║ MASSMATRIX      │ the mass matrix of the problem. If not   │ nothing ║
+      ║                 │ given (nothing) then the identiy matrix  │         ║
+      ║                 │ is used.                                 │         ║
+      ║                 │ The size has to be (d-M1)×(d-M1).        │         ║
+      ║                 │ It can be an full matrix or a banded     │         ║
+      ║                 │ matrix (BandedMatrix).                   │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function seulex(rhs::Function, t0::Real, T::Real,
-                x0::Vector, opt::AbstractOptionsODE)
-  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}())
+function rodas(rhs::Function, t0::Real, T::Real,
+               x0::Vector, opt::AbstractOptionsODE)
+  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}())
 end
 
 """
-  seulex with 32bit integers, see seulex.
+  rodas with 32bit integers, see rodas.
   """
-function seulex_i32(rhs::Function, t0::Real, T::Real,
-                x0::Vector, opt::AbstractOptionsODE)
-  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}())
+function rodas_i32(rhs::Function, t0::Real, T::Real,
+                   x0::Vector, opt::AbstractOptionsODE)
+  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}())
 end
 
-function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                opt::AbstractOptionsODE, args::SeulexArguments{FInt})
+function rodas_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
+                opt::AbstractOptionsODE, args::RodasArguments{FInt})
   FInt ∉ (Int32,Int64) &&
     throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
-  
+
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
-    solver_start("seulex",rhs,t0,T,x0,opt)
-  
-  (method_seulex, method_contex) = getAllMethodPtrs(
-     (FInt == Int64)? DL_SEULEX : DL_SEULEX_I32 )
+    solver_start("rodas",rhs,t0,T,x0,opt)
+
+  (method_rodas, method_contro) = getAllMethodPtrs(
+     (FInt == Int64)? DL_RODAS : DL_RODAS_I32 )
 
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
-  
+
   args.ITOL = [ scalarFlag?0:1 ]
   args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER? 0:
                      (output_mode == OUTPUTFCN_DENSE?2:1) )]
@@ -448,63 +439,40 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   (jacobimatrix,jacobibandstruct,jac_lprefix) =
     extractJacobiOpt(d,M1,M2,NM1,cid_str,args,opt)
 
+  (rhsdt,rhsdt_prefix) = extractRhsTimeDerivOpt(cid_str,args,opt)
+
   flag_implct = args.IMAS[1] ≠ 0
   flag_jband = args.MLJAC[1] < NM1
 
-  OPT = nothing; KM = FInt(0)
-  try
-    OPT=OPT_MAXEXCOLUMN; KM=convert(FInt,getOption(opt,OPT,12))
-    @assert KM ≥ 3
-  catch e
-    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
-  end
-  
   # WORK memory
   ljac = flag_jband? 1+args.MLJAC[1]+args.MUJAC[1]: NM1
   lmas = (!flag_implct)? 0 :
          (args.MLMAS[1] == NM1)? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
   le   = flag_jband? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
-  KM2  = 2+KM*ceil(FInt,(KM+3)/2)
-  
-  args.LWORK = [ (M1==0)? d*(ljac+lmas+le+KM+8)+4*KM+20+KM2*nrdense :
-                          d*(ljac+KM+8)+NM1*(lmas+le)+4*KM+20+KM2*nrdense ]
+
+  args.LWORK = [ (M1==0)? d*(ljac+lmas+le+14) + 20 :
+                          d*(ljac+14) + NM1*(lmas+le) + 20 ]
   args.WORK = zeros(Float64,args.LWORK[1])
-  
+
   # IWORK memory
-  args.LIWORK = [ 2*d+KM+20+nrdense ]
+  args.LIWORK = [ d+20 ]
   args.IWORK = zeros(FInt,args.LIWORK[1])
-  
+
+  OPT = nothing
   try
     OPT=OPT_RHSAUTONOMOUS;
     rhsautonomous = convert(Bool,getOption(opt,OPT,false))
-    args.IFCN = [ rhsautonomous? 0:1 ]
+    args.IFCN = [ FInt(rhsautonomous? 0:1) ]
 
-    OPT=OPT_TRANSJTOH; 
-    transjtoh  = convert(Bool,getOption(opt,OPT,false))
-    @assert (!transjtoh) || 
-            ( (!flag_jband) && (!flag_implct ))  string(
-            "Does not work, if the jacobian is banded or if the system ",
-            " has a mass matrix (≠Id).")
-    args.IWORK[1] = transjtoh? 1 : 0
+    OPT=OPT_MAXSTEPS; args.IWORK[1] = convert(FInt,getOption(opt,OPT,100000))
+    @assert 0 < args.IWORK[1]
 
-    OPT=OPT_MAXSTEPS; args.IWORK[2] = convert(FInt,getOption(opt,OPT,100000))
-    @assert 0 < args.IWORK[2]
-    
-    args.IWORK[3] = KM
+    OPT=OPT_METHODCHOICE; args.IWORK[2] = convert(FInt,getOption(opt,OPT,1))
+    @assert 1 ≤ args.IWORK[2] ≤ 3
 
-    OPT = OPT_STEPSIZESEQUENCE
-    args.IWORK[4] = convert(FInt,getOption(opt,OPT,2))
-    @assert 1 ≤ args.IWORK[4] ≤ 4
-    
-    OPT = OPT_LAMBDADENSE
-    args.IWORK[5] = convert(FInt,getOption(opt,OPT,0))
-    @assert args.IWORK[5] ∈ (0,1)
-    
-    args.IWORK[6] = nrdense
-
-    for k in 1:nrdense
-      args.IWORK[20+k] = k
-    end
+    OPT = OPT_STEPSIZESTRATEGY; 
+    args.IWORK[3] = convert(FInt,getOption(opt,OPT,1))
+    @assert args.IWORK[3] ∈ (1,2,)
 
     args.IWORK[9] = M1 
     args.IWORK[10] = M2
@@ -515,49 +483,14 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     OPT=OPT_MAXSS; args.WORK[2]=convert(Float64,getOption(opt,OPT,T-t0))
     @assert 0 ≠ args.WORK[2]
 
-    OPT = OPT_JACRECOMPFACTOR
-    args.WORK[3] = convert(Float64,getOption(opt,OPT,min(1e-4,args.RTOL[1])))
-    @assert !(args.WORK[3]==0)
+    OPT=OPT_SSMINSEL; args.WORK[3]=convert(Float64,getOption(opt,OPT,0.2))
+    @assert args.WORK[3] ≤ 1
+    OPT=OPT_SSMAXSEL; args.WORK[4]=convert(Float64,getOption(opt,OPT,6.0))
+    @assert args.WORK[4] ≥ 1
 
-    OPT = OPT_SSSELECTPAR1; 
-    args.WORK[4] = convert(Float64,getOption(opt,OPT,0.1))
-    @assert 0 < args.WORK[4]
-
-    OPT = OPT_SSSELECTPAR2
-    args.WORK[5] = convert(Float64,getOption(opt,OPT,4.0))
-    @assert 0 < args.WORK[5]
-
-    OPT = OPT_ORDERDECFRAC
-    args.WORK[6] = convert(Float64,getOption(opt,OPT,0.7))
-    @assert 0 < args.WORK[6]
-
-    OPT = OPT_ORDERINCFRAC
-    args.WORK[7] = convert(Float64,getOption(opt,OPT,0.9))
-    @assert 0 < args.WORK[7]
-
-    OPT = OPT_RHO2
-    args.WORK[8] = convert(Float64,getOption(opt,OPT,0.8))
-    @assert 0 < args.WORK[8]
-    
     OPT = OPT_RHO
-    args.WORK[9] = convert(Float64,getOption(opt,OPT,0.93))
-    @assert 0 < args.WORK[9]
-    
-    OPT = OPT_WORKFORRHS
-    args.WORK[10] = convert(Float64,getOption(opt,OPT,1.0))
-    @assert 0 < args.WORK[10]
-
-    OPT = OPT_WORKFORJAC
-    args.WORK[11] = convert(Float64,getOption(opt,OPT,5.0))
-    @assert 0 < args.WORK[11]
-
-    OPT = OPT_WORKFORDEC
-    args.WORK[12] = convert(Float64,getOption(opt,OPT,1.0))
-    @assert 0 < args.WORK[12]
-
-    OPT = OPT_WORKFORSOL
-    args.WORK[13] = convert(Float64,getOption(opt,OPT,1.0))
-    @assert 0 < args.WORK[13]
+    args.WORK[5] = convert(Float64,getOption(opt,OPT,0.9))
+    @assert 0.001 < args.WORK[5] < 1.0
 
     OPT = OPT_INITIALSS
     args.H = [ convert(Float64,getOption(opt,OPT,1e-6)) ]
@@ -567,30 +500,30 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
 
   args.RPAR = zeros(Float64,0)
   args.IDID = zeros(FInt,1)
-  args.FCN  = (FInt == Int64)? unsafe_HW2RHSCallback_c:
+  args.FCN = (FInt == Int64) ? unsafe_HW2RHSCallback_c:
                                unsafe_HW2RHSCallbacki32_c
   rhs_lprefix = string(cid_str,"unsafe_HW2RHSCallback: ")
 
-  args.SOLOUT = (FInt == Int64)? unsafe_seulexSoloutCallback_c:
-                                 unsafe_seulexSoloutCallbacki32_c
-  out_lprefix = string(cid_str,"unsafe_seulexSoloutCallback: ")
+  args.SOLOUT = (FInt == Int64)? unsafe_rodasSoloutCallback_c:
+                                 unsafe_rodasSoloutCallbacki32_c
+  out_lprefix = string(cid_str,"unsafe_rodasSoloutCallback: ")
   eval_lprefix = string(cid_str,"eval_sol_fcn_closure: ")
 
   try
     eval_sol_fcn =
       (output_mode == OUTPUTFCN_DENSE)?
-        create_seulex_eval_sol_fcn_closure(cid[1],d,method_contex):
+        create_rodas_eval_sol_fcn_closure(cid[1],d,method_contro):
         eval_sol_fcn_noeval
 
     GlobalCallInfoDict[cid[1]] =
-      SeulexInternalCallInfos{FInt}(cid,lio,l,M1,M2,rhs,rhs_mode,rhs_lprefix,
+      RodasInternalCallInfos{FInt}(cid,lio,l,M1,M2,rhs,rhs_mode,rhs_lprefix,
+        rhsdt==nothing?dummy_func:rhsdt, rhsdt_prefix,
         output_mode,output_fcn,Dict(),out_lprefix,eval_sol_fcn,eval_lprefix,
         NaN,NaN,Vector{Float64}(),Vector{FInt}(1),Vector{Float64}(1),
-        C_NULL,C_NULL,C_NULL,C_NULL,
+        C_NULL,C_NULL,
         massmatrix==nothing?zeros(0,0):massmatrix,
         jacobimatrix==nothing?dummy_func:jacobimatrix,
-        jacobibandstruct,jac_lprefix
-        )
+        jacobibandstruct,jac_lprefix)
 
     args.IPAR = Vector{FInt}(2)  # enough for cid[1] even in 32bit case 
     packUInt64ToVector!(args.IPAR,cid[1])
@@ -600,16 +533,17 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
         args.t[1],args.tEnd[1],args.x,eval_sol_fcn_init) # ignore result
 
     if l_solver
-      println(lio,lprefix,"call Fortran-seulex $method_seulex with")
+      println(lio,lprefix,"call Fortran-rodas $method_rodas with")
       dump(lio,args);
     end
 
-    ccall( method_seulex, Void,
+    ccall( method_rodas, Void,
       (Ptr{FInt},  Ptr{Void}, Ptr{FInt},          # N=d, Rightsidefunc, IFCN
        Ptr{Float64}, Ptr{Float64}, Ptr{Float64},  # t, x, tEnd
        Ptr{Float64},                              # h
        Ptr{Float64}, Ptr{Float64}, Ptr{FInt},     # RTOL, ATOL, ITOL
        Ptr{Void}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# JAC, IJAC, MLJAC, MUJAC
+       Ptr{Void}, Ptr{FInt},                      # DFX, IDFX
        Ptr{Void}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# MAS, IMAS, MLMAS, MUMAS
        Ptr{Void}, Ptr{FInt},                      # Soloutfunc, IOUT
        Ptr{Float64}, Ptr{FInt},                   # WORK, LWORK
@@ -621,6 +555,7 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
       args.H,
       args.RTOL, args.ATOL, args.ITOL, 
       args.JAC, args.IJAC, args.MLJAC, args.MUJAC,
+      args.DFX, args.IDFX,
       args.MAS, args.IMAS, args.MLMAS, args.MUMAS,
       args.SOLOUT, args.IOUT,
       args.WORK, args.LWORK,
@@ -629,7 +564,7 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     )
 
     if l_solver
-      println(lio,lprefix,"Fortran-seulex $method_seulex returned")
+      println(lio,lprefix,"Fortran-rodas $method_rodas returned")
       dump(lio,args);
     end
 
@@ -639,6 +574,7 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
   finally
     delete!(GlobalCallInfoDict,cid[1])
   end
+
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{AbstractString,Any}(
     "step_predict"       => args.H[1],
@@ -649,22 +585,22 @@ function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
     "no_steps_rejected"  => args.IWORK[18],
     "no_lu_decomp"       => args.IWORK[19],
     "no_fw_bw_subst"     => args.IWORK[20],
-          )
+  )
   return ( args.t[1], args.x, args.IDID[1], stats)
 end
 
-"""  
-  ## Compile SEULEX 
+"""
+  ## Compile RODAS
 
   The Fortran source code can be found at:
   
        http://www.unige.ch/~hairer/software.html 
   
-  See `help_seulex_license` for the licsense information.
+  See `help_rodas_license` for the licsense information.
   
   ### Using `gfortran` and 64bit integers (Linux and Mac)
   
-  Here is an example how to compile SEULEX with `Float64` reals and
+  Here is an example how to compile RODAS with `Float64` reals and
   `Int64` integers with `gfortran`:
   
        gfortran -c -fPIC -fdefault-integer-8 
@@ -675,22 +611,19 @@ end
                 -o lapack.o lapack.f
        gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc.o lapackc.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
-                -o seulex.o seulex.f
+                -o rodas.o rodas.f
   
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o seulex.so 
-                seulex.o dc_lapack.o lapack.o lapackc.o
-       gfortran -shared -fPIC -o seulex.dylib
-                seulex.o dc_lapack.o lapack.o lapackc.o
+       gfortran -shared -fPIC -o rodas.so 
+                rodas.o dc_lapack.o lapack.o
+       gfortran -shared -fPIC -o rodas.dylib
+                rodas.o dc_lapack.o lapack.o
   
   ### Using `gfortran` and 64bit integers (Windows)
   
-  Here is an example how to compile SEULEX with `Float64` reals and
+  Here is an example how to compile RODAS with `Float64` reals and
   `Int64` integers with `gfortran`:
   
        gfortran -c -fdefault-integer-8 
@@ -701,19 +634,16 @@ end
                 -o lapack.o lapack.f
        gfortran -c -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 
-                -o lapackc.o lapackc.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
-                -o seulex.o seulex.f
+                -o rodas.o rodas.f
   
   In order to get create a shared library (from the object file above) use
   
-       gfortran -shared -o seulex.so 
-                seulex.o dc_lapack.o lapack.o lapackc.o
+       gfortran -shared -o rodas.so 
+                rodas.o dc_lapack.o lapack.o
   
   ### Using `gfortran` and 32bit integers (Linux and Mac)
   
-  Here is an example how to compile SEULEX with `Float64` reals and
+  Here is an example how to compile RODAS with `Float64` reals and
   `Int32` integers with `gfortran`:
   
        gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
@@ -721,21 +651,19 @@ end
        gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
                 -o lapack_i32.o lapack.f
        gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
-                -o seulex_i32.o seulex.f
+                -o rodas_i32.o rodas.f
   
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
   
-       gfortran -shared -fPIC -o seulex_i32.so 
-                 seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-       gfortran -shared -fPIC -o seulex_i32.dylib
-                 seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -fPIC -o rodas_i32.so 
+                 rodas_i32.o dc_lapack_i32.o lapack_i32.o
+       gfortran -shared -fPIC -o rodas_i32.dylib
+                 rodas_i32.o dc_lapack_i32.o lapack_i32.o
   
   ### Using `gfortran` and 32bit integers (Windows)
   
-  Here is an example how to compile SEULEX with `Float64` reals and
+  Here is an example how to compile RODAS with `Float64` reals and
   `Int32` integers with `gfortran`:
   
        gfortran -c -fdefault-real-8 -fdefault-double-8 
@@ -743,58 +671,52 @@ end
        gfortran -c -fdefault-real-8 -fdefault-double-8 
                 -o lapack_i32.o lapack.f
        gfortran -c -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
-                -o seulex_i32.o seulex.f
+                -o rodas_i32.o rodas.f
   
   In order to get create a shared library (from the object file above) use:
 
-       gfortran -shared -o seulex_i32.dll
-                 seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
+       gfortran -shared -o rodas_i32.dll
+                 rodas_i32.o dc_lapack_i32.o lapack_i32.o
   
   """
-function help_seulex_compile()
-  return Docs.doc(help_seulex_compile)
+function help_rodas_compile()
+  return Docs.doc(help_rodas_compile)
 end
 
-function help_seulex_license()
-  return Docs.doc(help_seulex_license)
+function help_rodas_license()
+  return Docs.doc(help_rodas_license)
 end
 
-@doc(@doc(hw_license),help_seulex_license)
+@doc(@doc(hw_license),help_rodas_license)
 
 # Add informations about solvers in global solverInfo-array.
 push!(solverInfo,
-  SolverInfo("seulex",
-    "Extrapolation method based on the linearly implicit Eueler method",
+  SolverInfo("rodas",
+    "Rosenbrock method of order 4(3)",
     tuple(:OPT_RTOL, :OPT_ATOL, 
           :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
           :OPT_M1, :OPT_M2,
           :OPT_RHSAUTONOMOUS,
           :OPT_MASSMATRIX,
           :OPT_JACOBIMATRIX, :OPT_JACOBIBANDSTRUCT,
-          :OPT_MAXEXCOLUMN,
-          :OPT_TRANSJTOH, :OPT_MAXSTEPS, :OPT_STEPSIZESEQUENCE,
-          :OPT_LAMBDADENSE, :OPT_EPS, :OPT_MAXSS, :OPT_JACRECOMPFACTOR,
-          :OPT_SSSELECTPAR1, :OPT_SSSELECTPAR2,
-          :OPT_ORDERDECFRAC, :OPT_ORDERINCFRAC,
-          :OPT_RHO2, :OPT_RHO,
-          :OPT_INITIALSS,
-          :OPT_WORKFORRHS, :OPT_WORKFORJAC, :OPT_WORKFORDEC,
-          :OPT_WORKFORSOL,
+          :OPT_RHSTIMEDERIV,
+          :OPT_MAXSTEPS, OPT_METHODCHOICE, OPT_STEPSIZESTRATEGY,
+          :OPT_RHO,
+          :OPT_EPS, :OPT_MAXSS,
+          :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_INITIALSS,
           ),
     tuple(
-      SolverVariant("seulex_i64",
-        "Seulex with 64bit integers",
-        DL_SEULEX,
-        tuple("seulex","contex")),
-      SolverVariant("seulex_i32",
-        "Seulex with 32bit integers",
-        DL_SEULEX_I32,
-        tuple("seulex","contex")),
+      SolverVariant("rodas_i64",
+        "Rodas with 64bit integers",
+        DL_RODAS,
+        tuple("rodas","contro")),
+      SolverVariant("rodas_i32",
+        "Rodas with 32bit integers",
+        DL_RODAS_I32,
+        tuple("rodas","contro")),
     ),
-    help_seulex_compile,
-    help_seulex_license,
+    help_rodas_compile,
+    help_rodas_license,
   )
 )
 

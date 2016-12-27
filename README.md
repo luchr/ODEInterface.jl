@@ -35,6 +35,7 @@ Prof. E. Hairer and Prof. G. Wanner, are supported:
 * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
 * radau: implicit Runge-Kutta method (Radau IIA) of variable order between 5 and 13
 * seulex: extrapolation-algorithm based on the linear implicit Euler method
+* rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
 
 see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 

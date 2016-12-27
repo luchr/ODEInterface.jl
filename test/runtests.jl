@@ -22,20 +22,20 @@ end
 
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
                     DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
-                    DL_SEULEX, DL_SEULEX_I32,
+                    DL_SEULEX, DL_SEULEX_I32, DL_RODAS, DL_RODAS_I32,
                     DL_BVPSOL, DL_BVPSOL_I32,
                     ) 
 const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
                  odex, odex_i32, 
                  radau5, radau5_i32, radau, radau_i32,
-                 seulex, seulex_i32,
+                 seulex, seulex_i32, rodas, rodas_i32,
                 )
 
 const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, )
+                      seulex, seulex_i32, rodas, rodas_i32)
 
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, )
+                      seulex, seulex_i32, rodas, rodas_i32)
 
 const solvers_bv  = ( bvpsol, bvpsol_i32 )
 
@@ -270,7 +270,7 @@ function test_jacode3(solver::Function)
     @assert isa(J,Array{Float64})
     @assert (2,4)==size(J)
     J[1,1] = 1; J[1,2] = 1; J[1,3]=0; J[1,4]=1;
-    J[1,1] = 1; J[1,2] = 1; J[1,3]=1; J[1,4]=0;
+    J[2,1] = 1; J[2,2] = 1; J[2,3]=1; J[2,4]=0;
   end
   
   x1_exact = t -> exp(-t)/3*(1-3*exp(t)+5*exp(3*t))

@@ -269,7 +269,7 @@ function setdiagonals!{T}(bm::BandedMatrix{T},other::BandedMatrix{T})
      bm.u ≠ other.u || bm.l ≠ other.l
     throw(ArgumentErrorODE(string("bm has size ",size(bm),
       " and l=",bm.l,", u=",bm.u,"; but other has size ",size(other),
-      " and l=",other.l", u=",other.u),:other))
+      " and l=",other.l,", u=",other.u),:other))
   end
   bm.entries[:] = other.entries
   return other
