@@ -117,10 +117,10 @@ end
   way, it is possible to see with one call (and try to load all solvers)
   which solvers are found.
   
-  You can simply `dump` the output of this function to get a human-readable
+  You can simply `dump` the values of the output dict to get a human-readable
   form of the result or call `help_solversupport()`.
   
-       dump(  ODEInterface.loadODESolvers() )
+       for k in keys(res); dump(res[k]); end
        ODEInterface.help_solversupport()
   """
 function loadODESolvers(extrapaths::Vector=AbstractString[],

@@ -1,23 +1,5 @@
 # Basic functions for ODEInterface
 
-import Base: dump
-
-function dump(io::IO, x::Tuple, n::Int, indent)
-  println(io,typeof(x)," len ",length(x))
-  if n>0
-    i = 1
-    for elem in x
-      print(io,indent,"  ", i, ": ")
-      dump(io,elem,n-1,string(indent,"  "))
-      if i > 10
-        println(io,indent,"  ...")
-        break
-      end
-      i += 1
-    end
-  end
-end
-
 """
   dummy function returning nothing.
   """
