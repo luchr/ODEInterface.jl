@@ -4,11 +4,8 @@
 
 There are two ways of calling the solvers.
 
-1. A calling convention close to the original Fortran-call,
-
-trying to provide/expose all the features the Fortran-codes have.
-
-1. A simplified version, closer to odecalls like in MATLAB.
+1. A calling convention close to the original Fortran-call, trying to provide/expose all the features the Fortran-codes have.
+2. A simplified version, closer to odecalls like in MATLAB.
 
 ### The full-featured calling-method
 
@@ -28,31 +25,17 @@ function rhs(t::Float64,x::Vector{Float64},dx::Vector{Float64})
 
 The input arguments are:
 
-1. a julia function `rhs` for evaluating the right-hand side of the ODE,
-
-see below. It's OK to return something, that `convert` can transform to a `Vector{Float64}`.
-
-1. the initial time `t0`. `(t0,x0)` is the initial value of the
-
-initial value problem.
-
-1. the final time `T`.
-2. the initial state `x0`. `(t0,x0)` is the initial value of the
-
-initial value problem.
-
-1. further parameters/options in `opt` for the solver and for the interface.
-
-There is a separate section for the explanation of the options, see help_options.
+1. a julia function `rhs` for evaluating the right-hand side of the ODE, see below. It's OK to return something, that `convert` can transform to a `Vector{Float64}`.
+2. the initial time `t0`. `(t0,x0)` is the initial value of the  initial value problem.
+3. the final time `T`.
+4. the initial state `x0`. `(t0,x0)` is the initial value of the  initial value problem.
+5. further parameters/options in `opt` for the solver and for the interface.  There is a separate section for the explanation of the options, see help_options.
 
 The output arguments are:
 
-1. `t` the *last* time for which the solution has been computed
-
-(if the whole computation was successfull, then `t==T`)
-
-1. `x` the numerical solation at time `t`
-2. `retcode` the return code of the solver (interpretation is solver dependent)
+1. `t` the *last* time for which the solution has been computed  (if the whole computation was successfull, then `t==T`)
+2. `x` the numerical solation at time `t`
+3. `retcode` the return code of the solver (interpretation is solver dependent)
 
 There are two possible ways to provide the Julia right-hand side:
 

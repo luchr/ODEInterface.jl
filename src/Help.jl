@@ -174,7 +174,7 @@ end
   There are two ways of calling the solvers.
   
   1. A calling convention close to the original Fortran-call,
-  trying to provide/expose all the features the Fortran-codes have.
+     trying to provide/expose all the features the Fortran-codes have.
   1. A simplified version, closer to odecalls like in MATLAB.
   
   ### The full-featured calling-method
@@ -194,22 +194,22 @@ end
   The input arguments are:
   
   1. a julia function `rhs` for evaluating the right-hand side of the ODE,
-  see below.
-  It's OK to return something, that `convert` can transform
-  to a `Vector{Float64}`.
+     see below.
+     It's OK to return something, that `convert` can transform
+     to a `Vector{Float64}`.
   1. the initial time `t0`. `(t0,x0)` is the initial value of the 
-  initial value problem.
+     initial value problem.
   1. the final time `T`.
   1. the initial state `x0`. `(t0,x0)` is the initial value of the 
-  initial value problem.
+     initial value problem.
   1. further parameters/options in `opt` for the solver and for the interface. 
-  There is a separate section for the explanation of the options, see
-  help_options.
+     There is a separate section for the explanation of the options, see
+     help_options.
   
   The output arguments are:
   
   1. `t` the *last* time for which the solution has been computed 
-  (if the whole computation was successfull, then `t==T`)
+     (if the whole computation was successfull, then `t==T`)
   1. `x` the numerical solation at time `t`
   1. `retcode` the return code of the solver (interpretation is solver dependent)
   
@@ -253,15 +253,15 @@ end
   ### Options of this ODEInterface
   
   * `OPT_RHS_CALLMODE`:
-  There are two possible ways to call the Julia right-hand side: 
-  `RHS_CALL_RETURNS_ARRAY` and `RHS_CALL_INSITU`, see
-  `help_callsolvers` for an explanation.
-  difference.
+    There are two possible ways to call the Julia right-hand side: 
+    `RHS_CALL_RETURNS_ARRAY` and `RHS_CALL_INSITU`, see
+    `help_callsolvers` for an explanation.
+    difference.
   * `OPT_LOGIO`:
-  This option sets the `IO` that is used for logging messages
+    This option sets the `IO` that is used for logging messages
   * `OPT_LOGLEVEL`:
-  This is a bitmask for activating different logging messages. 
-  The following bitmasks are available.
+    This is a bitmask for activating different logging messages. 
+    The following bitmasks are available.
   
            LOG_NOTHING     log nothing
            LOG_GENERAL     log some general information, 
@@ -275,6 +275,9 @@ end
            LOG_MASS        log call(s) of the mass function
            LOG_JAC         log calls of the jacobian function
            LOG_BC          log calls of the boundary condition function
+           LOG_BVPIVPSOL   log (during boundary value problems) calls to
+                           initial value solvers
+           LOG_RHSDT       log calls of the right-hand side time-derivative
            LOG_ALL         all of the above
   
   ### Options for the solvers
@@ -343,7 +346,7 @@ end
   
   * `OUTPUTFCN_NEVER`: don't call the output function
   * `OUTPUTFCN_WODENSE`: call the output function, but `eval_sol_fcn`
-  is not used
+    is not used
   * `OUTPUTFCN_DENSE`: call the output function and prepare `eval_sol_fcn`
 
   ## `OPT_OUTPUTFCN` 
@@ -355,19 +358,19 @@ end
   A (julia) function that is called 
   
   1. at beginning of the solution process with
-  `reason == OUTPUTFCN_CALL_INIT`, `told=t0`, `t`=`T`, `x=x0`,
-  `eval_sol_fcn` a dummy function throwing an error if called,
-  `extra_data` a `Dict` persistent until the last call of the output 
-  function. The return value is *ignored*.
+     `reason == OUTPUTFCN_CALL_INIT`, `told=t0`, `t`=`T`, `x=x0`,
+     `eval_sol_fcn` a dummy function throwing an error if called,
+     `extra_data` a `Dict` persistent until the last call of the output 
+     function. The return value is *ignored*.
   1. after every successfull integration step with
-  `reason == OUTPUTFCN_CALL_STEP`, `[told,t]` the time interval of the
-  last step, `x` the numerical solution at time `t`,
-  `eval_sol_fcn` a function to evaluate the solution in `t1 ∊ [told,t]`, if
-  requested by `OPT_OUTPUTMODE`, otherwise a call to this function will
-  result in an error.
+     `reason == OUTPUTFCN_CALL_STEP`, `[told,t]` the time interval of the
+     last step, `x` the numerical solution at time `t`,
+     `eval_sol_fcn` a function to evaluate the solution in `t1 ∊ [told,t]`, if
+     requested by `OPT_OUTPUTMODE`, otherwise a call to this function will
+     result in an error.
   1. at the end (after the last step) with
-  `reason == OUTPUTFCN_CALL_DONE`.
-  The return value is *ignored*.
+     `reason == OUTPUTFCN_CALL_DONE`.
+     The return value is *ignored*.
 
   With `eval_sol_fcn`
   
@@ -476,16 +479,16 @@ end
   ## Internals
 
   1. The Fortran solvers use callback-functions. Where are all the
-  informations saved? See documentation of `GlobalCallInfoDict`.
+     informations saved? See documentation of `GlobalCallInfoDict`.
   1. What is the typical "call stack" for all this callbacks? see
-  documentation of `DopriInternalCallInfos`,  `OdexInternalCallInfos` and
-  `Radau5InternalCallInfos`.
+     documentation of `DopriInternalCallInfos`,  `OdexInternalCallInfos` and
+     `Radau5InternalCallInfos`.
   1. How are these unique call-ids generated? see `uniqueToken`
   1. What closures (and how many) are generated to support the eval_sol_fcn?
-  see `create_radau_eval_sol_fcn_closure`
+     see `create_radau_eval_sol_fcn_closure`
   1. Can this module be made `precompilable`? I guess so, but I've to read
-  http://docs.julialang.org/en/stable/manual/modules/#man-modules-initialization-precompilation
-  again more carefully.
+     http://docs.julialang.org/en/stable/manual/modules/#man-modules-initialization-precompilation
+     again more carefully.
   """
 function help_internals()
   return Docs.doc(help_internals)

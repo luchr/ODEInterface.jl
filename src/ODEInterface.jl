@@ -30,23 +30,28 @@ __precompile__(false)
   * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
   * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
   * radau: implicit Runge-Kutta method (Radau IIA) of variable order 
-  between 5 and 13
+    between 5 and 13
+  * seulex: extrapolation-algorithm based on the linear implicit Euler method
+  * rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
   
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
   
   The following features of this solvers are supported by this ODEInterface:
   
   * providing an output function (e.g. for dense output or for event location)
-  to the solvers
+    to the solvers
   * providing mass- and jacobi-matrices for the solvers (with support for
-  banded matrices)
+    banded matrices)
   * all the solvers' parameters for fine-tuning them
   * support for problems with "special structure", see `help_specialstructure`
   
   ## What are the requirements for this module
   
   In order to use this module, you have to *compile* the supported
-  Fortran solvers and provide a shared library for each solver. Just call
+  Fortran solvers and provide a shared library for each solver.
+  The build-script of this module tries to compile all solvers
+  automatically. But you can use your own compiled versions (with
+  different compile-time options or compilers). Just call
   `ODEInterface.help_solversupport` for further informations (help topics)
   on how to compile the solvers and how to create shared libraries.
   
