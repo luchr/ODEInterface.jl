@@ -21,6 +21,8 @@ function escapeChars(s::AbstractString,toreplace=r"([^a-zA-Z0-9 \n])")
   return replace(s,toreplace, c -> string("&#",Int(c[1]),";"))
 end
 
+formatTable_new_row_for_nl = false
+
 """
   try to convert the Unicode doc-tables to HTML-tables.
   """
@@ -57,6 +59,9 @@ function formatTable(io,s::AbstractString)
     end
     mo = match(row_stop,line)
     if mo ≠ nothing
+      write_row = true
+    end
+    if !table_head && formatTable_new_row_for_nl
       write_row = true
     end
     if write_row
@@ -134,7 +139,8 @@ function docstringToFile(filename,docobjs)
   io = open(filename,"w")
   introHeader(io)
   for docobj in docobjs
-    formatMDelement(io,Base.Docs.doc(docobj))
+    md_elem = isa(docobj,Base.Markdown.MD)?docobj:Base.Docs.doc(docobj)
+    formatMDelement(io,md_elem)
     write(io,NL)
   end
   close(io)
@@ -143,6 +149,11 @@ end
 
 
 docSolverOptions("./SolverOptions.md")
+
+formatTable_new_row_for_nl = true
+docstringToFile("./OptionOverview.md",[
+   ODEInterface.help_options, ODEInterface.help_options()])
+formatTable_new_row_for_nl = false
 
 docstringToFile("./OutputFunction.md",[ODEInterface.help_outputfcn])
 docstringToFile("./SpecialStructure.md",[ODEInterface.help_specialstructure])

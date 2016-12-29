@@ -58,7 +58,8 @@ for dense output or for event location) to the solvers
 * providing mass- and jacobi-matrices for the solvers (with support for
 banded matrices)
 * all the solvers' parameters for fine-tuning them, 
-see [Options for Solvers](./doc/SolverOptions.md)
+see [Options for Solvers](./doc/SolverOptions.md) 
+and [Option Overview](./doc/OptionOverview.md)
 * support for problems with "special structure", 
 see [special structure](./doc/SpecialStructure.md)
 
