@@ -54,7 +54,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type SeulexInternalCallInfos{FInt} <: ODEinternalCallInfos
+type SeulexInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -90,14 +90,14 @@ type SeulexInternalCallInfos{FInt} <: ODEinternalCallInfos
 end
 
 """
-       type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       type SeulexArguments{FInt<:FortranInt} <: 
+                AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Seulex solver.
   
-  FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int64)
+  FInt is the Integer type used for the fortran compilation.
   """
-type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type SeulexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   IFCN    :: Vector{FInt}      # autonomous (0) or not (1)
@@ -132,11 +132,11 @@ type SeulexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-       function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
-         told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-         rc_::Ptr{Float64}, lrc_::Ptr{FInt}, ic_::Ptr{FInt}, lic_::Ptr{FInt},
-         n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
-         irtrn_::Ptr{FInt})
+        function unsafe_seulexSoloutCallback{FInt<:FortranInt}(
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+                x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+                ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
+                rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran-seulex.
   
@@ -154,10 +154,11 @@ end
   
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
-function unsafe_seulexSoloutCallback{FInt}(nr_::Ptr{FInt},
-  told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-  rc_::Ptr{Float64}, lrc_::Ptr{FInt}, ic_::Ptr{FInt}, lic_::Ptr{FInt},
-  n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+function unsafe_seulexSoloutCallback{FInt<:FortranInt}(
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+        ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
+        rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -218,8 +219,8 @@ const unsafe_seulexSoloutCallbacki32_c = cfunction(
     Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}))
 
 """
-       function create_seulex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_contex::Ptr{Void})
+        function create_seulex_eval_sol_fcn_closure{FInt<:FortranInt}(
+                cid::UInt64, d::FInt, method_contex::Ptr{Void})
   
   generates a eval_sol_fcn for seulex.
   
@@ -242,8 +243,8 @@ const unsafe_seulexSoloutCallbacki32_c = cfunction(
 
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
-function create_seulex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_contex::Ptr{Void})
+function create_seulex_eval_sol_fcn_closure{FInt<:FortranInt}(
+        cid::UInt64, d::FInt, method_contex::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
     cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -424,10 +425,9 @@ function seulex_i32(rhs::Function, t0::Real, T::Real,
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}())
 end
 
-function seulex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                opt::AbstractOptionsODE, args::SeulexArguments{FInt})
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
+function seulex_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector,
+        opt::AbstractOptionsODE, args::SeulexArguments{FInt})
   
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("seulex",rhs,t0,T,x0,opt)

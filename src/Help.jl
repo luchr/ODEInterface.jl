@@ -484,7 +484,7 @@ end
   1. What closures (and how many) are generated to support the eval_sol_fcn?
   see `create_radau_eval_sol_fcn_closure`
   1. Can this module be made `precompilable`? I guess so, but I've to read
-  http://docs.julialang.org/en/latest/manual/modules/#man-modules-initialization-precompilation
+  http://docs.julialang.org/en/stable/manual/modules/#man-modules-initialization-precompilation
   again more carefully.
   """
 function help_internals()

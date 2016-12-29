@@ -50,7 +50,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type OdexInternalCallInfos{FInt} <: ODEinternalCallInfos
+type OdexInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -81,10 +81,9 @@ end
   
   Stores Arguments for Odex solver.
   
-  FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int64)
+  FInt is the Integer type used for the fortran compilation.
   """
-type OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -110,11 +109,11 @@ type OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-       function unsafe_odexSoloutCallback{FInt}(nr_::Ptr{FInt},
-         told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-         n_::Ptr{FInt}, con_::Ptr{Float64}, ncon_::Ptr{FInt},
-         icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64},
-         ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+        function unsafe_odexSoloutCallback{FInt<:FortranInt}(
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+                x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
+                ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
+                rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran-odex.
   
@@ -132,11 +131,11 @@ end
   
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function unsafe_odexSoloutCallback{FInt}(nr_::Ptr{FInt},
-  told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-  n_::Ptr{FInt}, con_::Ptr{Float64}, ncon_::Ptr{FInt},
-  icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64},
-  ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+function unsafe_odexSoloutCallback{FInt<:FortranInt}(
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
+        ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
+        rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -197,8 +196,8 @@ const unsafe_odexSoloutCallbacki32_c = cfunction(
     Ptr{Int32}, Ptr{Int32}));
 
 """
-       function create_odex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_contex::Ptr{Void})
+        function create_odex_eval_sol_fcn_closure{FInt<:FortranInt}(
+                cid::UInt64, d::FInt, method_contex::Ptr{Void})
   
   generates a eval_sol_fcn for odex.
   
@@ -221,8 +220,8 @@ const unsafe_odexSoloutCallbacki32_c = cfunction(
 
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function create_odex_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_contex::Ptr{Void})
+function create_odex_eval_sol_fcn_closure{FInt<:FortranInt}(
+        cid::UInt64, d::FInt, method_contex::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
     cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -367,19 +366,18 @@ end
 
 
 """
-       function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                        opt::AbstractOptionsODE, args::OdexArguments{FInt})
+        function odex_impl{FInt<:FortranInt}(rhs::Function, 
+                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+                args::OdexArguments{FInt})
   
-  implementation of odex for FInt ∈ (Int32,Int64)
+  implementation of odex for FInt.
   """
-function odex_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                opt::AbstractOptionsODE, args::OdexArguments{FInt})
+function odex_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+        args::OdexArguments{FInt})
   
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("odex",rhs,t0,T,x0,opt)
-  
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
   
   (method_odex, method_contex) = getAllMethodPtrs(
      (FInt == Int64)? DL_ODEX : DL_ODEX_I32 )

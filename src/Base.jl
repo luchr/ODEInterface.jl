@@ -1,6 +1,11 @@
 # Basic functions for ODEInterface
 
 """
+  supported (signed) Integer types for Fortran codes.
+  """
+FortranInt = Union{Int32,Int64}
+
+"""
   dummy function returning nothing.
   """
 function dummy_func()

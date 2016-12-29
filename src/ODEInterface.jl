@@ -186,7 +186,7 @@ abstract ODEinternalCallInfos
   All necessary informations (e.g. a julia function reference to the RHS) is
   stored globally and a global function (e.g. `unsafe_dopri5RHSCallback`)
   is used (as `unsafe_dopri5RHSCallback_c`) as code-pointer for the
-  Fotran routines.
+  Fortran routines.
   
   How are the necessary informations stored globally?
   Using global variables can have the negative side-effect of being not

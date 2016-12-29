@@ -58,7 +58,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RodasInternalCallInfos{FInt} <: ODEinternalCallInfos
+type RodasInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -95,14 +95,14 @@ type RodasInternalCallInfos{FInt} <: ODEinternalCallInfos
 end
 
 """
-       type RodasArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       type RodasArguments{FInt<:FortranInt} <: 
+                AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Rodas solver.
   
-  FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int64)
+  FInt is the Integer type used for the fortran compilation.
   """
-type RodasArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   IFCN    :: Vector{FInt}      # autonomous (0) or not (1)
@@ -140,11 +140,11 @@ end
 
 
 """
-        function unsafe_rodasSoloutCallback{FInt}(nr_::Ptr{FInt},
-            told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-            cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-            n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
-            irtrn_::Ptr{FInt})
+        function unsafe_rodasSoloutCallback{FInt<:FortranInt}(
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+                n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
+                irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran-rodas.
   
@@ -162,11 +162,11 @@ end
   
   For the typical calling sequence, see `RodasInternalCallInfos`.
   """
-function unsafe_rodasSoloutCallback{FInt}(nr_::Ptr{FInt},
-    told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-    cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-    n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
-    irtrn_::Ptr{FInt})
+function unsafe_rodasSoloutCallback{FInt<:FortranInt}(
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+        n_::Ptr{FInt}, rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, 
+        irtrn_::Ptr{FInt})
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -226,8 +226,8 @@ const unsafe_rodasSoloutCallbacki32_c = cfunction(
     Ptr{Int32}, Ptr{Float64}, Ptr{Int32}, Ptr{Int32}))
 
 """
-       function create_rodas_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_contro::Ptr{Void})
+        function create_rodas_eval_sol_fcn_closure{FInt<:FortranInt}(
+                cid::UInt64, d::FInt, method_contro::Ptr{Void})
   
   generates a eval_sol_fcn for rodas.
   
@@ -250,8 +250,8 @@ const unsafe_rodasSoloutCallbacki32_c = cfunction(
 
   For the typical calling sequence, see `RodasInternalCallInfos`.
   """
-function create_rodas_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_contro::Ptr{Void})
+function create_rodas_eval_sol_fcn_closure{FInt<:FortranInt}(
+        cid::UInt64, d::FInt, method_contro::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
     cbi = get(GlobalCallInfoDict,cid,nothing)
@@ -415,10 +415,9 @@ function rodas_i32(rhs::Function, t0::Real, T::Real,
   return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}())
 end
 
-function rodas_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                opt::AbstractOptionsODE, args::RodasArguments{FInt})
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
+function rodas_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector,
+        opt::AbstractOptionsODE, args::RodasArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("rodas",rhs,t0,T,x0,opt)
