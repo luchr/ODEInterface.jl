@@ -37,6 +37,8 @@ const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
                       seulex, seulex_i32, rodas, rodas_i32)
 
+const solvers_rhsdt = ( rodas, rodas_i32)
+
 const solvers_bv  = ( bvpsol, bvpsol_i32 )
 
 function test_ode1(solver::Function)
@@ -330,6 +332,43 @@ function test_jacode4(solver::Function)
   return true
 end
 
+function test_rhstimederiv1(solver::Function)
+  myrhs = (t,x) -> [ t*x[2], 4*t*x[1] ]
+
+  function myjac(t,x,J)
+    @assert isa(J,Array{Float64})
+    @assert (2,2)==size(J)
+    J[1,1] = 0; J[1,2] = t;
+    J[2,1] = 4*t; J[2,2] = 0;
+    return nothing
+  end
+
+  function myrhstimederiv(t,x,drhsdt)
+    @assert isa(drhsdt,Array{Float64})
+    @assert (2,)==size(drhsdt)
+    drhsdt[1] = x[2]
+    drhsdt[2] = 4*x[1]
+    return nothing
+  end
+
+  x1_exact = t -> cosh(t*t) + 0.5*sinh(t*t)
+  x2_exact = t -> cosh(t*t) + 2.0*sinh(t*t)
+
+  opt = OptionsODE("odetimederiv1",
+        OPT_RTOL => 1e-8,
+        OPT_ATOL => 1e-8,
+        OPT_JACOBIMATRIX => myjac,
+        OPT_RHSTIMEDERIV => myrhstimederiv,
+        )
+  t0 = 0; T = 1; x0=[1.0,1]
+
+  (t,x,retcode,stats) = solver(myrhs, t0, T, x0, opt)
+  @assert 1==retcode
+  @assert isapprox(x[1],x1_exact(T),rtol=1e-7,atol=1e-7)
+  @assert isapprox(x[2],x2_exact(T),rtol=1e-7,atol=1e-7)
+  return true
+end
+
 function test_odecall1(solver::Function)
   opt = OptionsODE("odecall1",
         OPT_RTOL => 1e-8,
@@ -583,6 +622,15 @@ function test_solvers()
   @testset "jac-solvers" begin
     @testloop 
     for solver in solvers_jac,
+                  problem in problems
+      @test problem(solver)
+    end
+  end
+
+  problems = (test_rhstimederiv1,)
+  @testset "rhs_dt-sol." begin
+    @testloop
+    for solver in solvers_rhsdt,
                   problem in problems
       @test problem(solver)
     end
