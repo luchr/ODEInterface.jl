@@ -51,10 +51,7 @@ function unsafe_HW1RHSCallback{FInt<:FortranInt}(n_::Ptr{FInt},
   x = unsafe_wrap(Array, x_,(n,),false)
   f = unsafe_wrap(Array, f_,(n,),false)
   cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
   
   hw1rhs(n,t,x,f,cbi)
   return nothing
@@ -133,10 +130,7 @@ function unsafe_HW2RHSCallback{FInt<:FortranInt}(n_::Ptr{FInt},
   x = unsafe_wrap(Array, x_,(n,),false)
   f = unsafe_wrap(Array, f_,(n,),false)
   cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
 
   hw2rhs(n,t,x,f,cbi)
   return nothing
@@ -177,10 +171,7 @@ function unsafe_HW1MassCallback{FInt<:FortranInt}(n_::Ptr{FInt},
   am = unsafe_wrap(Array, am_,(lmas,n,),false)
   cid = unpackUInt64FromPtr(ipar_)
   lprefix = string(int2logstr(cid),"unsafe_HW1MassCallback: ")
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
 
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_mas = l & LOG_MASS>0
@@ -313,10 +304,8 @@ function unsafe_HW1JacCallback{FInt<:FortranInt}(n_::Ptr{FInt},
   x = unsafe_wrap(Array, x_,(n,),false)
   ldfx = unsafe_load(ldfx_)
   cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
+
   lprefix = cbi.jac_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_jac = l & LOG_JAC>0
@@ -387,10 +376,8 @@ function unsafe_HWRhsTimeDerivCallback{FInt<:FortranInt}(
   x = unsafe_wrap(Array, x_,(n,),false)
   dfdt = unsafe_wrap(Array, dfdt_,(n,),false)
   cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
+
   lprefix = cbi.rhsdt_prefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_rhsdt = l & LOG_RHSDT>0

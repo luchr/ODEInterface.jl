@@ -131,10 +131,7 @@ function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt},
   x = unsafe_wrap(Array, x_,(n,),false)
   f = unsafe_wrap(Array, f_,(n,),false)
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   hw1rhs(n,t,x,f,cbi)
   return nothing
 end
@@ -185,10 +182,7 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
   r_::Ptr{Float64})
 
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   n = cbi.N
   xa = unsafe_wrap(Array, xa_,(n,),false)
   xb = unsafe_wrap(Array, xb_,(n,),false)
@@ -262,10 +256,7 @@ function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt},
         h_::Ptr{Float64}, kflag_::Ptr{FInt})
 
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   n = cbi.N
   t = unsafe_wrap(Array, t_,(1,),false)
   tend = unsafe_load(tend_)

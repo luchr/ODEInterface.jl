@@ -117,10 +117,7 @@ function call_julia_output_fcn(cid::UInt64,
   x::Vector{Float64},eval_sol_fcn::Function)
 
   lprefix = string(int2logstr(cid[1]),"call_julia_output_fcn: ")
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)
 
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_out = l & LOG_OUTPUTFCN>0

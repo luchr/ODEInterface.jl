@@ -143,10 +143,7 @@ function unsafe_odexSoloutCallback{FInt<:FortranInt}(
   ipar = unsafe_wrap(Array, ipar_,(2,),false)
   irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromVector(ipar)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::OdexInternalCallInfos
 
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
@@ -224,10 +221,7 @@ function create_odex_eval_sol_fcn_closure{FInt<:FortranInt}(
         cid::UInt64, d::FInt, method_contex::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    cbi = get(GlobalCallInfoDict,cid,nothing)
-    cbi==nothing && throw(InternalErrorODE(
-        string("Cannot find call-id ",int2logstr(cid[1]),
-               " in GlobalCallInfoDict")))
+    cbi = getCallInfosWithCid(cid)::OdexInternalCallInfos
 
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0

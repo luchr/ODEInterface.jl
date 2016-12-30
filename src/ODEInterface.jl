@@ -212,6 +212,31 @@ abstract ODEinternalCallInfos
 const GlobalCallInfoDict = Dict{UInt64,ODEinternalCallInfos}()
 
 """
+  returns ODEinternalCallInfos for given call-id-value cid and throws an
+  InternalErrorODE if cid is unknown.
+  """
+function getCallInfosWithCid(cid::UInt64)
+  cbi = get(GlobalCallInfoDict,cid,nothing)
+  if cbi==nothing 
+    throw(InternalErrorODE(string(
+      "Cannot find call-id ",int2logstr(cid)," in GlobalCallInfoDict")))
+  end
+  return cbi::ODEinternalCallInfos
+end
+
+"""
+  returns ODEinternalCallInfos for given call-id(-object) and throws an
+  InternalErrorODE if cid is unkown.
+  """
+function getCallInfosWithCid(cid::Array{UInt64})
+  if (1,)==size(cid)
+    return getCallInfosWithCid(cid[1])
+  else
+    throw(InternalErrorODE("cid-array has wrong size"))
+  end
+end
+
+"""
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
   """
 abstract AbstractArgumentsODESolver{FInt} <: Any
