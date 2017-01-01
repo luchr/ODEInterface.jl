@@ -72,7 +72,7 @@ const bvpsol_callid = uniqueToken()
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-type BvpsolInternalCallInfos{FInt} <: ODEinternalCallInfos
+type BvpsolInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -92,7 +92,7 @@ type BvpsolInternalCallInfos{FInt} <: ODEinternalCallInfos
   ivp_lprefix  :: AbstractString        # saved log-prefix for ivp-call
 end
 
-type BvpsolArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   FCN     :: Ptr{Void}         # rhs callback
   BC      :: Ptr{Void}         # boundary conditions
   IVPSOL  :: Ptr{Void}         # Initial Value Problem Solver
@@ -114,8 +114,8 @@ type BvpsolArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-       function unsafe_bvpsolrhs{FInt}(n_::Ptr{FInt}, t_::Ptr{Float64},
-         x_::Ptr{Float64}, f_::Ptr{Float64})
+        function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt}, 
+                t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64})
   
   This is the right-hand side given as callback to bvpsol.
   
@@ -124,17 +124,14 @@ end
   
   uses hw1rhs
   """
-function unsafe_bvpsolrhs{FInt}(n_::Ptr{FInt}, t_::Ptr{Float64},
-  x_::Ptr{Float64}, f_::Ptr{Float64})
+function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt}, 
+        t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64})
   
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
   f = unsafe_wrap(Array, f_,(n,),false)
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   hw1rhs(n,t,x,f,cbi)
   return nothing
 end
@@ -185,10 +182,7 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
   r_::Ptr{Float64})
 
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   n = cbi.N
   xa = unsafe_wrap(Array, xa_,(n,),false)
   xb = unsafe_wrap(Array, xb_,(n,),false)
@@ -204,9 +198,9 @@ const unsafe_bvpsolbc_c = cfunction(
   unsafe_bvpsolbc, Void, (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
 
 
-function bvpsolivp{FInt}(t::Vector{Float64},x::Vector{Float64},
-  tend,tol,hmax,h::Vector{Float64},kflag::Vector{FInt},
-  cbi::BvpsolInternalCallInfos)
+function bvpsolivp{FInt<:FortranInt}(t::Vector{Float64},
+        x::Vector{Float64}, tend,tol,hmax,h::Vector{Float64},
+        kflag::Vector{FInt}, cbi::BvpsolInternalCallInfos)
 
   @assert cbi.odesol_usage == ODE_SOLVER_JULIA
 
@@ -244,10 +238,10 @@ function bvpsolivp{FInt}(t::Vector{Float64},x::Vector{Float64},
 end
 
 """
-       function unsafe_bvpsolivp{FInt}(n_::Ptr{FInt}, fcn_::Ptr{Void},
-         t_::Ptr{Float64}, x_::Ptr{Float64}, tend_::Ptr{Float64},
-         tol_::Ptr{Float64}, hmax_::Ptr{Float64}, h_::Ptr{Float64},
-         kflag_::Ptr{FInt})
+        function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt}, 
+                fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+                tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
+                h_::Ptr{Float64}, kflag_::Ptr{FInt})
 
   This is the callback for bvpsol to solve initial value problems.
   
@@ -256,16 +250,13 @@ end
   
   uses bvpsolivp
   """
-function unsafe_bvpsolivp{FInt}(n_::Ptr{FInt}, fcn_::Ptr{Void},
-  t_::Ptr{Float64}, x_::Ptr{Float64}, tend_::Ptr{Float64},
-  tol_::Ptr{Float64}, hmax_::Ptr{Float64}, h_::Ptr{Float64},
-  kflag_::Ptr{FInt})
+function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt}, 
+        fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+        tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
+        h_::Ptr{Float64}, kflag_::Ptr{FInt})
 
   cid = bvpsol_callid[1]
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi == nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
   n = cbi.N
   t = unsafe_wrap(Array, t_,(1,),false)
   tend = unsafe_load(tend_)
@@ -384,12 +375,9 @@ function bvpsol_i32(rhs::Function, bc::Function,
   return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int32}()) 
 end
 
-function bvpsol_impl{FInt}(rhs::Function, bc::Function,
+function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, 
   opt::AbstractOptionsODE, args::BvpsolArguments{FInt})
-
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = solver_init("bvpsol",opt,
                                                          bvpsol_callid)

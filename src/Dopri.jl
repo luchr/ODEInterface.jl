@@ -23,7 +23,7 @@
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type DopriInternalCallInfos{FInt} <: ODEinternalCallInfos
+type DopriInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -49,14 +49,14 @@ type DopriInternalCallInfos{FInt} <: ODEinternalCallInfos
 end
 
 """
-       type DopriArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       type DopriArguments{FInt<:FortranInt} <: 
+                AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Dopri solver.
   
-  FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int64)
+  FInt is the Integer type used for the fortran compilation.
   """
-type DopriArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -81,8 +81,8 @@ type DopriArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-       function create_dopri_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_contd::Ptr{Void})
+        function create_dopri_eval_sol_fcn_closure{FInt<:FortranInt}(
+                cid::UInt64, d::FInt, method_contd::Ptr{Void})
   
   generates a eval_sol_fcn for dopri5 and dop853.
   
@@ -105,14 +105,11 @@ end
 
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
-function create_dopri_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_contd::Ptr{Void})
+function create_dopri_eval_sol_fcn_closure{FInt<:FortranInt}(
+        cid::UInt64, d::FInt, method_contd::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    cbi = get(GlobalCallInfoDict,cid,nothing)
-    cbi==nothing && throw(InternalErrorODE(
-        string("Cannot find call-id ",int2logstr(cid[1]),
-               " in GlobalCallInfoDict")))
+    cbi = getCallInfosWithCid(cid)::DopriInternalCallInfos
 
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -139,11 +136,11 @@ function create_dopri_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
 end
 
 """
-       function unsafe_dopriSoloutCallback{FInt}(nr_::Ptr{FInt}, 
-         told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-         n_::Ptr{FInt}, con_::Ptr{Float64},
-         icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-         ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+        function unsafe_dopriSoloutCallback{FInt<:FortranInt}(
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+                x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
+                icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+                ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran-dopri.
   
@@ -162,11 +159,11 @@ end
   
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
-function unsafe_dopriSoloutCallback{FInt}(nr_::Ptr{FInt}, 
-  told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-  n_::Ptr{FInt}, con_::Ptr{Float64},
-  icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-  ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+function unsafe_dopriSoloutCallback{FInt<:FortranInt}(
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
+        icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -174,10 +171,7 @@ function unsafe_dopriSoloutCallback{FInt}(nr_::Ptr{FInt},
   ipar = unsafe_wrap(Array, ipar_,(2,),false)
   irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromVector(ipar)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::DopriInternalCallInfos
   
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
@@ -225,14 +219,16 @@ const unsafe_dopriSoloutCallbacki32_c = cfunction(
     Ptr{Int32}, Ptr{Int32}));
 
 """
-       function dopri_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector, 
-                    opt::AbstractOptionsODE, args::DopriArguments{FInt})
+        function dopri_extract_commonOpt{FInt<:FortranInt}(
+                t0::Real, T::Real, x0::Vector, 
+                opt::AbstractOptionsODE, args::DopriArguments{FInt})
              -> (d,nrdense,rhs_mode,output_mode,output_fcn)
   
   calls solver_extract_commonOpt and additionally sets args.ITOL, args.IOUT 
   """
-function dopri_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector, 
-             opt::AbstractOptionsODE, args::DopriArguments{FInt})
+function dopri_extract_commonOpt{FInt<:FortranInt}(
+        t0::Real, T::Real, x0::Vector, 
+        opt::AbstractOptionsODE, args::DopriArguments{FInt})
   
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)

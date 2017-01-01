@@ -8,34 +8,49 @@ using Base.Test
 using ODEInterface
 @ODEInterface.import_huge
 
-# v0.4 compatibility
-if !isdefined(Base.Test, Symbol("@testset"))
-  macro testset(name, start_tag)
-    start_tag
+if VERSION >= v"0.6.0-dev"
+  # @testloop was merged with @testset 93502e0f7
+  macro testloop(ex::Expr)
+    quote
+      @testset( $(esc(ex))  )
+    end
+  end
+else
+  # v0.4 compatibility
+  if !isdefined(Base.Test, Symbol("@testset"))
+    macro testset(name, start_tag)
+      return Expr(:block, :( println("Testing ",$name) ), start_tag)
+    end
+  end
+  
+  if !isdefined(Base.Test, Symbol("@testloop"))
+    macro testloop(ex::Expr)
+      quote
+        $(esc(ex))
+      end
+    end
   end
 end
 
-if !isdefined(Base.Test, Symbol("@testloop"))
-  macro testloop()
-  end
-end
 
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
                     DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
-                    DL_SEULEX, DL_SEULEX_I32,
+                    DL_SEULEX, DL_SEULEX_I32, DL_RODAS, DL_RODAS_I32,
                     DL_BVPSOL, DL_BVPSOL_I32,
                     ) 
 const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
                  odex, odex_i32, 
                  radau5, radau5_i32, radau, radau_i32,
-                 seulex, seulex_i32,
+                 seulex, seulex_i32, rodas, rodas_i32,
                 )
 
 const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, )
+                      seulex, seulex_i32, rodas, rodas_i32)
 
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, )
+                      seulex, seulex_i32, rodas, rodas_i32)
+
+const solvers_rhsdt = ( rodas, rodas_i32)
 
 const solvers_bv  = ( bvpsol, bvpsol_i32 )
 
@@ -270,7 +285,7 @@ function test_jacode3(solver::Function)
     @assert isa(J,Array{Float64})
     @assert (2,4)==size(J)
     J[1,1] = 1; J[1,2] = 1; J[1,3]=0; J[1,4]=1;
-    J[1,1] = 1; J[1,2] = 1; J[1,3]=1; J[1,4]=0;
+    J[2,1] = 1; J[2,2] = 1; J[2,3]=1; J[2,4]=0;
   end
   
   x1_exact = t -> exp(-t)/3*(1-3*exp(t)+5*exp(3*t))
@@ -327,6 +342,43 @@ function test_jacode4(solver::Function)
   (t,x,retcode,stats) = solver(myrhs, t0, T, x0, opt)
   @assert 1==retcode
   @assert isapprox(x[3],x3_exact(T),rtol=1e-7,atol=1e-7)
+  return true
+end
+
+function test_rhstimederiv1(solver::Function)
+  myrhs = (t,x) -> [ t*x[2], 4*t*x[1] ]
+
+  function myjac(t,x,J)
+    @assert isa(J,Array{Float64})
+    @assert (2,2)==size(J)
+    J[1,1] = 0; J[1,2] = t;
+    J[2,1] = 4*t; J[2,2] = 0;
+    return nothing
+  end
+
+  function myrhstimederiv(t,x,drhsdt)
+    @assert isa(drhsdt,Array{Float64})
+    @assert (2,)==size(drhsdt)
+    drhsdt[1] = x[2]
+    drhsdt[2] = 4*x[1]
+    return nothing
+  end
+
+  x1_exact = t -> cosh(t*t) + 0.5*sinh(t*t)
+  x2_exact = t -> cosh(t*t) + 2.0*sinh(t*t)
+
+  opt = OptionsODE("odetimederiv1",
+        OPT_RTOL => 1e-8,
+        OPT_ATOL => 1e-8,
+        OPT_JACOBIMATRIX => myjac,
+        OPT_RHSTIMEDERIV => myrhstimederiv,
+        )
+  t0 = 0; T = 1; x0=[1.0,1]
+
+  (t,x,retcode,stats) = solver(myrhs, t0, T, x0, opt)
+  @assert 1==retcode
+  @assert isapprox(x[1],x1_exact(T),rtol=1e-7,atol=1e-7)
+  @assert isapprox(x[2],x2_exact(T),rtol=1e-7,atol=1e-7)
   return true
 end
 
@@ -532,7 +584,7 @@ function test_Options()
     @test getOption(opt1,"nokey","none") == "none"
     @test setOptions!(opt1, "test_key" => 100, "new_key" => "bla") ==
           [82,nothing]
-    
+
     opt2 = OptionsODE("test2",opt1)
     @test getOption(opt1,"test_key",0) == 100
   end
@@ -541,16 +593,13 @@ end
 function test_DLSolvers()
   @testset "DLSolvers" begin
     result = loadODESolvers()
-    @testloop 
-    for dl in dl_solvers
+    @testloop for dl in dl_solvers
       @test result[dl].error == nothing
       @test result[dl].libhandle ≠ C_NULL
     end
     
-    @testloop 
-    for dl in dl_solvers 
-      @testloop 
-      for method in result[dl].methods
+    @testloop for dl in dl_solvers 
+      @testloop for method in result[dl].methods
         @test method.error == nothing
         @test method.method_ptr ≠ C_NULL
         @test method.generic_name ≠ ""
@@ -563,8 +612,7 @@ end
 function test_solvers()
   problems = (test_ode1,test_ode2,test_ode3,)
   @testset "solvers" begin
-    @testloop 
-    for solver in solvers,
+    @testloop for solver in solvers,
                   problem in problems
       @test problem(solver)
     end
@@ -572,8 +620,7 @@ function test_solvers()
 
   problems = (test_massode1,test_massode2,test_massode3,test_massode4)
   @testset "mas-solvers" begin
-    @testloop 
-    for solver in solvers_mas,
+    @testloop for solver in solvers_mas,
                   problem in problems
       @test problem(solver)
     end
@@ -581,8 +628,15 @@ function test_solvers()
 
   problems = (test_jacode1,test_jacode2,test_jacode3,test_jacode4)
   @testset "jac-solvers" begin
-    @testloop 
-    for solver in solvers_jac,
+    @testloop for solver in solvers_jac,
+                  problem in problems
+      @test problem(solver)
+    end
+  end
+
+  problems = (test_rhstimederiv1,)
+  @testset "rhs_dt-sol." begin
+    @testloop for solver in solvers_rhsdt,
                   problem in problems
       @test problem(solver)
     end
@@ -592,8 +646,7 @@ end
 function test_odecall()
   problems = (test_odecall1,test_odecall2,)
   @testset "odecall" begin
-    @testloop 
-    for solver in solvers,
+    @testloop for solver in solvers,
                   problem in problems
       @test problem(solver)
     end
@@ -603,8 +656,7 @@ end
 function test_bvp()
   problems = (test_bvp1,test_bvp2,test_bvp3,)
   @testset "bvp" begin
-    @testloop 
-    for solver in solvers_bv,
+    @testloop for solver in solvers_bv,
                   problem in problems
       @test problem(solver)
     end

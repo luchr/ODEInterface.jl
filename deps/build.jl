@@ -137,6 +137,12 @@ function build_seulex(path::AbstractString)
   return nothing
 end
 
+function build_rodas(path::AbstractString)
+  compile_gfortran(dir_of_src,"rodas")
+  link_gfortran(dir_of_src,["rodas","dc_lapack","lapack","lapackc"])
+  return nothing
+end
+
 function build_bvpsol(path::AbstractString)
   compile_gfortran(dir_of_src,"bvpsol")
   compile_gfortran(dir_of_src,"linalg_bvpsol")
@@ -168,6 +174,7 @@ build_odex(dir_of_src)
 compile_lapack(dir_of_src)
 build_radau(dir_of_src)
 build_seulex(dir_of_src)
+build_rodas(dir_of_src)
 build_bvpsol(dir_of_src)
 
 del_obj_files()

@@ -2,7 +2,7 @@
 
 # The ODEInterface.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2015: Christian Ludwig.
+> Copyright (c) 2015-2016: Christian Ludwig.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
@@ -28,7 +28,7 @@
 http://www.unige.ch/~hairer/software.html
 
 This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`, 
-`seulex.f`) are licensed under the following license,
+`rodas.f`, `seulex.f`) are licensed under the following license,
 see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 
 > Copyright (c) 2004, Ernst Hairer

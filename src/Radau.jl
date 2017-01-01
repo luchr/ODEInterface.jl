@@ -82,7 +82,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RadauInternalCallInfos{FInt} <: ODEinternalCallInfos
+type RadauInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
   callid       :: Array{UInt64}         # the call-id for this info
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -116,14 +116,14 @@ type RadauInternalCallInfos{FInt} <: ODEinternalCallInfos
 end
 
 """
-       type RadauArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       type RadauArguments{FInt<:FortranInt} <: 
+                AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Radau5 and Radau solver.
   
-  FInt is the Integer type used for the fortran compilation:
-  FInt ∈ (Int32,Int64)
+  FInt is the Integer type used for the fortran compilation.
   """
-type RadauArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -158,10 +158,11 @@ end
 
 
 """
-       function unsafe_radauSoloutCallback{FInt}(nr_::Ptr{FInt},
-         told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-         cont_::Ptr{Float64}, lrc_::Ptr{FInt}, n_::Ptr{FInt},
-         rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+        function unsafe_radauSoloutCallback{FInt<:FortranInt}(
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+                n_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+                ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran radau5/radau.
   
@@ -179,20 +180,18 @@ end
   
   For the typical calling sequence, see `RadauInternalCallInfos`.
   """
-function unsafe_radauSoloutCallback{FInt}(nr_::Ptr{FInt},
-  told_::Ptr{Float64}, t_::Ptr{Float64}, x_::Ptr{Float64},
-  cont_::Ptr{Float64}, lrc_::Ptr{FInt}, n_::Ptr{FInt},
-  rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+function unsafe_radauSoloutCallback{FInt<:FortranInt}(
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+        n_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_);
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_,(n,),false)
   irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
   cid = unpackUInt64FromPtr(ipar_)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  cbi==nothing && throw(InternalErrorODE(
-      string("Cannot find call-id ",int2logstr(cid[1]),
-             " in GlobalCallInfoDict")))
+  cbi = getCallInfosWithCid(cid)::RadauInternalCallInfos
 
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
@@ -240,8 +239,8 @@ const unsafe_radauSoloutCallbacki32_c = cfunction(
     Ptr{Float64}, Ptr{Int32}, Ptr{Int32}))
 
 """
-       function create_radau_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-                    method_cont::Ptr{Void})
+        function create_radau_eval_sol_fcn_closure{FInt<:FortranInt}(
+                cid::UInt64, d::FInt, method_cont::Ptr{Void})
   
   generates a eval_sol_fcn for radau and radau5.
   
@@ -264,14 +263,11 @@ const unsafe_radauSoloutCallbacki32_c = cfunction(
 
   For the typical calling sequence, see `RadauInternalCallInfos`.
   """
-function create_radau_eval_sol_fcn_closure{FInt}(cid::UInt64, d::FInt,
-             method_cont::Ptr{Void})
+function create_radau_eval_sol_fcn_closure{FInt<:FortranInt}(
+        cid::UInt64, d::FInt, method_cont::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    cbi = get(GlobalCallInfoDict,cid,nothing)
-    cbi==nothing && throw(InternalErrorODE(
-        string("Cannot find call-id ",int2logstr(cid[1]),
-               " in GlobalCallInfoDict")))
+    cbi = getCallInfosWithCid(cid)::RadauInternalCallInfos
 
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -304,8 +300,8 @@ end
   Fills in `args`: `IWORK[1,2,4,5,6,7,8]`, `WORK[1,2,3,5,6]`,
   `RPAR`, `IDID`, `FCN`, `SOLOUT`
   """
-function extractCommonRadauOpt{FInt}(d::FInt,T,t0,cid_str,
-     args::RadauArguments,opt::AbstractOptionsODE)
+function extractCommonRadauOpt{FInt<:FortranInt}(
+        d::FInt,T,t0,cid_str, args::RadauArguments,opt::AbstractOptionsODE)
   OPT = nothing
   try
     # fill IWORK
@@ -391,10 +387,11 @@ end
 """
   calls the radau5 or radau solver after all solver arguments are prepared.
   """
-function doRadauSolverCall{FInt}(cid,lio,l,l_g,l_solver,lprefix,
-   d::FInt,M1::FInt,M2::FInt, rhs,rhs_mode,rhs_lprefix,
-   output_mode,output_fcn,out_lprefix,eval_lprefix,massmatrix,
-   jacobimatrix,jacobibandstruct,jac_lprefix,args,method_solver,method_cont)
+function doRadauSolverCall{FInt<:FortranInt}(
+        cid,lio,l,l_g,l_solver,lprefix, d::FInt,M1::FInt,M2::FInt, 
+        rhs,rhs_mode,rhs_lprefix, output_mode,output_fcn,out_lprefix,
+        eval_lprefix,massmatrix, jacobimatrix,jacobibandstruct,
+        jac_lprefix,args,method_solver,method_cont)
   try
     eval_sol_fcn =
       (output_mode == OUTPUTFCN_DENSE)?
@@ -489,15 +486,15 @@ function radau5_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-       function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                       opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  
-  implementation of radau5 for FInt ∈ (Int32,Int64)
-  """
-function radau5_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
+        function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+                t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
+  
+  implementation of radau5 for FInt.
+  """
+function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector,
+        opt::AbstractOptionsODE, args::RadauArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("radau5",rhs,t0,T,x0,opt)
@@ -767,15 +764,15 @@ function radau_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-       function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                       opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  
-  implementation of radau for FInt ∈ (Int32,Int64)
-  """
-function radau_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
+        function radau_impl{FInt<:FortranInt}(rhs::Function, 
+                t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
+  
+  implementation of radau for FInt.
+  """
+function radau_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector,
+        opt::AbstractOptionsODE, args::RadauArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("radau5",rhs,t0,T,x0,opt)

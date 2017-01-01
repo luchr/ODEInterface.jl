@@ -747,6 +747,223 @@ In `opt` the following options are used:
 </table>
 
 
+# rodas
+
+```
+  function rodas(rhs::Function, t0::Real, T::Real,
+                 x0::Vector, opt::AbstractOptionsODE)
+     -> (t,x,retcode,stats)
+```
+
+`retcode` can have the following values:
+
+```
+  1: computation successful
+  2: computation. successful, but interrupted by output function
+ -1: computation unsuccessful
+```
+
+main call for using Fortran rodas solver.
+
+This solver support problems with special structure, see `help_specialstructure`.
+
+In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> RHSAUTONOMOUS
+</pre></td>
+<td><pre> Flag&#44; if right&#45;hand side is autonomous&#46;
+</pre></td>
+<td><pre>   false
+</pre></td>
+</tr>
+<tr><td><pre> M1 &#38; M2
+</pre></td>
+<td><pre> parameter for special structure&#44; see
+ above
+ M1&#44; M2 &#8805; 0
+ M1 &#43;M2 &#8804; length&#40;x0&#41;
+ &#40;M1&#61;&#61;M2&#61;&#61;0&#41; &#124;&#124; &#40;M1&#8800;0&#8800;M2&#41;
+ M1 &#37; M2 &#61;&#61; 0 or M1&#61;&#61;0
+</pre></td>
+<td><pre>       0
+      M1
+</pre></td>
+</tr>
+<tr><td><pre> RTOL         &#38;
+ ATOL
+</pre></td>
+<td><pre> relative and absolute error tolerances
+ both scalars or both vectors with the
+ length of length&#40;x0&#41;
+ error&#40;x&#8342;&#41; &#8804; OPT&#95;RTOL&#8342;&#8901;&#124;x&#8342;&#124;&#43;OPT&#95;ATOL&#8342;
+</pre></td>
+<td><pre>    1e&#45;3
+    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTFCN
+</pre></td>
+<td><pre> output function
+ see help&#95;outputfcn
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTMODE
+</pre></td>
+<td><pre> OUTPUTFCN&#95;NEVER&#58;
+   dont&#39;t call OPT&#95;OUTPUTFCN
+ OUTPUTFCN&#95;WODENSE
+   call OPT&#95;OUTPUTFCN&#44; but without
+   possibility for dense output
+ OUTPUTFCN&#95;DENSE
+   call OPT&#95;OUTPUTFCN with support for
+   dense output
+</pre></td>
+<td><pre>   NEVER
+</pre></td>
+</tr>
+<tr><td><pre> EPS
+</pre></td>
+<td><pre> the rounding unit
+ 0 &#60; OPT&#95;EPS &#60; 1&#46;0
+</pre></td>
+<td><pre>   1e&#45;16
+</pre></td>
+</tr>
+<tr><td><pre> METHODCHOICE
+</pre></td>
+<td><pre> Choice of coefficients&#58;
+ 1&#58; Hairer&#44; Wanner&#58; Solving ODE II&#44;
+    page 452
+ 2&#58; same as 1&#44; with different params
+ 3&#58; G&#46; Steinbach &#40;1993&#41;
+</pre></td>
+<td><pre>       1
+</pre></td>
+</tr>
+<tr><td><pre> MAXSTEPS
+</pre></td>
+<td><pre> maximal number of allowed steps
+ OPT&#95;MAXSTEPS &#62; 0
+</pre></td>
+<td><pre>  100000
+</pre></td>
+</tr>
+<tr><td><pre> MAXSS
+</pre></td>
+<td><pre> maximal step size
+ OPT&#95;MAXSS &#8800; 0
+</pre></td>
+<td><pre>  T &#45; t0
+</pre></td>
+</tr>
+<tr><td><pre> INITIALSS
+</pre></td>
+<td><pre> initial step size guess
+</pre></td>
+<td><pre>    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> STEPSIZESTRATEGY
+</pre></td>
+<td><pre> Switch for step size strategy
+   1&#58; mod&#46; predictive controller
+      &#40;Gustafsson&#41;
+   2&#58; classical step size control
+</pre></td>
+<td><pre>       1
+</pre></td>
+</tr>
+<tr><td><pre> OPT&#95;RHO
+</pre></td>
+<td><pre> safety factor for step control algorithm
+ 0&#46;001 &#60; OPT&#95;RHO &#60; 1&#46;0
+</pre></td>
+<td><pre>     0&#46;9
+</pre></td>
+</tr>
+<tr><td><pre> SSMINSEL   &#38;
+ SSMAXSEL
+</pre></td>
+<td><pre> parameters for step size selection
+ The new step size is chosen subject to
+ the restriction
+ OPT&#95;SSMINSEL &#8804; hnew&#47;hold &#8804; OPT&#95;SSMAXSEL
+ OPT&#95;SSMINSEL &#8804; 1&#44; OPT&#95;SSMAXSEL &#8805; 1
+</pre></td>
+<td><pre>     0&#46;2
+     6&#46;0
+</pre></td>
+</tr>
+<tr><td><pre> RHSTIMEDERIV
+</pre></td>
+<td><pre> A function providing the time derivative
+ &#8706;f&#47;&#8706;t of the right&#45;hand side or nothing&#46;
+ If the value given is nothing the solver
+ uses finite differences to approximate
+ &#8706;f&#47;&#8706;t&#46;
+ Obviously this options is only relevant
+ for non&#45;autonomous problems&#46;
+ The function has to be of the form&#58;
+   function &#40;t&#44;x&#44;dfdt&#41; &#45;&#62; nothing
+ Even if the problem has special structure
+ &#40;M1&#62;0&#44; see help&#95;specialstructure&#41; x and
+ dfdt are always vectors with full length&#44;
+ i&#46;e&#46; length&#40;x&#41;&#61;&#61;length&#40;dfdt&#41;&#61;&#61;length&#40;x0&#41;&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> JACOBIMATRIX
+</pre></td>
+<td><pre> A function providing the Jacobian for
+ &#8706;f&#47;&#8706;x or nothing&#46; For nothing the solver
+ uses finite differences to calculate the
+ Jacobian&#46;
+ The function has to be of the form&#58;
+   function &#40;t&#44;x&#44;J&#41; &#45;&#62; nothing       &#40;A&#41;
+ or for M1&#62;0 &#38; JACOBIBANDSTRUCT &#8800; nothing
+   function &#40;t&#44;x&#44;J1&#44;&#8230;&#44;JK&#41; &#45;&#62; nothing &#40;B&#41;
+ with K &#61; 1&#43;M1&#47;M2 and &#40;M1&#43;M2&#61;&#61;d&#41;
+ see help&#95;specialstructure
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> JACOBIBANDSTRUCT
+</pre></td>
+<td><pre> A tuple &#40;l&#44;u&#41; describing the banded
+ structure of the Jacobian or nothing if
+ the Jacobian is full&#46;
+ see help&#95;specialstructure
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> MASSMATRIX
+</pre></td>
+<td><pre> the mass matrix of the problem&#46; If not
+ given &#40;nothing&#41; then the identiy matrix
+ is used&#46;
+ The size has to be &#40;d&#45;M1&#41;&#215;&#40;d&#45;M1&#41;&#46;
+ It can be an full matrix or a banded
+ matrix &#40;BandedMatrix&#41;&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+</table>
+
+
 # radau and radau5
 
 ```

@@ -1,22 +1,9 @@
 # Basic functions for ODEInterface
 
-import Base: dump
-
-function dump(io::IO, x::Tuple, n::Int, indent)
-  println(io,typeof(x)," len ",length(x))
-  if n>0
-    i = 1
-    for elem in x
-      print(io,indent,"  ", i, ": ")
-      dump(io,elem,n-1,string(indent,"  "))
-      if i > 10
-        println(io,indent,"  ...")
-        break
-      end
-      i += 1
-    end
-  end
-end
+"""
+  supported (signed) Integer types for Fortran codes.
+  """
+FortranInt = Union{Int32,Int64}
 
 """
   dummy function returning nothing.
@@ -149,6 +136,9 @@ const LOG_BC         = UInt64(1)<<8
   log calls to initial value solver."""
 const LOG_BVPIVPSOL  = UInt64(1)<<9
 
+"""Bitmask: log calls to right-hand side derivative function."""
+const LOG_RHSDT      = UInt64(1)<<10
+
 """Bitmask: log everything."""
 const LOG_ALL        = UInt64(0xFFFFFFFFFFFFFFFF)
 
@@ -160,7 +150,8 @@ macro import_LOG()
     using ODEInterface: LOG_NOTHING, LOG_GENERAL, LOG_RHS,
                         LOG_SOLVERARGS, LOG_SOLOUT, LOG_OUTPUTFCN,
                         LOG_EVALSOL, LOG_MASS, LOG_JAC, LOG_BC, 
-                        LOG_BVPIVPSOL, LOG_ALL
+                        LOG_BVPIVPSOL, LOG_RHSDT,
+                        LOG_ALL
   )
 end
 

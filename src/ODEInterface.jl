@@ -30,23 +30,28 @@ __precompile__(false)
   * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
   * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
   * radau: implicit Runge-Kutta method (Radau IIA) of variable order 
-  between 5 and 13
+    between 5 and 13
+  * seulex: extrapolation-algorithm based on the linear implicit Euler method
+  * rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
   
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
   
   The following features of this solvers are supported by this ODEInterface:
   
   * providing an output function (e.g. for dense output or for event location)
-  to the solvers
+    to the solvers
   * providing mass- and jacobi-matrices for the solvers (with support for
-  banded matrices)
+    banded matrices)
   * all the solvers' parameters for fine-tuning them
   * support for problems with "special structure", see `help_specialstructure`
   
   ## What are the requirements for this module
   
   In order to use this module, you have to *compile* the supported
-  Fortran solvers and provide a shared library for each solver. Just call
+  Fortran solvers and provide a shared library for each solver.
+  The build-script of this module tries to compile all solvers
+  automatically. But you can use your own compiled versions (with
+  different compile-time options or compilers). Just call
   `ODEInterface.help_solversupport` for further informations (help topics)
   on how to compile the solvers and how to create shared libraries.
   
@@ -97,6 +102,8 @@ macro import_huge()
     @ODEInterface.import_DLradau
     @ODEInterface.import_seulex
     @ODEInterface.import_DLseulex
+    @ODEInterface.import_rodas
+    @ODEInterface.import_DLrodas
     @ODEInterface.import_bvpsol
     @ODEInterface.import_DLbvpsol
   end
@@ -114,6 +121,7 @@ macro import_normal()
     @ODEInterface.import_radau5
     @ODEInterface.import_radau
     @ODEInterface.import_seulex
+    @ODEInterface.import_rodas
     @ODEInterface.import_bvpsol
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
@@ -183,7 +191,7 @@ abstract ODEinternalCallInfos
   All necessary informations (e.g. a julia function reference to the RHS) is
   stored globally and a global function (e.g. `unsafe_dopri5RHSCallback`)
   is used (as `unsafe_dopri5RHSCallback_c`) as code-pointer for the
-  Fotran routines.
+  Fortran routines.
   
   How are the necessary informations stored globally?
   Using global variables can have the negative side-effect of being not
@@ -204,6 +212,31 @@ abstract ODEinternalCallInfos
 const GlobalCallInfoDict = Dict{UInt64,ODEinternalCallInfos}()
 
 """
+  returns ODEinternalCallInfos for given call-id-value cid and throws an
+  InternalErrorODE if cid is unknown.
+  """
+function getCallInfosWithCid(cid::UInt64)
+  cbi = get(GlobalCallInfoDict,cid,nothing)
+  if cbi==nothing 
+    throw(InternalErrorODE(string(
+      "Cannot find call-id ",int2logstr(cid)," in GlobalCallInfoDict")))
+  end
+  return cbi::ODEinternalCallInfos
+end
+
+"""
+  returns ODEinternalCallInfos for given call-id(-object) and throws an
+  InternalErrorODE if cid is unkown.
+  """
+function getCallInfosWithCid(cid::Array{UInt64})
+  if (1,)==size(cid)
+    return getCallInfosWithCid(cid[1])
+  else
+    throw(InternalErrorODE("cid-array has wrong size"))
+  end
+end
+
+"""
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
   """
 abstract AbstractArgumentsODESolver{FInt} <: Any
@@ -215,6 +248,7 @@ macro import_OPTcommon()
     using ODEInterface:   OPT_LOGIO, OPT_LOGLEVEL, OPT_RHS_CALLMODE,
                           OPT_RTOL, OPT_ATOL,
                           OPT_MAXSTEPS, OPT_EPS, OPT_OUTPUTFCN,
+                          OPT_METHODCHOICE,
                           OPT_OUTPUTMODE, OPT_STEST, OPT_RHO, OPT_SSMINSEL,
                           OPT_SSMAXSEL, OPT_SSBETA, OPT_MAXSS, OPT_INITIALSS,
                           OPT_MAXEXCOLUMN, OPT_MAXSTABCHECKS, 
@@ -234,7 +268,8 @@ macro import_OPTcommon()
                           OPT_ORDERDECSTEPFAC1, OPT_ORDERDECSTEPFAC2,
                           OPT_RHSAUTONOMOUS, OPT_LAMBDADENSE,
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
-                          OPT_WORKFORSOL, OPT_BVPCLASS, OPT_SOLMETHOD,
+                          OPT_WORKFORSOL, OPT_RHSTIMEDERIV,
+                          OPT_BVPCLASS, OPT_SOLMETHOD,
                           OPT_IVPOPT
   )
 end
@@ -255,6 +290,7 @@ const OPT_RTOL             = "RelTol"
 const OPT_ATOL             = "AbsTol"
 const OPT_MAXSTEPS         = "MaxNumberOfSteps"
 const OPT_EPS              = "eps"
+const OPT_METHODCHOICE     = "MethodChoice"
 
 const OPT_OUTPUTFCN        = "OutputFcn"
 const OPT_OUTPUTMODE       = "OutputFcnMode"
@@ -313,6 +349,8 @@ const OPT_WORKFORJAC       = "WorkForJacobimatrix"
 const OPT_WORKFORDEC       = "WorkForLuDecomposition"
 const OPT_WORKFORSOL       = "WorkForSubstitution"
 
+const OPT_RHSTIMEDERIV     = "RhsTimeDerivative"
+
 const OPT_BVPCLASS         = "BoundaryValueProblemClass"
 const OPT_SOLMETHOD        = "SolutionMethod"
 const OPT_IVPOPT           = "OptionsForIVPsolver"
@@ -351,6 +389,8 @@ const OPT_IVPOPT           = "OptionsForIVPsolver"
   
   Supports scalar `OPT_RTOL` and `OPT_ATOL` and converts them to a
   `Vector{Float64}` of length 1.
+
+  reads options: `OPT_RTOL`, `OPT_ATOL`
   """
 function extractTOLs(d::Integer,opt::AbstractOptionsODE)
   rtol = getOption(opt,OPT_RTOL,1e-3)
@@ -390,6 +430,8 @@ end
   
   throws ArgumentErrorODE if logio is not an IO or
   if loglevel is not convertable to UInt64.
+
+  reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
 function extractLogOptions(opt::AbstractOptionsODE)
   lio=getOption(opt,OPT_LOGIO,STDERR)
@@ -409,6 +451,8 @@ end
 """
        function extractOutputFcn(opt::AbstractOptionsODE) 
               -> (output_mode, output_fcn)
+
+  reads options: `OPT_OUTPUTMODE`, `OPT_OUTPUTFCN`
   """
 function extractOutputFcn(opt::AbstractOptionsODE)
   OPT = nothing
@@ -433,6 +477,8 @@ end
        function solver_init(solver_name::AbstractString, 
                             opt::AbstractOptionsODE, cid=nothing)
           ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+
+  reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
 function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE,
                      cid=nothing)
@@ -452,6 +498,8 @@ end
           ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
   
   initialization for a (typical) solver call/start.
+
+  reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
 function solver_start(solver_name::AbstractString, rhs::Function, 
             t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
@@ -471,7 +519,7 @@ end
        function solver_extract_rhsMode(opt::AbstractOptionsODE)
                    -> rhs_mode
   
-  extracts `rhs_mode` from `opt`.
+  reads options: `OPT_RHS_CALLMODE`
   """
 function solver_extract_rhsMode(opt::AbstractOptionsODE)
   try
@@ -489,6 +537,9 @@ end
          -> (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn)
 
   get d, fill args.N, args.x, args.t, args.tEnd, args.RTOL, args.ATOL
+
+  reads options: `OPT_RTOL`, `OPT_ATOL`, `OPT_RHS_CALLMODE`, 
+  `OPT_OUTPUTMODE`, `OPT_OUTPUTFCN`
   """
 function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector, 
              opt::AbstractOptionsODE, args::AbstractArgumentsODESolver{FInt})
@@ -541,6 +592,7 @@ include("./Dop853.jl")
 include("./Odex.jl")
 include("./Radau.jl")
 include("./Seulex.jl")
+include("./Rodas.jl")
 include("./Bvpsol.jl")
 
 include("./Call.jl")

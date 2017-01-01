@@ -111,20 +111,19 @@ function dop853_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-       function dop853_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector,
-                        opt::AbstractOptionsODE,arg::DopriArguments{FInt})
+        function dop853_impl{FInt<:FortranInt}(rhs::Function, 
+                t0::Real, T::Real, x0::Vector, 
+                opt::AbstractOptionsODE,args::DopriArguments{FInt})
   
-  implementation of dop853 for FInt ∈ (Int32,Int64)
+  implementation of dop853 for FInt.
   """
-function dop853_impl{FInt}(rhs::Function, t0::Real, T::Real, x0::Vector, 
-                 opt::AbstractOptionsODE,args::DopriArguments{FInt})
+function dop853_impl{FInt<:FortranInt}(rhs::Function, 
+        t0::Real, T::Real, x0::Vector, 
+        opt::AbstractOptionsODE,args::DopriArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
     solver_start("dop853",rhs,t0,T,x0,opt)
 
-  FInt ∉ (Int32,Int64) &&
-    throw(ArgumentErrorODE("only FInt ∈ (Int32,Int64) allowed"))
-  
   (method_dop853, method_contd8) = getAllMethodPtrs(
      (FInt == Int64)? DL_DOP853 : DL_DOP853_I32 )
 
