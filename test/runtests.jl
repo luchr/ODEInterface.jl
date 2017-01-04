@@ -33,26 +33,37 @@ else
 end
 
 
-const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, DL_DOP853, DL_DOP853_I32,
+const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, 
+                    DL_DOP853, DL_DOP853_I32,
+                    DL_ODEX, DL_ODEX_I32,
                     DL_RADAU5, DL_RADAU5_I32, DL_RADAU, DL_RADAU_I32,
-                    DL_SEULEX, DL_SEULEX_I32, DL_RODAS, DL_RODAS_I32,
+                    DL_SEULEX, DL_SEULEX_I32, 
+                    DL_RODAS, DL_RODAS_I32,
                     DL_BVPSOL, DL_BVPSOL_I32,
                     ) 
-const solvers = (dopri5, dopri5_i32, dop853, dop853_i32,
+const solvers = (dopri5, dopri5_i32, 
+                 dop853, dop853_i32,
                  odex, odex_i32, 
                  radau5, radau5_i32, radau, radau_i32,
-                 seulex, seulex_i32, rodas, rodas_i32,
+                 seulex, seulex_i32, 
+                 rodas, rodas_i32,
                 )
 
 const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, rodas, rodas_i32)
+                      seulex, seulex_i32, 
+                      rodas, rodas_i32
+                    )
 
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
-                      seulex, seulex_i32, rodas, rodas_i32)
+                      seulex, seulex_i32, 
+                      rodas, rodas_i32
+                    )
 
-const solvers_rhsdt = ( rodas, rodas_i32)
+const solvers_rhsdt = ( rodas, rodas_i32
+                      )
 
-const solvers_bv  = ( bvpsol, bvpsol_i32 )
+const solvers_bv  = ( bvpsol, bvpsol_i32 
+                    )
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",

@@ -34,7 +34,7 @@ end
 """
   global Dict saving informations of all loaded solvers.
   """
-const dlSolversInfo = Dict{AbstractString,SolverDLinfo}()
+global const dlSolversInfo = Dict{AbstractString,SolverDLinfo}()
 
 """
        function trytoloadlib(name::AbstractString,extrapaths::Vector)

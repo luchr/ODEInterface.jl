@@ -46,9 +46,8 @@ end
 """
   bvpsol does not support "pass-through" arguments for FCN and BC.
   Hence we can only support one bvpsol-call at a time.
-  This is the global callid used every time.
   """
-const bvpsol_callid = uniqueToken()
+bvpsol_global_cbi = nothing
 
 """
   Type encapsulating all required data for Bvpsol-Callbacks.
@@ -60,34 +59,34 @@ const bvpsol_callid = uniqueToken()
        bvpsol       
            ccall( BVPSOL_  ... )
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_bvpsolrhs_c                         │  ⎬ cb. rhs
+              │unsafe_bvpsolrhs                           │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_bvpssolbc_c                         │  ⎬ cb. boundary
+              │unsafe_bvpssolbc                           │  ⎬ cb. boundary
               │    bc                                     │  ⎪     conditions
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_bvpsolivp_c                         │  ⎬ cb. solving
+              │unsafe_bvpsolivp                           │  ⎬ cb. solving
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-type BvpsolInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
-  callid       :: Array{UInt64}         # the call-id for this info
+type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
+        BC_F<:Function, ODESOL_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
-  rhs          :: Function              # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side 
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # BC:
-  bc           :: Function              # julia: functions for b-conditions
+  bc           :: BC_F                  # julia: functions for b-conditions
   bc_lprefix   :: AbstractString        # saved log-prefix for bc
   # problem specific
   N            :: FInt                  # Dimension of the problem
   # ODE-Solver
   odesol_usage :: ODE_SOLVER_USAGE      # what IVP-Solver to use?
-  odesol_julia :: Function              # a Julia-Function
+  odesol_julia :: ODESOL_F              # a Julia-Function
   odeopt       :: OptionsODE            # Options for IVP-Solver
   ivp_lprefix  :: AbstractString        # saved log-prefix for ivp-call
 end
@@ -130,32 +129,25 @@ function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt},
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
   f = unsafe_wrap(Array, f_,(n,),false)
-  cid = bvpsol_callid[1]
-  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
+  cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   hw1rhs(n,t,x,f,cbi)
   return nothing
 end
 
 """
-  `cfunction` pointer for unsafe_bvpsolrhs with 64bit integers.
+        function unsafe_bvpsolrhs_c{FInt}(fint_flag::FInt)
   """
-const unsafe_bvpsolrhs_c = cfunction(
-  unsafe_bvpsolrhs, Void, (Ptr{Int64},Ptr{Float64},
+function unsafe_bvpsolrhs_c{FInt}(fint_flag::FInt)
+  return cfunction(unsafe_bvpsolrhs, Void, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64},Ptr{Float64}))
+end
 
 """
-  `cfunction` pointer for unsafe_bvpsolrhs with 32bit integers.
-  """
-const unsafe_bvpsolrhsi32_c = cfunction(
-  unsafe_bvpsolrhs, Void, (Ptr{Int32},Ptr{Float64},
-    Ptr{Float64},Ptr{Float64}))
-
-"""
-       function bvpsolbc(xa,xb,r,cbi::BvpsolInternalCallInfos)
+        function bvpsolbc{CI}(xa,xb,r,cbi::CI)
   
   This function calls `bc` saved in `BvpsolInternalCallInfos`.
   """
-function bvpsolbc(xa,xb,r,cbi::BvpsolInternalCallInfos)
+function bvpsolbc{CI}(xa,xb,r,cbi::CI)
   lprefix = cbi.bc_lprefix
   
   (lio,l)=(cbi.logio,cbi.loglevel)
@@ -181,8 +173,7 @@ end
 function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64}, 
   r_::Ptr{Float64})
 
-  cid = bvpsol_callid[1]
-  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
+  cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   n = cbi.N
   xa = unsafe_wrap(Array, xa_,(n,),false)
   xb = unsafe_wrap(Array, xb_,(n,),false)
@@ -192,15 +183,16 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
 end
 
 """
-  `cfunction` pointer for unsafe_bvpsolbc.
+        function unsafe_bvpsolbc_c()
   """
-const unsafe_bvpsolbc_c = cfunction(
-  unsafe_bvpsolbc, Void, (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
+function unsafe_bvpsolbc_c()
+  return cfunction(unsafe_bvpsolbc, Void, 
+        (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
+end
 
-
-function bvpsolivp{FInt<:FortranInt}(t::Vector{Float64},
+function bvpsolivp{FInt,CI}(t::Vector{Float64},
         x::Vector{Float64}, tend,tol,hmax,h::Vector{Float64},
-        kflag::Vector{FInt}, cbi::BvpsolInternalCallInfos)
+        kflag::Vector{FInt}, cbi::CI)
 
   @assert cbi.odesol_usage == ODE_SOLVER_JULIA
 
@@ -255,8 +247,7 @@ function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt},
         tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
         h_::Ptr{Float64}, kflag_::Ptr{FInt})
 
-  cid = bvpsol_callid[1]
-  cbi = getCallInfosWithCid(cid)::BvpsolInternalCallInfos
+  cbi = bvpsol_global_cbi::BvpsolInternalCallInfos
   n = cbi.N
   t = unsafe_wrap(Array, t_,(1,),false)
   tend = unsafe_load(tend_)
@@ -268,21 +259,13 @@ function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt},
   return nothing
 end
 
-"""
-  `cfunction` pointer for unsafe_bvpsolivp with 64bit integers.
-  """
-const unsafe_bvpsolivp_c = cfunction(
-  unsafe_bvpsolivp, Void, (Ptr{Int64},Ptr{Void},Ptr{Float64},
+function unsafe_bvpsolivp_c{FInt}(fint_flag::FInt)
+  return cfunction(unsafe_bvpsolivp, Void, 
+    (Ptr{FInt},Ptr{Void},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
-    Ptr{Int64}))
+    Ptr{FInt}))
+end
 
-"""
-  `cfunction` pointer for unsafe_bvpsolivp with 32bit integers.
-  """
-const unsafe_bvpsolivpi32_c = cfunction(
-  unsafe_bvpsolivp, Void, (Ptr{Int32},Ptr{Void},Ptr{Float64},
-    Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
-    Ptr{Int32}))
 
 function bvpsol_ivp_dummy(rhs,t,tend,x,opt)
   throw(InternalErrorODE("bvpsol_ivp_dummy was called"))
@@ -379,8 +362,8 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, 
   opt::AbstractOptionsODE, args::BvpsolArguments{FInt})
 
-  (lio,l,l_g,l_solver,lprefix,cid,cid_str) = solver_init("bvpsol",opt,
-                                                         bvpsol_callid)
+  (lio,l,l_g,l_solver,lprefix) = solver_init("bvpsol",opt)
+
   if l_g
     println(lio,lprefix,
       "called with rhs=",rhs," t=",t," x=",x," and opt")
@@ -426,8 +409,8 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   end
 
   rhs_mode = solver_extract_rhsMode(opt)
-  rhs_lprefix = string(cid_str,"unsafe_bvpsolrhs: ")
-  bc_lprefix = string(cid_str,"unsafe_bvpsolbc: ")
+  rhs_lprefix = "unsafe_bvpsolrhs: "
+  bc_lprefix = "unsafe_bvpsolbc: "
   
   try
     args.EPS = [ convert(Float64,getOption(opt,OPT_RTOL,1e-6)) ]
@@ -438,7 +421,7 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   
   args.IOPT = Vector{FInt}(6)
   ivpopt = nothing
-  ivp_lprefix = string(cid_str,"unsafe_bvpsolivp: ")
+  ivp_lprefix = "unsafe_bvpsolivp: "
   OPT = nothing
   try
     OPT = OPT_MAXSTEPS; args.IOPT[1] = convert(FInt,getOption(opt,OPT,40))
@@ -475,8 +458,8 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   end
   args.RW = zeros(Float64,args.IRW[1])
   args.IW = zeros(FInt,args.IIW[1])
-  args.FCN = (FInt == Int64)? unsafe_bvpsolrhs_c : unsafe_bvpsolrhsi32_c
-  args.BC = unsafe_bvpsolbc_c
+  args.FCN = unsafe_bvpsolrhs_c(FInt(0))
+  args.BC = unsafe_bvpsolbc_c()
   args.INFO = zeros(FInt,1)
 
   try
@@ -491,19 +474,18 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   if odesolver == nothing
     args.IVPSOL = method_bldfx1
   else
-    args.IVPSOL = (FInt == Int64)? unsafe_bvpsolivp_c : unsafe_bvpsolivpi32_c
+    args.IVPSOL = unsafe_bvpsolivp_c(FInt(0))
   end
-  
-  if haskey(GlobalCallInfoDict,cid[1])
+
+  if bvpsol_global_cbi ≠ nothing
     throw(ArgumentErrorODE(string("The Fortran solver bvpsol does not ",
       "support 'pass-through' arguments. Hence this julia module does not ",
       "support concurrent/nested bvpsol calls. Sorry.")))
   end
   
   try
-    GlobalCallInfoDict[cid[1]] =
-      BvpsolInternalCallInfos{FInt}(cid,lio,l,rhs,rhs_mode,rhs_lprefix,
-        bc,bc_lprefix,N, 
+    global bvpsol_global_cbi = BvpsolInternalCallInfos(lio,l,rhs,rhs_mode,
+        rhs_lprefix, bc,bc_lprefix,N, 
         (odesolver==nothing)?ODE_SOLVER_INTERNAL : ODE_SOLVER_JULIA,
         (odesolver==nothing)?bvpsol_ivp_dummy : odesolver,
         ivpopt, ivp_lprefix)
@@ -534,7 +516,7 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
       dump(lio,args)
     end
   finally
-    delete!(GlobalCallInfoDict,cid[1])
+    global bvpsol_global_cbi = nothing
   end
   l_g && println(lio,lprefix,string("done INFO=",args.INFO[1]))
   stats = Dict{AbstractString,Any}()

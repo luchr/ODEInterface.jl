@@ -19,7 +19,6 @@ end
   """
 abstract WrappedODEException <: Base.WrappedException
 
-
 function showerror(io::IO,e::WrappedODEException)
   println(io,e.msg)
   if e.error!=nothing
@@ -53,7 +52,6 @@ function showerror(io::IO,e::ArgumentErrorODE)
     showerror(io,e.error)
   end
 end
-
 
 """
   This error indicates that a function returned invalid output.

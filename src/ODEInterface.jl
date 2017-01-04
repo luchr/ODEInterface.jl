@@ -1,4 +1,4 @@
-__precompile__(false)
+__precompile__(true)
 
 """
   # ODEInterface
@@ -86,16 +86,17 @@ macro import_huge()
     @ODEInterface.import_bandedmatrixfuncs
     @ODEInterface.import_LOG
     @ODEInterface.import_dynamicload
-    @ODEInterface.import_dopri5
-    @ODEInterface.import_DLdopri5
-    @ODEInterface.import_dop853
-    @ODEInterface.import_DLdop853
-    @ODEInterface.import_odex
     @ODEInterface.import_exceptions
     @ODEInterface.import_options
     @ODEInterface.import_outputfcn
     @ODEInterface.import_OPTcommon
     @ODEInterface.import_odecall
+    @ODEInterface.import_dopri5
+    @ODEInterface.import_DLdopri5
+    @ODEInterface.import_dop853
+    @ODEInterface.import_DLdop853
+    @ODEInterface.import_DLodex
+    @ODEInterface.import_odex
     @ODEInterface.import_radau5
     @ODEInterface.import_DLradau5
     @ODEInterface.import_radau
@@ -160,81 +161,6 @@ end
   """
 const solverInfo = Vector{SolverInfo}() 
 
-"""
-  Type encapsulating all required data for ODE-Solver-Callbacks.
-  
-  For further explanation see, `GlobalCallInfoDict`
-  """
-abstract ODEinternalCallInfos
-
-"""
-  Global `Dict` for saving ODE-Server-Callback-Infos stored with `UInt64` keys.
-  
-  All the ODE-solvers of this ODEInterface use callback functions:
-  In order to evalute the right-hand-side (RHS) the Fortran-Codes want to have
-  a code-pointer (i.e. address) for a compiled C or Fortran-Function to
-  call. There are other callback mechanisms, too: e.g. calling a
-  output function after every successfull integration step.
-  
-  This interface wants to enable the user to supply julia functions as
-  callback functions, e.g. a julia anonymous function `(t,x)->x` for the RHS.
-  But a julia function is much more than a simple code-pointer. One can try to
-  'convert' a julia function to a code-pointer/address with `cfunction`, but
-  this is (by principle) not always possible (e.g. if the julia function has
-  some closure information attached to it), see
-  "Passing Callback Functions to C": 
-  http://julialang.org/blog/2013/05/callback/ 
-  for a more detailed explanation.
-  
-  In order to support even anonymous julia functions (and closures) this
-  interface uses the following idea:
-  All necessary informations (e.g. a julia function reference to the RHS) is
-  stored globally and a global function (e.g. `unsafe_dopri5RHSCallback`)
-  is used (as `unsafe_dopri5RHSCallback_c`) as code-pointer for the
-  Fortran routines.
-  
-  How are the necessary informations stored globally?
-  Using global variables can have the negative side-effect of being not
-  re-entrant safe. Imagine a julia-RHS that in turn solves a ODE for
-  calculating the RHS (i.e. imagine nested usages of a solver).
-  In order to make this re-entrant safe the following idea is used:
-  Every call of an ODE-solver gets an unique `UInt64`-id (the call-id). In
-  this `GlobalCallInfoDict` all necessary informations for this call
-  are stored at this call-id-key. Nested calls gat different call-ids and
-  are stored at different keys in this `Dict`.
-  This call-id is passed (as pass-through paramter) to the Fortran solvers.
-  The solvers pass this call-id to every call of the RHS. There (e.g. in
-  `unsafe_dopri5RHSCallback`) all in informations needed can be found in the
-  `GlobalCallInfoDict`.
-  At the end, when the Fortran-solver has finished, the key for the
-  call-id is deleted.
-  """
-const GlobalCallInfoDict = Dict{UInt64,ODEinternalCallInfos}()
-
-"""
-  returns ODEinternalCallInfos for given call-id-value cid and throws an
-  InternalErrorODE if cid is unknown.
-  """
-function getCallInfosWithCid(cid::UInt64)
-  cbi = get(GlobalCallInfoDict,cid,nothing)
-  if cbi==nothing 
-    throw(InternalErrorODE(string(
-      "Cannot find call-id ",int2logstr(cid)," in GlobalCallInfoDict")))
-  end
-  return cbi::ODEinternalCallInfos
-end
-
-"""
-  returns ODEinternalCallInfos for given call-id(-object) and throws an
-  InternalErrorODE if cid is unkown.
-  """
-function getCallInfosWithCid(cid::Array{UInt64})
-  if (1,)==size(cid)
-    return getCallInfosWithCid(cid[1])
-  else
-    throw(InternalErrorODE("cid-array has wrong size"))
-  end
-end
 
 """
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
@@ -475,27 +401,22 @@ end
 
 """
        function solver_init(solver_name::AbstractString, 
-                            opt::AbstractOptionsODE, cid=nothing)
-          ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+                            opt::AbstractOptionsODE)
+          ->  (lio,l,l_g,l_solver,lprefix)
 
   reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
-function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE,
-                     cid=nothing)
+function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE)
   (lio,l) = extractLogOptions(opt);
   (l_g,l_solver)=( l & LOG_GENERAL>0, l & LOG_SOLVERARGS>0 )
-  if cid==nothing
-    cid = uniqueToken()
-  end
-  cid_str = int2logstr(cid[1])
-  lprefix = string(cid_str,solver_name,": ")
-  return (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+  lprefix = string(solver_name,": ")
+  return (lio,l,l_g,l_solver,lprefix)
 end
 
 """
        function solver_start(solver_name::AbstractString, rhs::Function, 
                    t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
-          ->  (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+          ->  (lio,l,l_g,l_solver,lprefix)
   
   initialization for a (typical) solver call/start.
 
@@ -504,7 +425,7 @@ end
 function solver_start(solver_name::AbstractString, rhs::Function, 
             t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
   
-  (lio,l,l_g,l_solver,lprefix,cid,cid_str) = solver_init(solver_name,opt)
+  (lio,l,l_g,l_solver,lprefix) = solver_init(solver_name,opt)
 
   if l_g
     println(lio,lprefix,
@@ -512,7 +433,7 @@ function solver_start(solver_name::AbstractString, rhs::Function,
     show(lio,opt); println(lio)
   end
   
-  return (lio,l,l_g,l_solver,lprefix,cid,cid_str)
+  return (lio,l,l_g,l_solver,lprefix)
 end
 
 """
@@ -597,6 +518,16 @@ include("./Bvpsol.jl")
 
 include("./Call.jl")
 include("./Help.jl")
+
+"""
+  will be called once after the module is loaded at runtime.
+  """
+function __init__()
+  # at this stage dlSolversInfo should be empty, but
+  # just to be sure
+  empty!(dlSolversInfo)
+end
+
 
 end
 
