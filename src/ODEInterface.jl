@@ -1,4 +1,4 @@
-__precompile__(false)
+__precompile__(true)
 
 """
   # ODEInterface
@@ -518,6 +518,16 @@ include("./Bvpsol.jl")
 
 include("./Call.jl")
 include("./Help.jl")
+
+"""
+  will be called once after the module is loaded at runtime.
+  """
+function __init__()
+  # at this stage dlSolversInfo should be empty, but
+  # just to be sure
+  empty!(dlSolversInfo)
+end
+
 
 end
 
