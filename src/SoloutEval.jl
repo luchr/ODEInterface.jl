@@ -62,7 +62,7 @@ see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" -> OUTPUTFCN_RETURN_VALUE
 """
   Output function that does nothing and returns `OUTPUTFCN_RET_CONTINUE`.
   """
-function output_fcn_donothing(reason,tOld,t,x,eval_sol_fcn,extra_data)
+function output_fcn_donothing(args...)
   return OUTPUTFCN_RET_CONTINUE
 end
 
@@ -103,21 +103,20 @@ function eval_sol_fcn_done(t)
 end
 
 """
-       function call_julia_output_fcn(cid::UInt64,
-         reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
-         x::Vector{Float64},eval_sol_fcn::Function)
+        function call_julia_output_fcn{CI<:ODEinternalCallInfos}(cbi::CI,
+          reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
+          x::Vector{Float64},eval_sol_fcn::Function)
   
   calls the julia output function with the given arguments.
   
   This is more than a simple call, because this function takes care of
   logging, error-checking, etc.
   """
-function call_julia_output_fcn(cid::UInt64,
+function call_julia_output_fcn{CI<:ODEinternalCallInfos}(cbi::CI,
   reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
   x::Vector{Float64},eval_sol_fcn::Function)
 
-  lprefix = string(int2logstr(cid[1]),"call_julia_output_fcn: ")
-  cbi = getCallInfosWithCid(cid)
+  lprefix = "call_julia_output_fcn: "
 
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_out = l & LOG_OUTPUTFCN>0

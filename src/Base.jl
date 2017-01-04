@@ -13,89 +13,6 @@ function dummy_func()
 end
 
 """
-      function uniqueToken() -> Array{UInt64}
-  
-  Generate an unique token `T` with unique `UInt64` token-value `T[1]`.
-  
-  As long as the return value of this function will exist (i.e. is not garbage
-  collected) this function will never return the same token value.
-  
-  Note:
-  For the implementation no token-pool is needed. The idea is: just
-  return an newly created `UInt64` Array (of length 1) and save
-  the `object_id` in this array. As long as this object/array is not
-  garbage collected, every newly created token/array will have a different 
-  `object_id`.
-  """
-function uniqueToken()
-  token = Array{UInt64}(1)
-  token[1] = object_id(token)
-  return token
-end
-
-"""
-       function packUInt64ToVector!{T}(vec::Vector{T}, value::UInt64)
-
-  stores a UInt64 in the given integer Vector. sizeof(T)∊{4,8}
-  
-  see unpackUInt64FromVector or unpackUInt64FromPtr for the opposite action.
-  """
-function packUInt64ToVector!{T}(vec::Vector{T}, value::UInt64)
-  if 4==sizeof(T)
-    vec[1] = reinterpret(T,UInt32(value>>32))
-    vec[2] = reinterpret(T,UInt32(value&0xffffffff))
-  elseif 8==sizeof(T)
-    vec[1] = reinterpret(T,value)
-  else
-    throw(InternalErrorODE("Can only handle sizeof(T)∊{4,8}"))
-  end
-  return nothing
-end
-
-"""
-       function unpackUInt64FromVector{T}(vec::Vector{T}) -> UInt64
-  
-  retrieves a UInt64 from the given integer Vector. sizeof(T)∊{4,8}
-  
-  see packUInt64ToVector for the opposite action.
-  """
-function unpackUInt64FromVector{T}(vec::Vector{T})
-  if 4==sizeof(T)
-    return UInt64(reinterpret(UInt32,vec[1]))<<32  |
-           UInt64(reinterpret(UInt32,vec[2]))
-  elseif 8==sizeof(T)
-    return UInt64(reinterpret(UInt64,vec[1]))
-  else
-    throw(InternalErrorODE("Can only handle sizeof(T)∊{4,8}"))
-  end
-end
-
-"""
-       function unpackUInt64FromPtr{T}(p::Ptr{T}) -> UInt64
-  
-  retrieves a UInt64 from the given (integer) pointer. sizeof(T)∊{4,8} 
-  
-  see packUInt64ToVector for the opposite action.
-  """
-function unpackUInt64FromPtr{T}(p::Ptr{T})
-  if 4==sizeof(T)
-    return UInt64(reinterpret(UInt32,unsafe_load(p,1)))<<32 |
-           UInt64(reinterpret(UInt32,unsafe_load(p,2)))
-  elseif 8==sizeof(T)
-    return UInt64(reinterpret(UInt64,unsafe_load(p,1)))
-  else
-    throw(InternalErrorODE("Can only handle sizeof(T)∊{4,8}"))
-  end
-end
-
-"""
-         function int2logstr(no::Unsigned) -> UTF8String
-    
-    Generate Log-String for integer (token-)number.
-  """
-int2logstr(no::Unsigned) = "⟬$(hex(no))⟭"
-
-"""
   tests if `cand` is a number.
   """
 function isscalar(cand)
@@ -223,5 +140,11 @@ if !isdefined(Base, :unsafe_wrap)
   end
 end
 
+"""
+  Type encapsulating all required data for ODE-Solver-Callbacks.
+  
+  For further explanation see, `GlobalCallInfoDict`
+  """
+abstract ODEinternalCallInfos
 
 # vim:syn=julia:cc=79:fdm=indent:

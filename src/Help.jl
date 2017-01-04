@@ -478,12 +478,9 @@ end
 """
   ## Internals
 
-  1. The Fortran solvers use callback-functions. Where are all the
-     informations saved? See documentation of `GlobalCallInfoDict`.
   1. What is the typical "call stack" for all this callbacks? see
      documentation of `DopriInternalCallInfos`,  `OdexInternalCallInfos` and
      `Radau5InternalCallInfos`.
-  1. How are these unique call-ids generated? see `uniqueToken`
   1. What closures (and how many) are generated to support the eval_sol_fcn?
      see `create_radau_eval_sol_fcn_closure`
   1. Can this module be made `precompilable`? I guess so, but I've to read

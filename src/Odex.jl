@@ -37,11 +37,11 @@ end
                output_fcn ( ... INIT ...)
            ccall( ODEX_ ... )
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_HW1RHSCallback_c                    │  ⎬ cb. rhs
+              │unsafe_HW1RHSCallback                      │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
               └───────────────────────────────────────────┘  ⎭
               ┌───────────────────────────────────────────┐  ⎫
-              │unsafe_odexSoloutCallback_c                │  ⎪
+              │unsafe_odexSoloutCallback                  │  ⎪
               │    call_julia_output_fcn( ... STEP ...)   │  ⎪ cb. solout
               │        output_fcn ( ... STEP ...)         │  ⎬ with eval
               │            eval_sol_fcn                   │  ⎪
@@ -50,17 +50,17 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type OdexInternalCallInfos{FInt<:FortranInt} <: ODEinternalCallInfos
-  callid       :: Array{UInt64}         # the call-id for this info
+type OdexInternalCallInfos{FInt<:FortranInt,
+       RHS_F<:Function, OUT_F<:Function } <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
-  rhs          :: Function              # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side 
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # SOLOUT & output function
   output_mode  :: OUTPUTFCN_MODE        # what mode for output function
-  output_fcn   :: Function              # the output function to call
+  output_fcn   :: OUT_F                 # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
   out_lprefix  :: AbstractString        # saved log-prefix for solout
   eval_sol_fcn :: Function              # eval_sol_fcn 
@@ -100,7 +100,7 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IWORK   :: Vector{FInt}      # integer working array
   LIWORK  :: Vector{FInt}      # length of IWORK
   RPAR    :: Vector{Float64}   # add. double-array
-  IPAR    :: Vector{FInt}      # add. integer-array
+  IPAR    :: Ref{OdexInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
   function OdexArguments()
@@ -109,11 +109,12 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-        function unsafe_odexSoloutCallback{FInt<:FortranInt}(
+        function unsafe_odexSoloutCallback{FInt<:FortranInt,
+                CI<:OdexInternalCallInfos}(
                 nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
                 x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
                 ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-                rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+                rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
   
   This is the solout given as callback to Fortran-odex.
   
@@ -131,19 +132,17 @@ end
   
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function unsafe_odexSoloutCallback{FInt<:FortranInt}(
+function unsafe_odexSoloutCallback{FInt<:FortranInt,
+        CI<:OdexInternalCallInfos}(
         nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
         x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
         ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
+        rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_,(n,),false)
-  ipar = unsafe_wrap(Array, ipar_,(2,),false)
   irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
-  cid = unpackUInt64FromVector(ipar)
-  cbi = getCallInfosWithCid(cid)::OdexInternalCallInfos
 
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
@@ -156,7 +155,7 @@ function unsafe_odexSoloutCallback{FInt<:FortranInt}(
   cbi.cont_nd = nd_;
   cbi.output_data["nr"] = nr
   
-  ret = call_julia_output_fcn(cid,OUTPUTFCN_CALL_STEP,told,t,x,
+  ret = call_julia_output_fcn(cbi,OUTPUTFCN_CALL_STEP,told,t,x,
                               cbi.eval_sol_fcn)
   if      ret == OUTPUTFCN_RET_STOP
     irtrn[1] = -1
@@ -173,28 +172,21 @@ function unsafe_odexSoloutCallback{FInt<:FortranInt}(
 end
 
 """
-  `cfunction` pointer for unsafe_odexSoloutCallback with 64bit integers.
+        function unsafe_odexSoloutCallback_c{FInt,CI}(cbi::CI, 
+                fint_flag::FInt)
   """
-const unsafe_odexSoloutCallback_c = cfunction(
-  unsafe_odexSoloutCallback, Void, (Ptr{Int64}, 
+function unsafe_odexSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+  return cfunction(unsafe_odexSoloutCallback, Void, (Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Int64}, Ptr{Float64}, Ptr{Int64},
-    Ptr{Int64}, Ptr{Int64}, Ptr{Float64}, 
-    Ptr{Int64}, Ptr{Int64}));
+    Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
+    Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
+    Ref{CI}, Ptr{FInt}))
+end
 
 """
-  `cfunction` pointer for unsafe_odexSoloutCallback with 32bit integers.
-  """
-const unsafe_odexSoloutCallbacki32_c = cfunction(
-  unsafe_odexSoloutCallback, Void, (Ptr{Int32}, 
-    Ptr{Float64}, Ptr{Float64},Ptr{Float64}, 
-    Ptr{Int32}, Ptr{Float64}, Ptr{Int32},
-    Ptr{Int32}, Ptr{Int32}, Ptr{Float64}, 
-    Ptr{Int32}, Ptr{Int32}));
-
-"""
-        function create_odex_eval_sol_fcn_closure{FInt<:FortranInt}(
-                cid::UInt64, d::FInt, method_contex::Ptr{Void})
+        function create_odex_eval_sol_fcn_closure{FInt<:FortranInt,
+                CI<:OdexInternalCallInfos}(
+                cbi::CI, d::FInt, method_contex::Ptr{Void})
   
   generates a eval_sol_fcn for odex.
   
@@ -203,10 +195,8 @@ const unsafe_odexSoloutCallbacki32_c = cfunction(
   But `CONTEX_` needs the informations for the current state. This
   informations were saved by `unsafe_odexSoloutCallback` in the
   `OdexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
-  For finding this "callback informations" the "call id" is needed.
   Here comes `create_odex_eval_sol_fcn_closure` into play: this function
-  takes the "call id" (and some other informations) and generates
-  a `eval_sol_fcn` with this data.
+  takes the call informations and generates a `eval_sol_fcn` with this data.
   
   Why doesn't `unsafe_odexSoloutCallback` generate a closure (then
   the current state needs not to be saved in `OdexInternalCallInfos`)?
@@ -217,12 +207,11 @@ const unsafe_odexSoloutCallbacki32_c = cfunction(
 
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function create_odex_eval_sol_fcn_closure{FInt<:FortranInt}(
-        cid::UInt64, d::FInt, method_contex::Ptr{Void})
+function create_odex_eval_sol_fcn_closure{FInt<:FortranInt,
+        CI<:OdexInternalCallInfos}(
+        cbi::CI, d::FInt, method_contex::Ptr{Void})
   
   function eval_sol_fcn_closure(s::Float64)
-    cbi = getCallInfosWithCid(cid)::OdexInternalCallInfos
-
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
 
@@ -370,8 +359,7 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::OdexArguments{FInt})
   
-  (lio,l,l_g,l_solver,lprefix,cid,cid_str) = 
-    solver_start("odex",rhs,t0,T,x0,opt)
+  (lio,l,l_g,l_solver,lprefix) = solver_start("odex",rhs,t0,T,x0,opt)
   
   (method_odex, method_contex) = getAllMethodPtrs(
      (FInt == Int64)? DL_ODEX : DL_ODEX_I32 )
@@ -470,69 +458,67 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
   
   args.RPAR = zeros(Float64,0)
   args.IDID = zeros(FInt,1)
-  args.FCN    = (FInt == Int64)? unsafe_HW1RHSCallback_c : 
-                                 unsafe_HW1RHSCallbacki32_c
-  rhs_lprefix = string(cid_str,"unsafe_HW1RHSCallback: ")
-  args.SOLOUT = (FInt == Int64)? unsafe_odexSoloutCallback_c:
-                                 unsafe_odexSoloutCallbacki32_c
-  out_lprefix = string(cid_str,"unsafe_odexSoloutCallback: ")
-  eval_lprefix = string(cid_str,"eval_sol_fcn_closure: ")
+  rhs_lprefix = "unsafe_HW1RHSCallback: "
+  out_lprefix = "unsafe_odexSoloutCallback: "
+  eval_lprefix = "eval_sol_fcn_closure: "
 
-  try
-    eval_sol_fcn =
-      (output_mode == OUTPUTFCN_DENSE)?
-        create_odex_eval_sol_fcn_closure(cid[1],d,method_contex):
-        eval_sol_fcn_noeval
+  cbi = OdexInternalCallInfos(lio,l,rhs,rhs_mode,rhs_lprefix,
+      output_mode,output_fcn,
+      Dict(),out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
+      NaN,NaN,Vector{Float64}(),
+      Vector{FInt}(1),Vector{Float64}(1),
+      Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
+      Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 
-    GlobalCallInfoDict[cid[1]] =
-      OdexInternalCallInfos{FInt}(cid,lio,l,rhs,rhs_mode,rhs_lprefix,
-        output_mode,output_fcn,
-        Dict(),out_lprefix,eval_sol_fcn,eval_lprefix,NaN,NaN,Vector{Float64}(),
-        Vector{FInt}(1),Vector{Float64}(1),C_NULL,C_NULL,C_NULL,C_NULL)
-
-    args.IPAR = Vector{FInt}(2)  # enough for cid[1] even in 32bit case 
-    packUInt64ToVector!(args.IPAR,cid[1])
-
-    output_mode ≠ OUTPUTFCN_NEVER &&
-      call_julia_output_fcn(cid[1],OUTPUTFCN_CALL_INIT,
-        args.t[1],args.tEnd[1],args.x,eval_sol_fcn_init) # ignore result
-
-    if l_solver
-      println(lio,lprefix,"call Fortran-odex $method_odex with")
-      dump(lio,args);
-    end
-
-    ccall( method_odex, Void,
-      (Ptr{FInt},  Ptr{Void},                    # N=d, Rightsidefunc
-       Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, # t, x, tEnd
-       Ptr{Float64},                             # h
-       Ptr{Float64}, Ptr{Float64}, Ptr{FInt},    # RTOL, ATOL, ITOL
-       Ptr{Void}, Ptr{FInt},                     # Soloutfunc, IOUT
-       Ptr{Float64}, Ptr{FInt},                  # WORK, LWORK
-       Ptr{FInt}, Ptr{FInt},                     # IWORK, LIWORK
-       Ptr{Float64}, Ptr{FInt}, Ptr{FInt},       # RPAR, IPAR, IDID
-      ),
-      args.N, args.FCN,
-      args.t, args.x, args.tEnd,
-      args.H,
-      args.RTOL, args.ATOL, args.ITOL, 
-      args.SOLOUT, args.IOUT,
-      args.WORK, args.LWORK,
-      args.IWORK, args.LIWORK,
-      args.RPAR, args.IPAR, args.IDID,
-    )
-
-    if l_solver
-      println(lio,lprefix,"Fortran-odex $method_odex returned")
-      dump(lio,args);
-    end
-
-    output_mode ≠ OUTPUTFCN_NEVER &&
-      call_julia_output_fcn(cid[1],OUTPUTFCN_CALL_DONE,
-        args.t[1],args.tEnd[1],args.x,eval_sol_fcn_done) # ignore result
-  finally
-    delete!(GlobalCallInfoDict,cid[1])
+  if output_mode == OUTPUTFCN_DENSE
+    cbi.eval_sol_fcn = create_odex_eval_sol_fcn_closure(cbi,d,method_contex)
   end
+
+  args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
+        unsafe_odexSoloutCallback_c(cbi, FInt(0)):
+     cfunction(dummy_func, Void, () )
+  args.IPAR = cbi
+
+  output_mode ≠ OUTPUTFCN_NEVER &&
+    call_julia_output_fcn(cbi,OUTPUTFCN_CALL_INIT,
+      args.t[1],args.tEnd[1],args.x,eval_sol_fcn_init) # ignore result
+
+  if l_solver
+    println(lio,lprefix,"call Fortran-odex $method_odex with")
+    dump(lio,args);
+  end
+
+  ccall( method_odex, Void,
+    (Ptr{FInt},  Ptr{Void},                    # N=d, Rightsidefunc
+     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, # t, x, tEnd
+     Ptr{Float64},                             # h
+     Ptr{Float64}, Ptr{Float64}, Ptr{FInt},    # RTOL, ATOL, ITOL
+     Ptr{Void}, Ptr{FInt},                     # Soloutfunc, IOUT
+     Ptr{Float64}, Ptr{FInt},                  # WORK, LWORK
+     Ptr{FInt}, Ptr{FInt},                     # IWORK, LIWORK
+     Ptr{Float64}, Ref{OdexInternalCallInfos}, # RPAR, IPAR,
+     Ptr{FInt},                                # IDID
+    ),
+    args.N, args.FCN,
+    args.t, args.x, args.tEnd,
+    args.H,
+    args.RTOL, args.ATOL, args.ITOL, 
+    args.SOLOUT, args.IOUT,
+    args.WORK, args.LWORK,
+    args.IWORK, args.LIWORK,
+    args.RPAR, args.IPAR, args.IDID,
+  )
+
+  if l_solver
+    println(lio,lprefix,"Fortran-odex $method_odex returned")
+    dump(lio,args);
+  end
+
+  output_mode ≠ OUTPUTFCN_NEVER &&
+    call_julia_output_fcn(cbi,OUTPUTFCN_CALL_DONE,
+      args.t[1],args.tEnd[1],args.x,eval_sol_fcn_done) # ignore result
+
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{AbstractString,Any}(
     "step_predict"       => args.H[1],
