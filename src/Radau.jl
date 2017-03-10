@@ -151,9 +151,11 @@ type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{RadauInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function RadauArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function RadauArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 
@@ -463,7 +465,7 @@ end
 # the definition of the radau function.
 function radau5(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}())
+  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
 end
 
 """
@@ -471,7 +473,7 @@ end
   """
 function radau5_i32(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}())
+  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}(Int32(0)))
 end
 
 """
@@ -738,7 +740,7 @@ end
   """
 function radau(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}())
+  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
 end
 
 @doc(@doc(radau),radau5)
@@ -748,7 +750,7 @@ end
   """
 function radau_i32(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}())
+  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}(Int32(0)))
 end
 
 """

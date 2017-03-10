@@ -99,7 +99,7 @@ end
   """
 function dop853(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}())
+  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(0))
 end
 
 """
@@ -107,7 +107,7 @@ end
   """
 function dop853_i32(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int32}())
+  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int32}(Int32(0)))
 end
 
 """
