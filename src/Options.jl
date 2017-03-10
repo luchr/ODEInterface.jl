@@ -23,7 +23,7 @@ end
   
   Required fields are: `name`, `lastchanged`, `options`
   """
-abstract AbstractOptionsODE <: Any
+@ABSTRACT(AbstractOptionsODE,Any)
 
 """
   Stores options for ODE-Solver(s) together with a name.

@@ -145,6 +145,6 @@ end
   
   For further explanation see, `GlobalCallInfoDict`
   """
-abstract ODEinternalCallInfos
+@ABSTRACT(ODEinternalCallInfos,Any)
 
 # vim:syn=julia:cc=79:fdm=indent:

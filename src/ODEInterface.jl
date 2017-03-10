@@ -72,6 +72,15 @@ module ODEInterface
 
 using Base
 
+"""
+  Compatibility macro to declare abstract types.
+  v0.4 & v0.5:   abstract NewAbstractType <: SuperType
+  v0.6       :   abstract type NewAbstractType <: SuperType end
+  """
+macro ABSTRACT(type_ex, supertype_ex)
+  return Expr(:abstract, Expr(:<:, esc(type_ex), esc(supertype_ex)))
+end
+
 include("./Error.jl")
 include("./Options.jl")
 include("./DLSolvers.jl")
@@ -165,7 +174,7 @@ const solverInfo = Vector{SolverInfo}()
 """
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
   """
-abstract AbstractArgumentsODESolver{FInt} <: Any
+@ABSTRACT(AbstractArgumentsODESolver{FInt},Any)
 
 # Common options
 """macro for importing common OPT options."""
