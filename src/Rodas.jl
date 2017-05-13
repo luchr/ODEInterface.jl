@@ -135,6 +135,8 @@ type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IDID    :: Vector{FInt}      # Status code
 
     ## Allow uninitialized construction
+    # This ugly syntax is only for v0.5 compatibility: after v0.5 is dropped, it should be:
+    # RodasArguments{T}() where {T} = new{T}()
     (::Type{RodasArguments{T}}){T}() = new{T}()
 end
 

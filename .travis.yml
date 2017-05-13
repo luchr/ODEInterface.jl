@@ -15,14 +15,12 @@ notifications:
   email: false
 sudo: false
 addons:
-  apt:
-    packages:
-      - gfortran
+  apt_packages:
+    - gfortran
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update; 
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       brew install gcc;
-    fi ; 
+    fi
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi

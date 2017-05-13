@@ -108,6 +108,8 @@ type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IW      :: Vector{FInt}      # integer workspace
 
     ## Allow uninitialized construction
+    # This ugly syntax is only for v0.5 compatibility: after v0.5 is dropped, it should be:
+    # BvpsolArguments{T}() where {T} = new{T}()
     (::Type{BvpsolArguments{T}}){T}() = new{T}()
 end
 

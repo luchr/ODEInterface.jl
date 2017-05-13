@@ -76,6 +76,8 @@ type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IDID    :: Vector{FInt}      # Status code
 
     ## Allow uninitialized construction
+    # This ugly syntax is only for v0.5 compatibility: after v0.5 is dropped, it should be:
+    # DopriArguments{T}() where {T} = new{T}()
     (::Type{DopriArguments{T}}){T}() = new{T}()
 end
 

@@ -104,6 +104,8 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IDID    :: Vector{FInt}      # Status code
 
     ## Allow uninitialized construction
+    # This ugly syntax is only for v0.5 compatibility: after v0.5 is dropped, it should be:
+    # OdexArguments{T}() where {T} = new{T}()
     (::Type{OdexArguments{T}}){T}() = new{T}()
 end
 
