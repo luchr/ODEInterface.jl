@@ -10,6 +10,8 @@ macro import_options()
   )
 end
 
+# Work around syntax changes in v0.6 without requiring Compat
+eval(Expr(:abstract, :(AbstractOptionsODE <: Any)))
 """
   Ancestor for all types storing options for ODE-solvers.
   
@@ -22,8 +24,8 @@ end
   All types for this purpose have this abstract type as super-type.
   
   Required fields are: `name`, `lastchanged`, `options`
-  """
-abstract AbstractOptionsODE <: Any
+"""
+AbstractOptionsODE
 
 """
   Stores options for ODE-Solver(s) together with a name.

@@ -140,11 +140,13 @@ if !isdefined(Base, :unsafe_wrap)
   end
 end
 
+# Work around syntax changes in v0.6 without requiring Compat
+eval(Expr(:abstract, :(ODEinternalCallInfos)))
 """
   Type encapsulating all required data for ODE-Solver-Callbacks.
   
   For further explanation see, `GlobalCallInfoDict`
-  """
-abstract ODEinternalCallInfos
+"""
+ODEinternalCallInfos
 
 # vim:syn=julia:cc=79:fdm=indent:

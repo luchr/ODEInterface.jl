@@ -133,10 +133,9 @@ type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{RodasInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
+
     ## Allow uninitialized construction
-  function RodasArguments()
-    return new()
-  end
+    (::Type{RodasArguments{T}}){T}() = new{T}()
 end
 
 

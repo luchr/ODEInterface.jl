@@ -12,12 +12,13 @@ macro import_exceptions()
   )
 end
 
+eval(Expr(:abstract, :(WrappedODEException <: Base.WrappedException)))
 """
   The ancestor for all wrapped exceptions in ODEInterface.
   
   Required fields: msg, error
-  """
-abstract WrappedODEException <: Base.WrappedException
+"""
+WrappedODEException
 
 function showerror(io::IO,e::WrappedODEException)
   println(io,e.msg)

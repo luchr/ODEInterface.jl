@@ -150,10 +150,9 @@ type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{RadauInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
+
     ## Allow uninitialized construction
-  function RadauArguments()
-    return new()
-  end
+    (::Type{RadauArguments{T}}){T}() = new{T}()
 end
 
 

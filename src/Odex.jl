@@ -102,10 +102,9 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{OdexInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
+
     ## Allow uninitialized construction
-  function OdexArguments()
-    return new()
-  end
+    (::Type{OdexArguments{T}}){T}() = new{T}()
 end
 
 """

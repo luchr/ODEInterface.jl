@@ -161,11 +161,12 @@ end
   """
 const solverInfo = Vector{SolverInfo}() 
 
-
+# Work around syntax changes in v0.6 without requiring Compat
+eval(Expr(:abstract, :(AbstractArgumentsODESolver{FInt} <: Any)))
 """
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
-  """
-abstract AbstractArgumentsODESolver{FInt} <: Any
+"""
+AbstractArgumentODESolver
 
 # Common options
 """macro for importing common OPT options."""

@@ -106,10 +106,9 @@ type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RW      :: Vector{Float64}   # real workspace
   IIW     :: Vector{FInt}      # length of workspace IW
   IW      :: Vector{FInt}      # integer workspace
+
     ## Allow uninitialized construction
-  function BvpsolArguments()
-    return new()
-  end
+    (::Type{BvpsolArguments{T}}){T}() = new{T}()
 end
 
 """

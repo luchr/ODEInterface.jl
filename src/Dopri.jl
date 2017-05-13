@@ -74,10 +74,9 @@ type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{DopriInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
+
     ## Allow uninitialized construction
-  function DopriArguments()
-    return new()
-  end
+    (::Type{DopriArguments{T}}){T}() = new{T}()
 end
 
 """

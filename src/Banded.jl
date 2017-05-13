@@ -99,27 +99,23 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
   u            :: Integer               # upper bandwidth
   entries      :: Matrix{T}             # array with entries
   
-  function BandedMatrix{T}(m::Integer,n::Integer,l::Integer,u::Integer,
-                                entries::Matrix{T})
-   if !(m≥1); throw(ArgumentErrorODE("requirement m≥1",:m));end
-   if !(n≥1); throw(ArgumentErrorODE("requirement n≥1",:n));end
-   if !(l≥0); throw(ArgumentErrorODE("requirement l≥0",:l));end
-   if !(u≥0); throw(ArgumentErrorODE("requirement u≥0",:u));end
-   if l+1 > m 
-     throw(ArgumentErrorODE("requirement: l=$l ≤ m-1 = $m -1",:l))
-   end
-   if u+1 > n
-     throw(ArgumentErrorODE("requirement: u=$u ≤ n-1 = $n - 1",:u))
-   end
-   es = size(entries)
-   if es ≠ (1+l+u,n)
-     throw(ArgumentErrorODE(
-       "requirement: $es=size(entries) == (1+l+u,n); l=$l, u=$u, n=$n",
-       :entries))
-   end
-   fill!(entries,zero(T))
-   return new(m,n,l,u,entries)
-  end
+    function (::Type{BandedMatrix{T}}){T}(m::Integer, n::Integer, l::Integer, u::Integer,
+                                          entries::Matrix{T})
+        m≥1 || throw(ArgumentErrorODE("requirement m≥1", :m))
+        n≥1 || throw(ArgumentErrorODE("requirement n≥1", :n))
+        l≥0 || throw(ArgumentErrorODE("requirement l≥0", :l))
+        u≥0 || throw(ArgumentErrorODE("requirement u≥0", :u))
+        l+1 > m &&
+            throw(ArgumentErrorODE("requirement: l=$l ≤ m-1 = $m -1", :l))
+        u+1 > n &&
+            throw(ArgumentErrorODE("requirement: u=$u ≤ n-1 = $n - 1", :u))
+        es = size(entries)
+        es ≠ (1+l+u, n) &&
+            throw(ArgumentErrorODE("requirement: $es=size(entries) == (1+l+u,n); l=$l, u=$u, n=$n",
+                                   :entries))
+        fill!(entries, zero(T))
+        new{T}(m, n, l, u, entries)
+    end
 end
 
 """
