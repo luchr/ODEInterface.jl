@@ -103,7 +103,7 @@ end
                 end
   """
 macro WHEREFUNC(where_ex, func_ex)
-  if VERSION > v"0.6.0-"
+  if VERSION >= v"0.6.0-dev.2123" # julia PR #18457
     return Expr(:function,
         Expr(:where, esc(func_ex.args[1]), esc(where_ex)),
         esc(func_ex.args[2]))
