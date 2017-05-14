@@ -1,6 +1,9 @@
 # ODEInterface
 
-[![Build Status](https://travis-ci.org/luchr/ODEInterface.jl.svg?branch=master)](https://travis-ci.org/luchr/ODEInterface.jl)
+[![Travis](https://travis-ci.org/luchr/ODEInterface.jl.svg?branch=master)](https://travis-ci.org/luchr/ODEInterface.jl)
+[![ODEInterface](http://pkg.julialang.org/badges/ODEInterface_0.4.svg)](http://pkg.julialang.org/?pkg=ODEInterface)
+[![ODEInterface](http://pkg.julialang.org/badges/ODEInterface_0.5.svg)](http://pkg.julialang.org/?pkg=ODEInterface)
+[![ODEInterface](http://pkg.julialang.org/badges/ODEInterface_0.6.svg)](http://pkg.julialang.org/?pkg=ODEInterface)
 
 This julia module provides an interface to solvers for 
 ordinary differential equations (ODEs) written in Fortran

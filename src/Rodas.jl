@@ -134,9 +134,11 @@ type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{RodasInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function RodasArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function RodasArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 
@@ -388,7 +390,7 @@ end
   """
 function rodas(rhs::Function, t0::Real, T::Real,
                x0::Vector, opt::AbstractOptionsODE)
-  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}())
+  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}(0))
 end
 
 """
@@ -396,7 +398,7 @@ end
   """
 function rodas_i32(rhs::Function, t0::Real, T::Real,
                    x0::Vector, opt::AbstractOptionsODE)
-  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}())
+  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}(Int32(0)))
 end
 
 function rodas_impl{FInt<:FortranInt}(rhs::Function, 

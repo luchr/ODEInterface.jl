@@ -75,9 +75,11 @@ type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{DopriInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function DopriArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function DopriArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 """

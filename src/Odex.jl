@@ -103,9 +103,11 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{OdexInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function OdexArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function OdexArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 """
@@ -335,7 +337,7 @@ end
   """
 function odex(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int64}())
+  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int64}(0))
 end
 
 """
@@ -344,7 +346,7 @@ end
 function odex_i32(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
 
-  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int32}())
+  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int32}(Int32(0)))
 end
 
 

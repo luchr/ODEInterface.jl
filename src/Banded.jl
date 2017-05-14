@@ -99,6 +99,7 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
   u            :: Integer               # upper bandwidth
   entries      :: Matrix{T}             # array with entries
   
+  @WHEREFUNC(T, 
   function BandedMatrix{T}(m::Integer,n::Integer,l::Integer,u::Integer,
                                 entries::Matrix{T})
    if !(m≥1); throw(ArgumentErrorODE("requirement m≥1",:m));end
@@ -120,6 +121,7 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
    fill!(entries,zero(T))
    return new(m,n,l,u,entries)
   end
+  )
 end
 
 """

@@ -17,7 +17,7 @@ end
   
   Required fields: msg, error
   """
-abstract WrappedODEException <: Base.WrappedException
+@ABSTRACT(WrappedODEException,Base.WrappedException)
 
 function showerror(io::IO,e::WrappedODEException)
   println(io,e.msg)

@@ -126,9 +126,11 @@ type SeulexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{SeulexInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  function SeulexArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function SeulexArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 """
@@ -397,7 +399,7 @@ end
   """
 function seulex(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}())
+  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}(0))
 end
 
 """
@@ -405,7 +407,7 @@ end
   """
 function seulex_i32(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}())
+  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}(Int32(0)))
 end
 
 function seulex_impl{FInt<:FortranInt}(rhs::Function, 

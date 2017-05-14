@@ -107,9 +107,11 @@ type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IIW     :: Vector{FInt}      # length of workspace IW
   IW      :: Vector{FInt}      # integer workspace
     ## Allow uninitialized construction
-  function BvpsolArguments()
-    return new()
+  @WHEREFUNC(FInt,
+  function BvpsolArguments{FInt}(dummy::FInt)
+    return new{FInt}()
   end
+  )
 end
 
 """
@@ -347,7 +349,7 @@ end
   """
 function bvpsol(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
-  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}())
+  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(0))
 end
 
 """
@@ -355,7 +357,7 @@ end
   """
 function bvpsol_i32(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
-  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int32}()) 
+  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int32}(Int32(0))) 
 end
 
 function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
