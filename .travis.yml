@@ -6,6 +6,7 @@ os:
 julia:
   - 0.4
   - 0.5
+  - 0.6
   - nightly
 notifications:
   email: false
@@ -15,10 +16,9 @@ addons:
     packages:
       - gfortran
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update; 
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       brew install gcc;
-    fi ; 
+    fi
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
