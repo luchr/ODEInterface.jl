@@ -337,7 +337,7 @@ end
   """
 function odex(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int64}(0))
+  return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int64}(Int64(0)))
 end
 
 """

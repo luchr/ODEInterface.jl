@@ -465,7 +465,7 @@ end
 # the definition of the radau function.
 function radau5(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
+  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
 
 """
@@ -740,7 +740,7 @@ end
   """
 function radau(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
+  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
 
 @doc(@doc(radau),radau5)

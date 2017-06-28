@@ -349,7 +349,7 @@ end
   """
 function bvpsol(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
-  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(0))
+  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(Int64(0)))
 end
 
 """

@@ -99,7 +99,7 @@ end
   """
 function dopri5(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return dopri5_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(0))
+  return dopri5_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(Int64(0)))
 end
 
 """

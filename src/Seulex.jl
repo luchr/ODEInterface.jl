@@ -399,7 +399,7 @@ end
   """
 function seulex(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}(0))
+  return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}(Int64(0)))
 end
 
 """

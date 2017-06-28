@@ -390,7 +390,7 @@ end
   """
 function rodas(rhs::Function, t0::Real, T::Real,
                x0::Vector, opt::AbstractOptionsODE)
-  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}(0))
+  return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}(Int64(0)))
 end
 
 """
