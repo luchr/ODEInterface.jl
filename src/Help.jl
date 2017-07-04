@@ -12,6 +12,9 @@ macro import_help()
     @ODEInterface.import_radau5_help
     @ODEInterface.import_radau_help
     @ODEInterface.import_seulex_help
+    @ODEInterface.import_rodas_help
+    @ODEInterface.import_ddeabm_help
+    @ODEInterface.import_ddebdf_help
     @ODEInterface.import_bvpsol_help
   end
 end
@@ -56,7 +59,8 @@ using Base.Markdown
   ## Help for each solver
   
   Each solver has its own help page. Just look at the documentation of
-  `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `rodas`, `seulex`.
+  `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `rodas`, `seulex`,
+  `bvpsol`, `ddeabm`.
   """
 function help_overview()
   return Docs.doc(help_overview)
@@ -151,6 +155,9 @@ end
   
   See `help_solversupport` for a list with supported solvers and for
   further informations how to compile/link the solvers.
+
+  This module has its own build script `deps/build.jl` which tries
+  to compile and link the shared libraries automatically.
   """
 function help_install()
   return Docs.doc(help_install)

@@ -147,6 +147,10 @@ macro import_huge()
     @ODEInterface.import_DLrodas
     @ODEInterface.import_bvpsol
     @ODEInterface.import_DLbvpsol
+    @ODEInterface.import_ddeabm
+    @ODEInterface.import_DLddeabm
+    @ODEInterface.import_ddebdf
+    @ODEInterface.import_DLddebdf
   end
 end
 
@@ -164,6 +168,8 @@ macro import_normal()
     @ODEInterface.import_seulex
     @ODEInterface.import_rodas
     @ODEInterface.import_bvpsol
+    @ODEInterface.import_ddeabm
+    @ODEInterface.import_ddebdf
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -236,7 +242,7 @@ macro import_OPTcommon()
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
                           OPT_WORKFORSOL, OPT_RHSTIMEDERIV,
                           OPT_BVPCLASS, OPT_SOLMETHOD,
-                          OPT_IVPOPT
+                          OPT_IVPOPT, OPT_OUTPUTATTIMES, OPT_TSTOP
   )
 end
 
@@ -260,6 +266,7 @@ const OPT_METHODCHOICE     = "MethodChoice"
 
 const OPT_OUTPUTFCN        = "OutputFcn"
 const OPT_OUTPUTMODE       = "OutputFcnMode"
+const OPT_OUTPUTATTIMES    = "OutputAtTimes"
 
 const OPT_STEST            = "StiffTestAfterStep"
 const OPT_RHO              = "rho"
@@ -268,7 +275,7 @@ const OPT_SSMAXSEL         = "StepSizeMaxSelection"
 const OPT_SSBETA           = "StepSizeBeta"
 const OPT_MAXSS            = "MaxStep"
 const OPT_INITIALSS        = "InitialStep"
-
+const OPT_TSTOP            = "StopTime"
 
 const OPT_MAXEXCOLUMN      = "MaxExtrapolationColumn"
 const OPT_MAXSTABCHECKS    = "MaxNumberOfStabilityChecks"
@@ -545,6 +552,7 @@ function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector,
 end
 
 include("./HWcommon.jl")
+include("./SLATECcommon.jl")
 
 # Solvers:
 include("./Dopri.jl")
@@ -555,6 +563,8 @@ include("./Radau.jl")
 include("./Seulex.jl")
 include("./Rodas.jl")
 include("./Bvpsol.jl")
+include("./Deabm.jl")
+include("./Debdf.jl")
 
 include("./Call.jl")
 include("./Help.jl")
