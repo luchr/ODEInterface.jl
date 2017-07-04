@@ -105,7 +105,7 @@ function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
       if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn == nothing
         return OUTPUTFCN_RET_CONTINUE
       else
-        return orig_outputfcn(reason,told,t,x,eval_sol_fcn,extra_data)
+        return orig_outputfcn(reason, told, tnew, x, eval_sol_fcn, extra_data)
       end
     end
     setOption!(locopt,OPT_OUTPUTFCN, outputfcn_givent)
