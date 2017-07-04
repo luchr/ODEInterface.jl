@@ -8,6 +8,12 @@ macro import_odecall()
 end
 
 """
+  Solvers where OPT_OUTPUTATTIMES is needed for the get the solution
+  at predefined times.
+  """
+const solvers_outputattimes = (ddeabm, ddeabm_i32, ddebdf, ddebdf_i32)
+
+"""
       function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
                       opt::AbstractOptionsODE)
           -> (tVec,xVec,retcode,stats)
@@ -87,8 +93,22 @@ function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
     # We know the size of tVec and xVec (if the solver completes)
     # If not (e.g. stopped by output function) => init with NaN
     tVec = ones(tLen)*NaN; xVec = ones(tLen*d)*NaN;
-    setOption!(locopt,OPT_OUTPUTMODE,OUTPUTFCN_DENSE)
     tPos = 1  # next position to check in output fcn
+
+    function outputfcn_attimes(reason::OUTPUTFCN_CALL_REASON,
+          told::Float64, tnew::Float64, x::Vector{Float64},
+          eval_sol_fcn::Function, extra_data::Dict)
+      if (reason == OUTPUTFCN_CALL_STEP)
+        tVec[tPos] = tnew
+        xVec[1+(tPos-1)*d : tPos*d] = x
+        tPos += 1
+      end
+      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn == nothing
+        return OUTPUTFCN_RET_CONTINUE
+      else
+        return orig_outputfcn(reason, told, tnew, x, eval_sol_fcn, extra_data)
+      end
+    end
 
     function outputfcn_givent(reason::OUTPUTFCN_CALL_REASON,
           told::Float64, tnew::Float64, x::Vector{Float64},
@@ -108,9 +128,15 @@ function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
         return orig_outputfcn(reason, told, tnew, x, eval_sol_fcn, extra_data)
       end
     end
-    setOption!(locopt,OPT_OUTPUTFCN, outputfcn_givent)
+    if solver in solvers_outputattimes
+      setOption!(locopt,OPT_OUTPUTMODE,OUTPUTFCN_WODENSE)
+      setOption!(locopt,OPT_OUTPUTATTIMES,t[2:end-1])
+      setOption!(locopt,OPT_OUTPUTFCN, outputfcn_attimes)
+    else
+      setOption!(locopt,OPT_OUTPUTMODE,OUTPUTFCN_DENSE)
+      setOption!(locopt,OPT_OUTPUTFCN, outputfcn_givent)
+    end
   end
-  
   
   (tout,xout,retcode,stats) = solver( rhs, t0, T, x0, locopt)
   

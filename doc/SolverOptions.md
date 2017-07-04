@@ -964,6 +964,224 @@ In `opt` the following options are used:
 </table>
 
 
+# ddeabm
+
+```
+ function ddeabm(rhs::Function, t0::Real, T::Real,
+                 x0::Vector, opt::AbstractOptionsODE)
+     -> (t,x,retcode,stats)
+```
+
+`retcode` can have the following values:
+
+```
+  1: computation successful
+  2: computation. successful, but interrupted by output function
+ <0: error
+```
+
+main call for using Fortran-ddeabm solver. In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> RTOL         &#38;
+ ATOL
+</pre></td>
+<td><pre> relative and absolute error tolerances
+ both scalars or both vectors with the
+ length of length&#40;x0&#41;
+ error&#40;x&#8342;&#41; &#8804; OPT&#95;RTOL&#8342;&#8901;&#124;x&#8342;&#124;&#43;OPT&#95;ATOL&#8342;
+</pre></td>
+<td><pre>    1e&#45;3
+    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTFCN
+</pre></td>
+<td><pre> output function
+ see help&#95;outputfcn
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTMODE
+</pre></td>
+<td><pre> OUTPUTFCN&#95;NEVER&#58;
+   dont&#39;t call OPT&#95;OUTPUTFCN
+ OUTPUTFCN&#95;WODENSE
+   call OPT&#95;OUTPUTFCN either
+   &#40;a&#41; either for all intermediate steps
+       choosen by the solver or
+   &#40;b&#41; at the times given in the option
+       OPT&#95;OUTPUTATTIMES
+ OUTPUTFCN&#95;DENSE
+   is &#42;not&#42; supported&#33;
+   but see OUTPUTATTIMES for an
+   alternative approach
+</pre></td>
+<td><pre>   NEVER
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTATTIMES
+</pre></td>
+<td><pre> If OPT&#95;OUTPUTMODE is OUTPUTFCN&#95;WODENSE
+ then one can specify with this vector
+ the time points where the OPT&#95;OUTPUTFCN
+ should be called&#46;
+ All values of OPT&#95;OUTPUTATTIMES &#42;must&#42;
+ be sorted &#40;ascending&#44; if T&#62;t0&#44; and
+ descending&#44; if T&#60;t0&#41; and they must be
+ between t0 and T&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> TSTOP
+</pre></td>
+<td><pre> tell the solver&#44; that it is not
+ permissable to integrate past the point
+ TSTOP&#46; If TSTOP is NaN then the solver
+ may integrate past T and interpolate the
+ result at T&#46; Sometimes there are
+ right&#45;hand sides&#44; where this is not
+ possible&#46;
+</pre></td>
+<td><pre>     NaN
+</pre></td>
+</tr>
+</table>
+
+
+# ddebdf
+
+```
+ function ddebdf(rhs::Function, t0::Real, T::Real,
+                 x0::Vector, opt::AbstractOptionsODE)
+     -> (t,x,retcode,stats)
+```
+
+`retcode` can have the following values:
+
+```
+  1: computation successful
+  2: computation. successful, but interrupted by output function
+ <0: error
+```
+
+main call for using Fortran-ddebdf solver. In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> RTOL         &#38;
+ ATOL
+</pre></td>
+<td><pre> relative and absolute error tolerances
+ both scalars or both vectors with the
+ length of length&#40;x0&#41;
+ error&#40;x&#8342;&#41; &#8804; OPT&#95;RTOL&#8342;&#8901;&#124;x&#8342;&#124;&#43;OPT&#95;ATOL&#8342;
+</pre></td>
+<td><pre>    1e&#45;3
+    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTFCN
+</pre></td>
+<td><pre> output function
+ see help&#95;outputfcn
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTMODE
+</pre></td>
+<td><pre> OUTPUTFCN&#95;NEVER&#58;
+   dont&#39;t call OPT&#95;OUTPUTFCN
+ OUTPUTFCN&#95;WODENSE
+   call OPT&#95;OUTPUTFCN either
+   &#40;a&#41; either for all intermediate steps
+       choosen by the solver or
+   &#40;b&#41; at the times given in the option
+       OPT&#95;OUTPUTATTIMES
+ OUTPUTFCN&#95;DENSE
+   is &#42;not&#42; supported&#33;
+   but see OUTPUTATTIMES for an
+   alternative approach
+</pre></td>
+<td><pre>   NEVER
+</pre></td>
+</tr>
+<tr><td><pre> OUTPUTATTIMES
+</pre></td>
+<td><pre> If OPT&#95;OUTPUTMODE is OUTPUTFCN&#95;WODENSE
+ then one can specify with this vector
+ the time points where the OPT&#95;OUTPUTFCN
+ should be called&#46;
+ All values of OPT&#95;OUTPUTATTIMES &#42;must&#42;
+ be sorted &#40;ascending&#44; if T&#62;t0&#44; and
+ descending&#44; if T&#60;t0&#41; and they must be
+ between t0 and T&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> TSTOP
+</pre></td>
+<td><pre> tell the solver&#44; that it is not
+ permissable to integrate past the point
+ TSTOP&#46; If TSTOP is NaN then the solver
+ may integrate past T and interpolate the
+ result at T&#46; Sometimes there are
+ right&#45;hand sides&#44; where this is not
+ possible&#46;
+</pre></td>
+<td><pre>     NaN
+</pre></td>
+</tr>
+<tr><td><pre> JACOBIMATRIX
+</pre></td>
+<td><pre> A function providing the Jacobian for
+ &#8706;f&#47;&#8706;x or nothing&#46; For nothing the solver
+ uses finite differences to calculate the
+ Jacobian&#46;
+ The function has to be of the form&#58;
+   function &#40;t&#44;x&#44;J&#41; &#45;&#62; nothing
+ Depending on OPT&#95;JACOBIBANDSTRUCT the
+ argument J will then by a full or a
+ banded matrix&#44; where the user&#45;given
+ function has to fill in the entries&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+<tr><td><pre> JACOBIBANDSTRUCT
+</pre></td>
+<td><pre> A tuple &#40;l&#44;u&#41; describing the banded
+ structure of the Jacobian or nothing if
+ the Jacobian is full&#46;
+ Even if the option JACOBIMATRIX is empty&#44;
+ the solver will perform much better if
+ the Jacobian matrix is banded and the
+ code is told this&#46;
+ see also help of BandedMatrix
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+</table>
+
+
 # radau and radau5
 
 ```

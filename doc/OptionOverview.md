@@ -45,13 +45,15 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 ## Solvers
 
 1. bvpsol
-2. dop853
-3. dopri5
-4. odex
-5. radau
-6. radau5
-7. rodas
-8. seulex
+2. ddeabm
+3. ddebdf
+4. dop853
+5. dopri5
+6. odex
+7. radau
+8. radau5
+9. rodas
+10. seulex
 
 ## Options used by Solvers
 
@@ -74,10 +76,18 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </pre></th>
 <th><pre> 8
 </pre></th>
+<th><pre> 9
+</pre></th>
+<th><pre>10
+</pre></th>
 </tr>
 <tr><td><pre> OPT&#95;ATOL
 </pre></td>
 <td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -104,9 +114,13 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 </tr>
 <tr><td><pre> OPT&#95;DENSEOUTPUTWOEE
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -119,6 +133,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;DIMOFIND1VAR
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -136,6 +152,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -149,6 +167,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -158,6 +178,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;EPS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -178,6 +200,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -191,6 +215,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -200,6 +226,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;INITIALSS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -222,6 +250,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -230,6 +260,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;INTERPOLDEGREE
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -251,10 +283,15 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 </tr>
 <tr><td><pre> OPT&#95;JACOBIBANDSTRUCT
 </pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -271,6 +308,9 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
@@ -284,6 +324,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;JACRECOMPFACTOR
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -305,11 +347,15 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 </tr>
 <tr><td><pre> OPT&#95;M1
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -329,6 +375,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -340,6 +388,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;MASSMATRIX
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -358,6 +408,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -368,6 +420,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;MAXNEWTONITER
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -384,6 +438,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -393,6 +449,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;MAXSS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -411,6 +469,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -420,6 +480,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;MAXSTABCHECKS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -436,6 +498,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -446,6 +510,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </pre></td>
 <td><pre> &#10004;
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -469,12 +535,16 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
 </tr>
 <tr><td><pre> OPT&#95;MINSTAGES
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -487,6 +557,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;NEWTONSTARTZERO
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -504,6 +576,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -517,6 +591,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -525,6 +601,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;ORDERDECFRAC
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -542,6 +620,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -550,6 +630,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;ORDERDECSTEPFAC2
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -566,6 +648,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -577,6 +661,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -585,9 +671,28 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre> &#10004;
 </pre></td>
 </tr>
+<tr><td><pre> OPT&#95;OUTPUTATTIMES
+</pre></td>
+<td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+</tr>
 <tr><td><pre> OPT&#95;OUTPUTFCN
 </pre></td>
 <td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -620,9 +725,15 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </pre></td>
 <td><pre> &#10004;
 </pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
 </tr>
 <tr><td><pre> OPT&#95;RHO
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -644,6 +755,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -654,6 +767,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;RHSAUTONOMOUS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -673,11 +788,17 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
 </tr>
 <tr><td><pre> OPT&#95;RHS&#95;CALLMODE
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -707,6 +828,10 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </pre></td>
 <td><pre> &#10004;
 </pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
 </tr>
 <tr><td><pre> OPT&#95;SOLMETHOD
 </pre></td>
@@ -719,9 +844,13 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 </tr>
 <tr><td><pre> OPT&#95;SSBETA
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -735,6 +864,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;SSMAXSEL
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -751,6 +882,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;SSMINSEL
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -770,6 +903,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -779,6 +914,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;SSSELECTPAR1
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -795,6 +932,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre></pre></td>
@@ -805,6 +944,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;STEPSIZESEQUENCE
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -822,6 +963,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -832,6 +975,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 </tr>
 <tr><td><pre> OPT&#95;STEST
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
@@ -849,6 +994,8 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 <td><pre> &#10004;
@@ -857,8 +1004,25 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre> &#10004;
 </pre></td>
 </tr>
+<tr><td><pre> OPT&#95;TSTOP
+</pre></td>
+<td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+</tr>
 <tr><td><pre> OPT&#95;WORKFORDEC
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -878,11 +1042,15 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 </tr>
 <tr><td><pre> OPT&#95;WORKFORRHS
 </pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
@@ -902,10 +1070,14 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre> &#10004;
 </pre></td>
 </tr>
 <tr><td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>
 <td><pre></pre></td>

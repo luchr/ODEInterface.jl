@@ -111,7 +111,7 @@ type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   massmatrix   :: AbstractArray{Float64}# saved mass matrix
   # Jacobimatrix
   jacobimatrix :: JAC_F                 # function for jacobi matrix
-  jacobibandstruct                      # Bandstruktur oder nothing
+  jacobibandstruct                      # (l,u) bandstructure or nothing
   jac_lprefix  :: AbstractString        # saved log-prefix for jac
 end
 
@@ -854,6 +854,11 @@ end
 """  
   ## Compile RADAU5 
 
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
+
   The Fortran source code can be found at:
   
        http://www.unige.ch/~hairer/software.html 
@@ -963,6 +968,11 @@ end
 
 """  
   ## Compile RADAU 
+
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
   
