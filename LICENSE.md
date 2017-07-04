@@ -82,7 +82,7 @@ under the following license:
 http://www.netlib.org/slatec/src/
 
 This files (`d1mach.f`, `daxpa.f`, `dcfod.f`, `ddeabm.f`, `ddebdf.f`, `ddes.f`,
-`dgbsl.f`, `dgefa.f`, `dgesl.f`, `dhstrt.f`, `dhvnrm.f`, `dintp.f`, 
+`ddot.f`, `dgbsl.f`, `dgefa.f`, `dgesl.f`, `dhstrt.f`, `dhvnrm.f`, `dintp.f`, 
 `dintyp.f`, `dlsod.f`, `dpjac.f`, `dsteps.f`,`dslvs.f`, `dstod.f`, `dvnrms.f`,
 `fdump.f`, `i1mach.f`, `idamax.f`, `j4save.f`, `xercnt.f`, `xerhlt.f`, `xermsg.f`, 
 `xerprn.f`, `xersve.f`, `xgetua.f`) were merged in `slatec.f` and are part
