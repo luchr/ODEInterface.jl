@@ -97,11 +97,11 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
                                         #    currently: n == size(entries,2)
   l            :: Integer               # lower bandwidth 
   u            :: Integer               # upper bandwidth
-  entries      :: Matrix{T}             # array with entries
+  entries      :: AbstractArray{T}      # array with entries
   
   @WHEREFUNC(T, 
   function BandedMatrix{T}(m::Integer,n::Integer,l::Integer,u::Integer,
-                                entries::Matrix{T})
+                                entries::AbstractArray{T})
     m≥1 || throw(ArgumentErrorODE("requirement m≥1", :m))
     n≥1 || throw(ArgumentErrorODE("requirement n≥1", :n))
     l≥0 || throw(ArgumentErrorODE("requirement l≥0", :l))
@@ -151,6 +151,33 @@ end
   Keep in mind: There are two different ways of numbering the diagonals.
   The (internal) form ranging from 1 to 1+u+l and the user-friendly form
   ranging von -l ≤ d ≤ u, see `BandedMatrix`.
+  
+  For the example
+
+       ⎛1 4 2    ⎞
+       ⎜5 2 3 1  ⎟
+       ⎜  4 3 0 0⎟
+       ⎜    3 4 8⎟
+       ⎝      2 5⎠
+
+  one can visualize this storage format like this:
+
+        *╲
+        ╲│╲
+        *╲*╲
+        ╲│╲│╲
+       ⎛1╲4╲2╲⋅ ⋅⎞
+       ⎜╲│╲│╲│╲  ⎟       ⎛* * 2 1 0⎞      here: l = 1,  u = 2
+       ⎜5╲2╲3╲1╲⋅⎟    ≅  ⎜* 4 3 0 8⎟
+       ⎜╲│╲│╲│╲│╲⎟       ⎜1 2 3 4 5⎟      ⋅ : not saved "0"
+       ⎜⋅╲4╲3╲0╲0⎟       ⎝5 4 3 2 *⎠      * : unused slot in storage format
+       ⎜  ╲│╲│╲│╲⎟
+       ⎜⋅ ⋅╲3╲4╲8⎟
+       ⎜    ╲│╲│╲⎟
+       ⎝⋅ ⋅ ⋅╲2╲5⎠
+              ╲│╲
+               ╲*
+
   """
 const BandedMatrix_storage = nothing
 
