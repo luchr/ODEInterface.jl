@@ -407,27 +407,16 @@ end
   `Int64` integers with `gfortran`:
 
        gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o d1mach.o d1mach.f
-
-  Do the same for the other components: d1mach, daxpy, dcfod, dgesl, dhstrt,
-  dhvnrm, dgbfa, dgefa, dintyd, dlsod, dpjac, dslvs, dscal, dstod,  dvnrms,
-  fdump, i1mach, idamax, j4save, xercnt, xerhlt, xermsg, xerprn, xersve, xgetua
+                -fdefault-real-8 -fdefault-double-8 -o slatec.o slatec.f
+       gfortran -c -fPIC -fdefault-integer-8 
+                -fdefault-real-8 -fdefault-double-8 -o ddebdf.o ddbdfm.f
 
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac, 3rd for Window):
 
-       gfortran -shared -fPIC -o ddebdf.so ddebdf.o d1mach.o daxpy.o dcfod.o
-                dgefa.o dgesl.o dhstrt.o dhvnrm.o dintyd.o dlsod.o dpjac.o 
-                dslvs.o dscal.o dstod.o dvnrms.o fdump.o i1mach.o idamax.o
-                j4save.o xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
-       gfortran -shared -fPIC -o ddebdf.dylib ddebdf.o d1mach.o daxpy.o dcfod.o
-                dgefa.o dgesl.o dhstrt.o dhvnrm.o dintyd.o dlsod.o dpjac.o 
-                dslvs.o dscal.o dstod.o dvnrms.o fdump.o i1mach.o idamax.o
-                j4save.o xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
-       gfortran -shared       -o ddebdf.dll ddebdf.o d1mach.o daxpy.o dcfod.o
-                dgefa.o dgesl.o dhstrt.o dhvnrm.o dintyd.o dlsod.o dpjac.o 
-                dslvs.o dscal.o dstod.o dvnrms.o fdump.o i1mach.o idamax.o
-                j4save.o xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
+       gfortran -shared -fPIC -o ddebdf.so ddebdf.o slatec.o
+       gfortran -shared -fPIC -o ddebdf.dylib ddebdf.o slatec.o
+       gfortran -shared       -o ddebdf.dll ddebdf.o slatec.o
   """
 function help_ddebdf_compile()
   return Docs.doc(help_ddebdf_compile)

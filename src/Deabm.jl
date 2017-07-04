@@ -354,50 +354,16 @@ end
   `Int64` integers with `gfortran`:
 
        gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o d1mach.o d1mach.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o ddes.o ddes.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o dhstrt.o dhstrt.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o dhvnrm.o dhvnrm.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o dintp.o dintp.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o dsteps.o dsteps.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o fdump.o fdump.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o i1mach.o i1mach.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o j4save.o j4save.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xercnt.o xercnt.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xerhlt.o xerhlt.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xermsg.o xermsg.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xerprn.o xerprn.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xersve.o xersve.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 -o xgetua.o xgetua.f
+                -fdefault-real-8 -fdefault-double-8 -o slatec.o slatec.f
        gfortran -c -fPIC -fdefault-integer-8 
                 -fdefault-real-8 -fdefault-double-8 -o ddeabm.o ddeabm.f
 
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac, 3rd for Window):
 
-       gfortran -shared -fPIC -o ddeabm.so ddeabm.o d1mach.o ddes.o dhstrt.o 
-                dhvnrm.o dintp.o dsteps.o fdump.o i1mach.o j4save.o 
-                xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
-       gfortran -shared -fPIC -o ddeabm.dylib ddeabm.o d1mach.o ddes.o dhstrt.o 
-                dhvnrm.o dintp.o dsteps.o fdump.o i1mach.o j4save.o 
-                xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
-       gfortran -shared       -o ddeabm.dll ddeabm.o d1mach.o ddes.o dhstrt.o 
-                dhvnrm.o dintp.o dsteps.o fdump.o i1mach.o j4save.o 
-                xercnt.o xerhlt.o xermsg.o xerprn.o xersve.o xgetua.o
+       gfortran -shared -fPIC -o ddeabm.so ddeabm.o slatec.o
+       gfortran -shared -fPIC -o ddeabm.dylib ddeabm.o slatec.o
+       gfortran -shared       -o ddeabm.dll ddeabm.o slatec.o
   """
 function help_ddeabm_compile()
   return Docs.doc(help_ddeabm_compile)

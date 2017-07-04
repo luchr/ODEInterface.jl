@@ -114,7 +114,7 @@ function docSolverOptions(filename)
   introHeader(io)
   namewomodule = r"\.([^.]+)$"
 
-  for solver in (dopri5,dop853,odex,seulex,rodas)
+  for solver in (dopri5,dop853,odex,seulex,rodas,ddeabm,ddebdf,)
     solvername = string(solver)
     mo = match(namewomodule,solvername)
     if mo ≠ nothing

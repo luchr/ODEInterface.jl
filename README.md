@@ -42,6 +42,13 @@ Prof. E. Hairer and Prof. G. Wanner, are supported:
 
 see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 
+Additionally the following Fortran-solvers from the
+[SLATEC Common Mathematical Library](http://www.netlib.org/slatec/)
+are supported:
+
+* ddeabm: Adams-Bashforth-Moulton Predictor-Corrector method (order between 1 and 12)
+* ddebdf: Backward Differentiation Formula (orders between 1 and 5)
+
 Also supported:
 
 * bvpsol: a boundary value problem solver for highly nonlinear two point
