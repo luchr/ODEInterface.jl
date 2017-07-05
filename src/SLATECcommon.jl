@@ -179,6 +179,8 @@ function unsafe_SLATEC1JacCallback{FInt<:FortranInt,
   dfx_rows = unsafe_load(dfx_rows_)
   M = unsafe_wrap(Array, dfx_, (dfx_rows,n,), false)
 
+  cbi.jac_count += 1
+
   lprefix = cbi.jac_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_jac = l & LOG_JAC>0

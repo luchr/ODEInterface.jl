@@ -70,6 +70,7 @@ type DdebdfInternalCallInfos{FInt<:FortranInt,
   jacobimatrix :: JAC_F                 # function for jacobi matrix
   jacobibandstruct                      # (l,u) bandstructure or nothing
   jac_lprefix  :: AbstractString        # saved log-prefix for jac
+  jac_count    :: Int                   # count: number of calls to jac
   #
   submatrix    :: VIEW_F                # method for generating view/sub
 end
@@ -161,6 +162,14 @@ end
       ║                 │ right-hand sides, where this is not      │         ║
       ║                 │ possible.                                │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
+      ║ MAXSTEPS        │ maximal number of allowed steps          │  100000 ║
+      ║                 │ (allowed intermediate steps)             │         ║
+      ║                 │ between t0, T and the values given       │         ║
+      ║                 │ in OPT_OUTPUTATTIMES.                    │         ║
+      ║                 │ The value will be rounded up to a        │         ║
+      ║                 │ multiple of 500.                         │         ║
+      ║                 │ OPT_MAXSTEPS > 0                         │         ║
+      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ JACOBIMATRIX    │ A function providing the Jacobian for    │ nothing ║
       ║                 │ ∂f/∂x or nothing. For nothing the solver │         ║
       ║                 │ uses finite differences to calculate the │         ║
@@ -196,6 +205,10 @@ function ddebdf_i32(rhs::Function, t0::Real, T::Real,
   return ddebdf_impl(rhs, t0, T, x0, opt, DdebdfArguments{Int32}(Int32(0)))
 end
 
+"""
+  MAXNUM value in ddebdf.
+  """
+const ddebdf_maxnum = 500
 
 """
        function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
@@ -261,6 +274,14 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   args.INFO[1] = 0
   args.INFO[2] = scalarFlag ? 0 : 1
 
+  maxsteps = 0
+  try
+    maxsteps = convert(Int, getOption(opt, OPT_MAXSTEPS, 100000))
+    @assert 0<maxsteps
+  catch e
+    throw(ArgumentErrorODE("OPT_MAXSTEPS is not valid", :opt, e))
+  end
+
   tstop = NaN
   try
     tstop = convert(Float64, getOption(opt, OPT_TSTOP, NaN))
@@ -298,7 +319,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   cbi = DdebdfInternalCallInfos(lio, l, d, rhs, rhs_mode, rhs_lprefix,
         0, output_mode, output_fcn, Dict(), 
         jacobimatrix == nothing ? dummy_func : jacobimatrix,
-        jacobibandstruct, jac_lprefix, get_view_function())
+        jacobibandstruct, jac_lprefix, 0, get_view_function())
 
   args.IPAR = cbi
   args.FCN = unsafe_SLATEC1RHSCallback_c(cbi, FInt(0))
@@ -316,6 +337,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
     dump(lio,args);
   end
 
+  maxsteps_seen = 0
   while (true)
     told = args.t[1]
     args.tEnd[1] = t_values[1]
@@ -341,11 +363,11 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
       println(lio,lprefix,"call Fortran-ddeabm $method_ddebdf returned")
       dump(lio,args);
     end
-    if args.IDID[1] < 0
+    if args.IDID[1] < -1     # -1 handled below
       retcode = Int(args.IDID[1])
       break
     end
-    if output_mode ≠ OUTPUTFCN_NEVER
+    if args.IDID[1] ≥ 0 && output_mode ≠ OUTPUTFCN_NEVER
       out_result = call_julia_output_fcn(cbi, OUTPUTFCN_CALL_STEP,
         told, args.t[1], args.x, eval_sol_fcn_noeval)
       if out_result == OUTPUTFCN_RET_CONTINUE_XCHANGED
@@ -356,13 +378,21 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
         break
       end
     end
-    if args.IDID[1] == 1
+    if args.IDID[1] == -1
+      # => MAXNUM steps done
+      maxsteps_seen += ddebdf_maxnum
+      if maxsteps_seen ≥ maxsteps
+        retcode = -1
+        break
+      end
+    elseif args.IDID[1] == 1
       # => intermediate-output mode => case C2
       # args.tEnd[1] yet not reached => continue
       args.INFO[1] = 1
     elseif args.IDID[1] ∈ (2,3,)
       # => args.tEnd[1] reached
       shift!(t_values)     # next t-value to compute
+      maxsteps_seen = 0
       if length(t_values) == 0
         retcode = 1   # reached T
         break
@@ -381,6 +411,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   l_g && println(lio,lprefix,string("done IDID=",args.IDID[1]))
   stats = Dict{AbstractString,Any}(
     "no_rhs_calls"       => cbi.rhs_count,
+    "no_jac_calls"       => cbi.jac_count,
     "ddebdf_idid"        => args.IDID[1],
         )
 
@@ -435,7 +466,7 @@ push!(solverInfo,
     tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE, 
           :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_OUTPUTATTIMES,
-          :OPT_TSTOP,
+          :OPT_TSTOP, :OPT_MAXSTEPS,
           :OPT_JACOBIMATRIX, :OPT_JACOBIBANDSTRUCT,
     ),
     tuple(

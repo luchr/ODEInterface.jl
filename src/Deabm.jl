@@ -148,6 +148,14 @@ end
       ║                 │ result at T. Sometimes there are         │         ║
       ║                 │ right-hand sides, where this is not      │         ║
       ║                 │ possible.                                │         ║
+      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
+      ║ MAXSTEPS        │ maximal number of allowed steps          │  100000 ║
+      ║                 │ (allowed intermediate steps)             │         ║
+      ║                 │ between t0, T and the values given       │         ║
+      ║                 │ in OPT_OUTPUTATTIMES.                    │         ║
+      ║                 │ The value will be rounded up to a        │         ║
+      ║                 │ multiple of 500.                         │         ║
+      ║                 │ OPT_MAXSTEPS > 0                         │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
 
   """
@@ -163,6 +171,11 @@ function ddeabm_i32(rhs::Function, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddeabm_impl(rhs, t0, T, x0, opt, DdeabmArguments{Int32}(Int32(0)))
 end
+
+"""
+  MAXNUM value in ddeabm.
+  """
+const ddeabm_maxnum = 500
 
 """
        function ddeabm_impl{FInt<:FortranInt}(rhs::Function, 
@@ -224,6 +237,14 @@ function ddeabm_impl{FInt<:FortranInt}(rhs::Function,
   args.INFO[2] = scalarFlag ? 0 : 1
 
   tstop = NaN
+  maxsteps = 0
+  try
+    maxsteps = convert(Int, getOption(opt, OPT_MAXSTEPS, 100000))
+    @assert 0<maxsteps
+  catch e
+    throw(ArgumentErrorODE("OPT_MAXSTEPS is not valid", :opt, e))
+  end
+
   try
     tstop = convert(Float64, getOption(opt, OPT_TSTOP, NaN))
   catch e
@@ -265,6 +286,7 @@ function ddeabm_impl{FInt<:FortranInt}(rhs::Function,
     dump(lio,args);
   end
 
+  maxsteps_seen = 0
   while (true) 
     told = args.t[1]
     args.tEnd[1] = t_values[1]
@@ -288,11 +310,11 @@ function ddeabm_impl{FInt<:FortranInt}(rhs::Function,
       println(lio,lprefix,"call Fortran-ddeabm $method_ddeabm returned")
       dump(lio,args);
     end
-    if args.IDID[1] < 0
+    if args.IDID[1] < -1     # -1 handled below
       retcode = Int(args.IDID[1])
       break
     end
-    if output_mode ≠ OUTPUTFCN_NEVER
+    if args.IDID[1] ≥ 0 && output_mode ≠ OUTPUTFCN_NEVER
       out_result = call_julia_output_fcn(cbi, OUTPUTFCN_CALL_STEP,
         told, args.t[1], args.x, eval_sol_fcn_noeval)
       if out_result == OUTPUTFCN_RET_CONTINUE_XCHANGED
@@ -303,13 +325,21 @@ function ddeabm_impl{FInt<:FortranInt}(rhs::Function,
         break
       end
     end
-    if args.IDID[1] == 1
+    if args.IDID[1] == -1
+      # => MAXNUM steps done
+      maxsteps_seen += ddeabm_maxnum
+      if maxsteps_seen ≥ maxsteps
+        retcode = -1
+        break
+      end
+    elseif args.IDID[1] == 1
       # => intermediate-output mode => case C2
       # args.tEnd[1] yet not reached => continue
       args.INFO[1] = 1
     elseif args.IDID[1] ∈ (2,3,)
       # => args.tEnd[1] reached
       shift!(t_values)     # next t-value to compute
+      maxsteps_seen = 0
       if length(t_values) == 0
         retcode = 1   # reached T
         break
@@ -383,7 +413,7 @@ push!(solverInfo,
     tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE, 
           :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_OUTPUTATTIMES,
-          :OPT_TSTOP,
+          :OPT_TSTOP, :OPT_MAXSTEPS,
     ),
     tuple(
       SolverVariant("ddeabm_i64",
