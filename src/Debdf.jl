@@ -245,7 +245,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::DdebdfArguments{FInt})
 
-  (lio,l,l_g,l_solver,lprefix) = solver_start("ddeabm",rhs,t0,T,x0,opt)
+  (lio,l,l_g,l_solver,lprefix) = solver_start("ddebdf",rhs,t0,T,x0,opt)
 
   method_ddebdf, = getAllMethodPtrs(
     (FInt == Int64) ? DL_DDEBDF : DL_DDEBDF_I32)
@@ -333,7 +333,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   end
 
   if l_solver
-    println(lio,lprefix,"call Fortran-ddeabm $method_ddebdf with")
+    println(lio,lprefix,"call Fortran-ddebdf $method_ddebdf with")
     dump(lio,args);
   end
 
@@ -360,7 +360,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
        args.RPAR, args.IPAR,
        args.JAC)
     if l_solver
-      println(lio,lprefix,"call Fortran-ddeabm $method_ddebdf returned")
+      println(lio,lprefix,"call Fortran-ddebdf $method_ddebdf returned")
       dump(lio,args);
     end
     if args.IDID[1] < -1     # -1 handled below
@@ -371,7 +371,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
       out_result = call_julia_output_fcn(cbi, OUTPUTFCN_CALL_STEP,
         told, args.t[1], args.x, eval_sol_fcn_noeval)
       if out_result == OUTPUTFCN_RET_CONTINUE_XCHANGED
-        throw(FeatureNotSupported(string("Sorry; ddeabm does not support ",
+        throw(FeatureNotSupported(string("Sorry; ddebdf does not support ",
               "to change the solution inside the output function.")))
       elseif out_result == OUTPUTFCN_RET_STOP
         retcode = 2
@@ -399,7 +399,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
       end
     else
       throw(InternalErrorODE(
-        string("unknown IDID=",args.IDID[1]," result of ddeabm")))
+        string("unknown IDID=",args.IDID[1]," result of ddebdf")))
     end
     args.INFO[1] = 1  # continuation call
   end

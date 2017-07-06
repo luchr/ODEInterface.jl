@@ -35,6 +35,13 @@ __precompile__(true)
   * rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
   
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
+
+  Additionally the following Fortran-solvers from the
+  [SLATEC Common Mathematical Library](http://www.netlib.org/slatec/)
+  are supported:
+
+  * ddeabm: Adams-Bashforth-Moulton Predictor-Corrector method (order between 1 and 12)
+  * ddebdf: Backward Differentiation Formula (orders between 1 and 5)
   
   The following features of this solvers are supported by this ODEInterface:
   
@@ -44,6 +51,16 @@ __precompile__(true)
     banded matrices)
   * all the solvers' parameters for fine-tuning them
   * support for problems with "special structure", see `help_specialstructure`
+
+  Also supported:
+  
+  * bvpsol: a boundary value problem solver for highly nonlinear two point
+    boundary value problems using either a local linear solver or a global
+    sparse linear solver. **Please note: The license for `bvpsol` only 
+    covers non commercial use, see [License](./LICENSE.md).**
+  
+  written by P. Deuflhard, G. Bader, L. Weimann, see
+  [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
   
   ## What are the requirements for this module
   
