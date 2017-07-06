@@ -77,3 +77,15 @@ under the following license:
 > any warranties by ZIB. ZIB does not take over any liabilities
 > which may follow from aquisition or application of this code.
 
+
+# This package contains Fortran source code files from
+http://www.netlib.org/slatec/src/
+
+This files (`d1mach.f`, `daxpa.f`, `dcfod.f`, `ddeabm.f`, `ddebdf.f`, `ddes.f`,
+`ddot.f`, `dgbsl.f`, `dgefa.f`, `dgesl.f`, `dhstrt.f`, `dhvnrm.f`, `dintp.f`, 
+`dintyp.f`, `dlsod.f`, `dpjac.f`, `dsteps.f`,`dslvs.f`, `dstod.f`, `dvnrms.f`,
+`fdump.f`, `i1mach.f`, `idamax.f`, `j4save.f`, `xercnt.f`, `xerhlt.f`, `xermsg.f`, 
+`xerprn.f`, `xersve.f`, `xgetua.f`) were merged in `slatec.f` and are part
+of the SLATEC Common Mathematical Library which is in the public
+domain.
+

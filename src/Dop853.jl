@@ -99,7 +99,7 @@ end
   """
 function dop853(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(0))
+  return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(Int64(0)))
 end
 
 """
@@ -244,6 +244,11 @@ end
 
 """  
   ## Compile DOP853 
+
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
   

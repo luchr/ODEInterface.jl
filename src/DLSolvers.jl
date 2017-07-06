@@ -92,6 +92,45 @@ function trytoloadmethod(libhandle::Ptr{Void},method_name::AbstractString)
 end
 
 """
+  attemt to get the path of this module.
+
+  Returns path or nothing. May throw exceptions.
+  """
+function guess_path_of_module()
+  path_to_module = nothing
+  try
+    if isdefined(Base, Symbol("@__DIR__"))
+      eval(:( path_to_module = @__DIR__ ))
+    end
+  catch e
+    path_to_module = nothing
+  end
+  if path_to_module == nothing
+    path_sep = ""
+    if isdefined(Base, :path_separator)
+      path_sep = Base.path_separator
+    end
+    if isdefined(Base, :Filesystem) && 
+          isdefined(Base.Filesystem, :path_separator)
+      path_sep = Base.Filesystem.path_separator
+    end
+    path_to_module = Base.find_in_path("ODEInterface")
+    if path_to_module ≠ nothing
+      if endswith(path_to_module, ".jl")
+        path_to_module = path_to_module[1:end-3]
+      end
+      if endswith(path_to_module, "ODEInterface")
+        path_to_module = path_to_module[1:end-12]
+      end
+      if !endswith(path_to_module, path_sep)
+        path_to_module = string(path_to_module, path_sep)
+      end
+    end
+  end
+  return path_to_module
+end
+
+"""
        function loadODESolvers(extrapaths::Vector=AbstractString[],
                  loadlibnames::Tuple=() )
                 
@@ -125,26 +164,10 @@ end
   """
 function loadODESolvers(extrapaths::Vector=AbstractString[],
           loadlibnames::Tuple=() )
-  path_sep = ""
-  if isdefined(Base,:path_separator)
-    path_sep = Base.path_separator
-  end
-  if isdefined(Base,:Filesystem) && isdefined(Base.Filesystem,:path_separator)
-    path_sep = Base.Filesystem.path_separator
-  end
   if isempty(extrapaths)
     try
-      path_to_module = Base.find_in_path("ODEInterface")
+      path_to_module = guess_path_of_module()
       if path_to_module ≠ nothing
-        if endswith(path_to_module,".jl")
-          path_to_module = path_to_module[1:end-3]
-        end
-        if endswith(path_to_module,"ODEInterface")
-          path_to_module = path_to_module[1:end-12]
-        end
-        if !endswith(path_to_module,path_sep)
-          path_to_module = string(path_to_module,path_sep)
-        end
         extrapaths = [ path_to_module ]
       end
     catch e

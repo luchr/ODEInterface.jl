@@ -35,6 +35,13 @@ __precompile__(true)
   * rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
   
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
+
+  Additionally the following Fortran-solvers from the
+  [SLATEC Common Mathematical Library](http://www.netlib.org/slatec/)
+  are supported:
+
+  * ddeabm: Adams-Bashforth-Moulton Predictor-Corrector method (order between 1 and 12)
+  * ddebdf: Backward Differentiation Formula (orders between 1 and 5)
   
   The following features of this solvers are supported by this ODEInterface:
   
@@ -44,6 +51,16 @@ __precompile__(true)
     banded matrices)
   * all the solvers' parameters for fine-tuning them
   * support for problems with "special structure", see `help_specialstructure`
+
+  Also supported:
+  
+  * bvpsol: a boundary value problem solver for highly nonlinear two point
+    boundary value problems using either a local linear solver or a global
+    sparse linear solver. **Please note: The license for `bvpsol` only 
+    covers non commercial use, see [License](./LICENSE.md).**
+  
+  written by P. Deuflhard, G. Bader, L. Weimann, see
+  [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
   
   ## What are the requirements for this module
   
@@ -147,6 +164,10 @@ macro import_huge()
     @ODEInterface.import_DLrodas
     @ODEInterface.import_bvpsol
     @ODEInterface.import_DLbvpsol
+    @ODEInterface.import_ddeabm
+    @ODEInterface.import_DLddeabm
+    @ODEInterface.import_ddebdf
+    @ODEInterface.import_DLddebdf
   end
 end
 
@@ -164,6 +185,8 @@ macro import_normal()
     @ODEInterface.import_seulex
     @ODEInterface.import_rodas
     @ODEInterface.import_bvpsol
+    @ODEInterface.import_ddeabm
+    @ODEInterface.import_ddebdf
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -236,7 +259,7 @@ macro import_OPTcommon()
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
                           OPT_WORKFORSOL, OPT_RHSTIMEDERIV,
                           OPT_BVPCLASS, OPT_SOLMETHOD,
-                          OPT_IVPOPT
+                          OPT_IVPOPT, OPT_OUTPUTATTIMES, OPT_TSTOP
   )
 end
 
@@ -260,6 +283,7 @@ const OPT_METHODCHOICE     = "MethodChoice"
 
 const OPT_OUTPUTFCN        = "OutputFcn"
 const OPT_OUTPUTMODE       = "OutputFcnMode"
+const OPT_OUTPUTATTIMES    = "OutputAtTimes"
 
 const OPT_STEST            = "StiffTestAfterStep"
 const OPT_RHO              = "rho"
@@ -268,7 +292,7 @@ const OPT_SSMAXSEL         = "StepSizeMaxSelection"
 const OPT_SSBETA           = "StepSizeBeta"
 const OPT_MAXSS            = "MaxStep"
 const OPT_INITIALSS        = "InitialStep"
-
+const OPT_TSTOP            = "StopTime"
 
 const OPT_MAXEXCOLUMN      = "MaxExtrapolationColumn"
 const OPT_MAXSTABCHECKS    = "MaxNumberOfStabilityChecks"
@@ -545,6 +569,7 @@ function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector,
 end
 
 include("./HWcommon.jl")
+include("./SLATECcommon.jl")
 
 # Solvers:
 include("./Dopri.jl")
@@ -555,6 +580,8 @@ include("./Radau.jl")
 include("./Seulex.jl")
 include("./Rodas.jl")
 include("./Bvpsol.jl")
+include("./Deabm.jl")
+include("./Debdf.jl")
 
 include("./Call.jl")
 include("./Help.jl")

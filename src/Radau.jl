@@ -111,7 +111,7 @@ type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   massmatrix   :: AbstractArray{Float64}# saved mass matrix
   # Jacobimatrix
   jacobimatrix :: JAC_F                 # function for jacobi matrix
-  jacobibandstruct                      # Bandstruktur oder nothing
+  jacobibandstruct                      # (l,u) bandstructure or nothing
   jac_lprefix  :: AbstractString        # saved log-prefix for jac
 end
 
@@ -465,7 +465,7 @@ end
 # the definition of the radau function.
 function radau5(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
+  return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
 
 """
@@ -740,7 +740,7 @@ end
   """
 function radau(rhs::Function, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
-  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(0))
+  return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
 
 @doc(@doc(radau),radau5)
@@ -854,6 +854,11 @@ end
 """  
   ## Compile RADAU5 
 
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
+
   The Fortran source code can be found at:
   
        http://www.unige.ch/~hairer/software.html 
@@ -963,6 +968,11 @@ end
 
 """  
   ## Compile RADAU 
+
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
   

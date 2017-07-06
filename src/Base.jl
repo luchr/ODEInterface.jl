@@ -141,6 +141,14 @@ if !isdefined(Base, :unsafe_wrap)
 end
 
 """
+  returns function view or function sub for generating views to arrays.
+  """
+function get_view_function()
+  return isdefined(Base, :view) ? Base.view : Base.sub
+end
+
+
+"""
   Type encapsulating all required data for ODE-Solver-Callbacks.
   
   For further explanation see, `GlobalCallInfoDict`

@@ -293,15 +293,15 @@ function unsafe_HW1JacCallback{FInt<:FortranInt,
   l_jac && println(lio,lprefix,"called with n=",n," ldfx=",ldfx)
   jac = cbi.jacobimatrix
   jb = cbi.jacobibandstruct
+  M = unsafe_wrap(Array, dfx_,(ldfx,n,),false)::Matrix{Float64}
   if jb == nothing
     @assert ldfx==n-cbi.M1
-    J = unsafe_wrap(Array, dfx_,(ldfx,n,),false)
+    J = M
     jac(t,x,J)
   else
     @assert ldfx==1+jb[1]+jb[2]
     if cbi.M1==0
-      J = BandedMatrix{Float64}(n,n, jb[1],jb[2], 
-            unsafe_wrap(Array, dfx_,(ldfx,n,),false)::Matrix{Float64})
+      J = BandedMatrix{Float64}(n,n, jb[1],jb[2], M)
       jac(t,x,J)
     else
       no = Int(cbi.M1/cbi.M2+1)
@@ -315,7 +315,7 @@ function unsafe_HW1JacCallback{FInt<:FortranInt,
     end
   end
   
-  l_jac && println(lio,lprefix,"dfx=",unsafe_wrap(Array, dfx_,(ldfx,n,),false))
+  l_jac && println(lio,lprefix,"dfx=",M)
   return nothing
 end
 
@@ -398,26 +398,24 @@ function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
     jacobimatrix = getOption(opt,OPT,nothing)
     @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
     
-    if jacobimatrix ≠ nothing
-      OPT = OPT_JACOBIBANDSTRUCT
-      bs = getOption(opt,OPT,nothing)
-      
-      if bs ≠ nothing
-        jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
-        if jacobibandstruct[1] == NM1 
-          # A BandedMatrix with lower bandwidth == NM1 is treated as full!
-          jacobibandstruct = nothing
-        end
-      end
-      if jacobibandstruct ≠ nothing
-        @assert (M1==0) || (M1+M2==d)
-        @assert 0 ≤ jacobibandstruct[1] < NM1
-        @assert  (M1==0 && 0 ≤ jacobibandstruct[2] ≤ d)  ||
-                 (M1>0  && 0 ≤ jacobibandstruct[2] ≤ M2)
+    OPT = OPT_JACOBIBANDSTRUCT
+    bs = getOption(opt, OPT, nothing)
+    
+    if bs ≠ nothing
+      jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
+      if jacobibandstruct[1] == NM1 
+        # A BandedMatrix with lower bandwidth == NM1 is treated as full!
+        jacobibandstruct = nothing
       end
     end
+    if jacobibandstruct ≠ nothing
+      @assert (M1==0) || (M1+M2==d)
+      @assert 0 ≤ jacobibandstruct[1] < NM1
+      @assert  (M1==0 && 0 ≤ jacobibandstruct[2] ≤ d)  ||
+               (M1>0  && 0 ≤ jacobibandstruct[2] ≤ M2)
+    end
   catch e
-    throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
+    throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
 
   args.IJAC = [ jacobimatrix==nothing? 0 : 1] 

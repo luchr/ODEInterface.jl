@@ -349,7 +349,7 @@ end
   """
 function bvpsol(rhs::Function, bc::Function,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
-  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(0))
+  return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(Int64(0)))
 end
 
 """
@@ -528,6 +528,11 @@ end
 
 """  
   ## Compile BVPSOL
+
+  The julia ODEInterface tries to compile and link the solvers
+  automatically at the build-time of this module. The following
+  calls need only be done, if one uses a different compiler and/or if
+  one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
   

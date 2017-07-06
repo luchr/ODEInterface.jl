@@ -40,6 +40,8 @@ const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32,
                     DL_SEULEX, DL_SEULEX_I32, 
                     DL_RODAS, DL_RODAS_I32,
                     DL_BVPSOL, DL_BVPSOL_I32,
+                    DL_DDEABM, DL_DDEABM_I32,
+                    DL_DDEBDF, DL_DDEBDF_I32,
                     ) 
 const solvers = (dopri5, dopri5_i32, 
                  dop853, dop853_i32,
@@ -47,16 +49,23 @@ const solvers = (dopri5, dopri5_i32,
                  radau5, radau5_i32, radau, radau_i32,
                  seulex, seulex_i32, 
                  rodas, rodas_i32,
+                 ddeabm, ddeabm_i32,
+                 ddebdf, ddebdf_i32,
                 )
+
+const solvers_without_dense_output = (ddeabm, ddeabm_i32, ddebdf, ddebdf_i32)
+
+const solvers_without_special_struct_support = (ddebdf, ddebdf_i32)
 
 const solvers_mas = ( radau5, radau5_i32, radau, radau_i32,
                       seulex, seulex_i32, 
-                      rodas, rodas_i32
+                      rodas, rodas_i32,
                     )
 
 const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
                       seulex, seulex_i32, 
-                      rodas, rodas_i32
+                      rodas, rodas_i32,
+                      ddebdf, ddebdf_i32,
                     )
 
 const solvers_rhsdt = ( rodas, rodas_i32
@@ -67,16 +76,16 @@ const solvers_bv  = ( bvpsol, bvpsol_i32
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
-        OPT_RTOL => 1e-8,
-        OPT_ATOL => 1e-8)
+        OPT_RTOL => 1e-10,
+        OPT_ATOL => 1e-10)
   t0 = 0; T = 1; x0=[1,2]; rhs = (t,x) -> x
 
   (t,x,retcode,stats) = solver(rhs, t0, T, x0, opt)
   @assert 1 == retcode
   @assert t == T
   @assert x0 == [1,2]
-  @assert isapprox(x[1],exp(1),rtol=1e-8,atol=1e-8)
-  @assert isapprox(x[2],2*exp(1),rtol=1e-8,atol=1e-8)
+  @assert isapprox(x[1],exp(1),rtol=1e-7,atol=1e-7)
+  @assert isapprox(x[2],2*exp(1),rtol=1e-7,atol=1e-7)
   if haskey(stats,"step_predict")
     @assert isa(stats["step_predict"],Number)
   end
@@ -84,6 +93,7 @@ function test_ode1(solver::Function)
 end
 
 function test_ode2(solver::Function)
+  dense_flag = !(solver in solvers_without_dense_output)
   x3 = NaN
   called_init = false
   called_done = false
@@ -99,7 +109,9 @@ function test_ode2(solver::Function)
     end
     if reason == OUTPUTFCN_CALL_STEP
       if told ≤ 3.0 ≤ t
-        x3 = eval_sol_fcn(3.0)[1]
+        if dense_flag
+          x3 = eval_sol_fcn(3.0)[1]
+        end
         return OUTPUTFCN_RET_STOP
       end
     end
@@ -109,21 +121,23 @@ function test_ode2(solver::Function)
         OPT_RTOL => 1e-8,
         OPT_ATOL => 1e-8,
         OPT_OUTPUTFCN => outputfcn,
-        OPT_OUTPUTMODE => OUTPUTFCN_DENSE,
+        OPT_OUTPUTMODE => dense_flag ? OUTPUTFCN_DENSE : OUTPUTFCN_WODENSE,
         )
   t0 = 0; T = 5000; x0=[1,2]; rhs = (t,x) -> x
   (t,x,retcode,stats) = solver(rhs, t0, T, x0, opt)
   @assert called_init && called_done
   @assert 2 == retcode
   @assert t < T
-  @assert isapprox(x3,exp(3),rtol=1e-7,atol=1e-7)
+  if dense_flag
+    @assert isapprox(x3,exp(3),rtol=1e-7,atol=1e-7)
+  end
   return true
 end
 
 function test_ode3(solver::Function)
   opt = OptionsODE("ode3",
-        OPT_RTOL => 1e-8,
-        OPT_ATOL => 1e-8,
+        OPT_RTOL => 1e-10,
+        OPT_ATOL => 1e-10,
         OPT_RHS_CALLMODE => RHS_CALL_INSITU,
         )
   function rhs(t,x,dx)
@@ -136,8 +150,8 @@ function test_ode3(solver::Function)
   @assert 1 == retcode
   @assert t == T
   @assert x0 == [1,2]
-  @assert isapprox(x[1],exp(1),rtol=1e-8,atol=1e-8)
-  @assert isapprox(x[2],2*exp(1),rtol=1e-8,atol=1e-8)
+  @assert isapprox(x[1],exp(1),rtol=1e-7,atol=1e-7)
+  @assert isapprox(x[2],2*exp(1),rtol=1e-7,atol=1e-7)
   return true
 end
 
@@ -240,8 +254,8 @@ function test_jacode1(solver::Function)
   end
 
   opt = OptionsODE("odejac1",
-        OPT_RTOL => 1e-8,
-        OPT_ATOL => 1e-8,
+        OPT_RTOL => 1e-10,
+        OPT_ATOL => 1e-10,
         OPT_JACOBIMATRIX => myjac,
         )
   t0 = 0; T = 0.2; x0=[1,2]; 
@@ -269,8 +283,8 @@ function test_jacode2(solver::Function)
   x4_exact = t -> exp(t)/6*(24+18*t+6*t^2+t^3)
 
   opt = OptionsODE("odejac2",
-        OPT_RTOL => 1e-8,
-        OPT_ATOL => 1e-8,
+        OPT_RTOL => 1e-10,
+        OPT_ATOL => 1e-10,
         OPT_JACOBIMATRIX => myjac,
         OPT_JACOBIBANDSTRUCT => (1,0),
         OPT_JACRECOMPFACTOR => -1,
@@ -286,6 +300,9 @@ function test_jacode2(solver::Function)
 end
 
 function test_jacode3(solver::Function)
+  if solver ∈ solvers_without_special_struct_support
+    return true
+  end
   function myrhs(t,x)
     return [ # x[3], x[4],
              x[1]+x[2]+x[4],
@@ -321,6 +338,9 @@ function test_jacode3(solver::Function)
 end
 
 function test_jacode4(solver::Function)
+  if solver ∈ solvers_without_special_struct_support
+    return true
+  end
   function myrhs(t,x)
     return [ # x[3], x[4],
              2*x[1] + 2*x[3],
@@ -620,7 +640,7 @@ function test_DLSolvers()
   end
 end
 
-function test_solvers()
+function test_vanilla()
   problems = (test_ode1,test_ode2,test_ode3,)
   @testset "solvers" begin
     @testloop for solver in solvers,
@@ -628,7 +648,9 @@ function test_solvers()
       @test problem(solver)
     end
   end
+end
 
+function test_mas_solvers()
   problems = (test_massode1,test_massode2,test_massode3,test_massode4)
   @testset "mas-solvers" begin
     @testloop for solver in solvers_mas,
@@ -636,7 +658,9 @@ function test_solvers()
       @test problem(solver)
     end
   end
+end
 
+function test_jac_solvers()
   problems = (test_jacode1,test_jacode2,test_jacode3,test_jacode4)
   @testset "jac-solvers" begin
     @testloop for solver in solvers_jac,
@@ -644,7 +668,9 @@ function test_solvers()
       @test problem(solver)
     end
   end
+end
 
+function test_rhsdt_solvers()
   problems = (test_rhstimederiv1,)
   @testset "rhs_dt-sol." begin
     @testloop for solver in solvers_rhsdt,
@@ -652,6 +678,13 @@ function test_solvers()
       @test problem(solver)
     end
   end
+end
+
+function test_solvers()
+  test_vanilla()
+  test_mas_solvers()
+  test_jac_solvers()
+  test_rhsdt_solvers()
 end
 
 function test_odecall()
