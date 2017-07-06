@@ -198,8 +198,7 @@ function unsafe_SLATEC1JacCallback{FInt<:FortranInt,
     J = BandedMatrix{Float64}(n, n, jb[1], jb[2], banded_memory)
     jac(t, x, J)
   end
-  l_jac && println(lio,lprefix,"dfx=",
-        unsafe_wrap(Array, dfx_,(dfx_rows,n,),false))
+  l_jac && println(lio,lprefix,"dfx=",M)
   return nothing
 end
 
