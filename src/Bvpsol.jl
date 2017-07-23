@@ -482,7 +482,7 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   if bvpsol_global_cbi ≠ nothing
     throw(ArgumentErrorODE(string("The Fortran solver bvpsol does not ",
       "support 'pass-through' arguments. Hence this julia module does not ",
-      "support concurrent/nested bvpsol calls. Sorry.")))
+      "support concurrent/nested bvpsol calls. Sorry."), :opt))
   end
   
   try

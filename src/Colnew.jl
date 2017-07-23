@@ -325,11 +325,15 @@ end
         function colnew(interval::Vector, orders::Vector, ζ::Vector,
           rhs::Function, Drhs::Function,
           bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+            -> (sol, retcode, stats)
 
   Solve multi-point boundary value problem with colnew.
 
   ζ∊ℝᵈ with a ≤ ζ(1)=ζ₁ ≤ ζ(2)=ζ₂ ≤ ⋯ ≤ ζ(d) ≤ b are the (time-)points
   were side/boundary conditions are given:
+
+             bc₁   bc₂       bc₃                 bcⱼ(ζⱼ, z(x(ζⱼ))) = 0
+              ∙     ∙         ∙  ⋯
 
         ├─────┼─────┼─────────┼─....───┼─────┤
        t=a  t=ζ(1) t=ζ(2)    t=ζ(3)  t=ζ(d)  t=b
@@ -352,18 +356,18 @@ end
 
   Hence one has the requirement: ∑m(i) = d.
 
-  The boundary-/side-conditions at the points ζ(j) are given in the form
+  The boundary-/side-conditions at the points ζⱼ=ζ(j) are given in the form
 
        bcⱼ(ζⱼ, z(x(ζⱼ))) = 0                         (j=1,2,…,d)
 
-
   Restrictions (in the colnew code):
+
   * at maximum 20 ODEs: n ≤ 20
   * at maximum 40 dimensions: d ≤ 40
   * The orders m(i) have to satisfy: 1 ≤ m(i) ≤ 4   for all i=1,2,…,n.
 
   All (Julia-)callback-functions (like rhs, etc.) use the in-situ call-mode,
-  i.e. they have to write the result in an preallocated vector.
+  i.e. they have to write the result in a preallocated vector.
 
   ## rhs
 
@@ -415,7 +419,12 @@ end
 
   ## guess
 
-  `guess` must be function of the form
+  `guess` can be `nothing`, i.e. no initial guess given. Or
+  `guess` can be the sol return value of an earilier call of `colnew`. In
+  such a case the former mesh and the former solution is taken as an
+  initial guess (or is coarsen, see `OPT_COARSEGUESSGRID`).
+
+  Or `guess` is a function of the form
 
       function guess(t, z, dmx)
 
@@ -425,6 +434,20 @@ end
                 ∂xᵢ
       dmx(i) = ────────      (i=1,…,n)
                 ∂tᵐ⁽ⁱ⁾
+
+  ## return values
+
+  `sol` is a solution object which can be evaluated with the 
+  `evalSolution` functions.
+
+  `retcode` can have to following values:
+
+        >0: computation successful
+         0: collocation matrix is singular
+        -1: the expected no. of subintervals exceeds storage
+            (try to increase `OPT_MAXSUBINTERVALS`)
+        -2: the nonlinear iteration has not converged
+        -3: there is an input data error
 
   In `opt` the following options are used:
   
@@ -478,6 +501,11 @@ end
       ║                 │ are used as initial grid. Values of ζ,   │         ║
       ║                 │ OPT_ADDGRIDPOINTS and a and b are added  │         ║
       ║                 │ automatically by this interface.         │         ║
+      ║                 │                                          │         ║
+      ║                 │ If the guess is an solution object,      │         ║
+      ║                 │ then this grid saved there is used       │         ║
+      ║                 │ (and not the values given in             │         ║
+      ║                 │ `OPT_SUBINTERVALS`).                     │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ FREEZEINTERVALS │ Only used if OPT_SUBINTERVALS is a       │   false ║
       ║                 │ vector. In this case this flags indicates│         ║
@@ -487,6 +515,12 @@ end
       ║                 │ and no mesh selection is done.           │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ MAXSUBINTERVALS │ number of maximal subintervals.          │      50 ║
+      ╟─────────────────┼──────────────────────────────────────────┼─────────╢
+      ║ COARSEGUESSGRID │ If `guess` is an solution obtained by a  │    true ║
+      ║                 │ former call of `colnew`, then this       │         ║
+      ║                 │ solution is taken as guess, and the mesh │         ║
+      ║                 │ provided by this solution is taken twice │         ║
+      ║                 │ as coarse.                               │         ║
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ DIAGNOSTICOUTPUT│ diagnostic output for colnew:            │       1 ║
       ║                 │   -1 : full diagnostic printout          │         ║
@@ -618,7 +652,7 @@ function colnew_impl{FInt<:FortranInt}(
     end
     @assert length(args.LTOL) == length(args.TOL)
     length(args.LTOL)==0 && throw(ArgumentErrorODE(
-      "All components in RTOL were NaN!"))
+      "All components in RTOL were NaN!"), :opt)
     args.IPAR[4] = FInt( length(args.LTOL) )
 
     OPT = OPT_BVPCLASS; 
@@ -652,7 +686,7 @@ function colnew_impl{FInt<:FortranInt}(
       if no_sub > max_subintervals
         throw(ArgumentErrorODE(
           string("more than OPT_MAXSUBINTERVALS = ", max_subintervals,
-            " subintervals in initial grid: ", subintervals)))
+            " subintervals in initial grid: ", subintervals), :opt))
       end
       args.IPAR[3] = FInt(no_sub)
       OPT = OPT_FREEZEINTERVALS
@@ -660,14 +694,6 @@ function colnew_impl{FInt<:FortranInt}(
       args.IPAR[8] = FInt( freezeintervals ? 2 : 1 )
       # division in subintervals needs to be saved in fspace (see below)
     end
-
-    if guess == nothing
-      args.IPAR[9] = FInt(0)
-      guess = dummy_func
-    else
-      args.IPAR[9] = FInt(1)
-    end
-    # args.IPAR[9] ∈ {2,3,4} currently not supported by this interface
 
     OPT = OPT_DIAGNOSTICOUTPUT
     args.IPAR[7] = convert(FInt, getOption(opt, OPT, 1))
@@ -705,12 +731,43 @@ function colnew_impl{FInt<:FortranInt}(
     end
   end
 
+  if guess == nothing
+    args.IPAR[9] = FInt(0)
+    guess = dummy_func
+  elseif isa(guess, Function)
+    args.IPAR[9] = FInt(1)
+  elseif isa(guess, ColnewSolution{FInt})
+    sol_old = guess :: ColnewSolution{FInt}
+    if sol_old.t_a ≠ t_ab[1] || sol_old.t_b ≠ t_ab[2]
+      throw(ArgumentErrorODE(
+        string("Given guess has different interval [a,b]: ",
+          "a=", t_ab[1], " b=", t_ab[2], ", but in guess: ",
+          "guess_a=", sol_old.t_a," guess_b=", sol_old.t_b), :guess))
+    end
+    if sol_old.n ≠ n || sol_old.d ≠ d
+      throw(ArgumentErrorODE(
+        string("Given guess has differnt d or n: ",
+          "d=", d, " n=", n, ", but in guess: ",
+          "guess_d=", sol_old.d, " guess_n=", sol_old.n), :guess))
+    end
+    args.IPAR[9] = getOption(opt, OPT_COARSEGUESSGRID, true) ? 3 : 2
+    guess = dummy_func
+    args.ISPACE[1:(7+n)] = sol_old.ISPACE[1:(7+n)]
+    args.FSPACE[1:args.ISPACE[7]] = sol_old.FSPACE[1:args.ISPACE[7]]
+    args.IPAR[3] = args.ISPACE[1]
+  else
+    throw(ArgumentErrorODE(string("guess was neither nothing, ",
+      "nor a function, nor an ColnewSolution object! I don't know ",
+      "what to do with the type ",typeof(guess)), :guess))
+  end
+  # args.IPAR[9] = 4 currently not supported by this interface
+
   args.IFLAG = zeros(FInt, 1)
 
   if colnew_global_cbi ≠ nothing
     throw(ArgumentErrorODE(string("The Fortran solver colnew does not ",
       "support 'pass-through' arguments. Hence this julia module does not ",
-      "support concurrent/nested colnew calls. Sorry.")))
+      "support concurrent/nested colnew calls. Sorry."), :opt))
   end
   cbi = nothing
   try
@@ -766,6 +823,7 @@ function colnew_impl{FInt<:FortranInt}(
     "no_jac_calls"  => cbi.Drhs_count,
     "no_bc_calls"   => cbi.bc_count,
     "no_Dbc_calls"  => cbi.Dbc_count,
+    "no_subintervals" => args.ISPACE[1],
   )
   return (solobj, args.IFLAG[1], stats)
 end
@@ -780,9 +838,8 @@ end
   `t` must be in the interval [a,b] where the problem was solved.
   """
 function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
-  t::Real, z::AbstractArray{Float64})
+  t::Real, z::Vector{Float64})
 
-  @assert ndims(z)==1
   @assert length(z)==sol.d
   @assert sol.t_a ≤ t ≤ sol.t_b
   ccall( sol.method_appsln, Void,
@@ -823,12 +880,13 @@ end
 function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
   t::Vector)
 
-  vm = get_view_function()
   tno = length(t)
 
   Z = zeros(Float64, (tno, sol.d))
+  z = Vector{Float64}(sol.d)
   for k=1:tno
-    evalSolution(sol, t[k], vm(Z, k, :))
+    evalSolution(sol, t[k], z)
+    Z[k,:] = z
   end
   return Z
 end
@@ -1067,7 +1125,7 @@ push!(solverInfo,
     tuple( :OPT_BVPCLASS, :OPT_RTOL, :OPT_COLLOCATIONPTS, 
            :OPT_SUBINTERVALS, :OPT_FREEZEINTERVALS, 
            :OPT_ADDGRIDPOINTS, :OPT_MAXSUBINTERVALS, 
-           :OPT_DIAGNOSTICOUTPUT,
+           :OPT_DIAGNOSTICOUTPUT, :OPT_COARSEGUESSGRID,
           ),
     tuple(
       SolverVariant("colnew_i64",

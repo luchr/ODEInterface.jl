@@ -274,7 +274,8 @@ macro import_OPTcommon()
                           OPT_IVPOPT, 
                           OPT_COLLOCATIONPTS, OPT_SUBINTERVALS,
                           OPT_FREEZEINTERVALS, OPT_DIAGNOSTICOUTPUT,
-                          OPT_ADDGRIDPOINTS, OPT_MAXSUBINTERVALS
+                          OPT_ADDGRIDPOINTS, OPT_MAXSUBINTERVALS,
+                          OPT_COARSEGUESSGRID
   )
 end
 
@@ -366,6 +367,7 @@ const OPT_FREEZEINTERVALS  = "FreezeIntervals"
 const OPT_DIAGNOSTICOUTPUT = "DiagnosticOutput"
 const OPT_ADDGRIDPOINTS    = "AdditionalGridPoints"
 const OPT_MAXSUBINTERVALS  = "MaximalNumberOfSubintervals"
+const OPT_COARSEGUESSGRID  = "CoarseGuessGrid"
 
 
 @enum(RHS_CALL_MODE,
