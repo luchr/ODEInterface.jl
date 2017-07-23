@@ -1664,3 +1664,235 @@ In `opt` the following options are used:
 </table>
 
 
+# colnew
+
+```
+  function colnew(interval::Vector, orders::Vector, ζ::Vector,
+    rhs::Function, Drhs::Function,
+    bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+```
+
+Solve multi-point boundary value problem with colnew.
+
+ζ∊ℝᵈ with a ≤ ζ(1)=ζ₁ ≤ ζ(2)=ζ₂ ≤ ⋯ ≤ ζ(d) ≤ b are the (time-)points were side/boundary conditions are given:
+
+```
+  ├─────┼─────┼─────────┼─....───┼─────┤
+ t=a  t=ζ(1) t=ζ(2)    t=ζ(3)  t=ζ(d)  t=b
+```
+
+for the n ODEs        ∂xᵢ       ──────  = xᵢ⁽ᵐ⁽ⁱ⁾⁾ = fᵢ(t, z(x(t))          (i=1,2,…,n)   [*]       ∂tᵐ⁽ⁱ⁾
+
+where the i-th ODE has order m(i). [x(t)∊ℝⁿ].
+
+z is the transformation to first order: z(x(t))∊ℝᵈ is the "first-order" state one gets if the n ODEs [*] are transformed to a first-order system:
+
+```
+ z(x(t)) = ( x₁(t), x₁'(t), x₁''(t), …, x₁⁽ᵐ⁽¹⁾⁻¹⁾,
+             x₂(t), x₂'(t), x₂''(t), …, x₂⁽ᵐ⁽²⁾⁻¹⁾,
+             ⋯                                    ,
+             xₙ(t), xₙ'(t), xₙ''(t), …, xₙ⁽ᵐ⁽ⁿ⁾⁻¹⁾  )
+```
+
+Hence one has the requirement: ∑m(i) = d.
+
+The boundary-/side-conditions at the points ζ(j) are given in the form
+
+```
+ bcⱼ(ζⱼ, z(x(ζⱼ))) = 0                         (j=1,2,…,d)
+```
+
+Restrictions (in the colnew code):
+
+  * at maximum 20 ODEs: n ≤ 20
+  * at maximum 40 dimensions: d ≤ 40
+  * The orders m(i) have to satisfy: 1 ≤ m(i) ≤ 4   for all i=1,2,…,n.
+
+All (Julia-)callback-functions (like rhs, etc.) use the in-situ call-mode, i.e. they have to write the result in an preallocated vector.
+
+## rhs
+
+`rhs` must be a function of the form
+
+```
+function rhs(t, z, f)
+```
+
+with the input data: t (scalar) time and z∈ℝᵈ (z=z(x(t))). The values of the right-hand side have to be saved in f: f∈ℝⁿ!  Only the non-trivial parts of the right-hand side must be calculated.
+
+## Drhs
+
+`Drhs` must be a function of the form
+
+```
+function Drhs(t, z, df)
+```
+
+with the input data: t (scalar) time and z∈ℝᵈ (z=z(x(t))). The values of the jacobian of the right-hand side have to be saved in df: df∈ℝⁿˣᵈ!
+
+```
+           ∂fᵢ
+df(i,j) = ─────      (i=1,…,n;  j=1,…,d)
+           ∂zⱼ
+```
+
+## bc
+
+`bc` must be a function of the form
+
+```
+function bc(i, z, bc)
+```
+
+with the input data: integer index i and z∈ℝᵈ (z=z(x(t))). The scalar(!) value of the i-th side-condition (at time ζ(i)) has to be saved in bc, which is a vector of length 1.
+
+## Dbc
+
+`Dbc` must be a function of the form
+
+```
+function Dbc(i, z, dbc)
+```
+
+with the input data: integer index i and z∈ℝᵈ (z=z(x(t))). The  values of the derivative of the i-th side-condition  (at time ζ(i)) has to be saved in dbc:
+
+```
+          ∂bcᵢ
+dbc(j) = ─────      (j=1,…,d)
+          ∂zⱼ
+```
+
+## guess
+
+`guess` must be function of the form
+
+```
+function guess(t, z, dmx)
+```
+
+with the input data t∈[a,b]. Guesses are needed for the following values: z=z(x(t))∈ℝᵈ and
+
+```
+          ∂xᵢ
+dmx(i) = ────────      (i=1,…,n)
+          ∂tᵐ⁽ⁱ⁾
+```
+
+In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> BVPCLASS
+</pre></td>
+<td><pre> boundary value problem classification&#58;
+ 0&#58; linear
+ 1&#58; nonlinear and regular
+ 2&#58; nonlinear and &#34;extra sensitive&#34;
+    &#40;first relax factor is rstart and the
+    nonlinear iteration does not rely
+    on past convergence&#41;
+ 3&#58; fail&#45;early&#58; return immediately upon
+    &#40;a&#41; two successive non&#45;convergences
+        or
+    &#40;b&#41; after obtaining an error estimate
+        for the first time
+</pre></td>
+<td><pre>       1
+</pre></td>
+</tr>
+<tr><td><pre> RTOL
+</pre></td>
+<td><pre> relative &#42;and&#42; absolute accuracy for
+ solution&#46; Must be a vector of length d&#46;
+ If a scalar is given &#40;like the default
+ value of 1e&#45;6&#41; then the vector
+    RTOL&#42;ones&#40;Float64&#44; d&#41;
+ is generated&#46;
+ Some entries can be NaN&#33; If an entry
+ is NaN&#44; then no error checking is done
+ for this component&#46;
+</pre></td>
+<td><pre>    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> COLLOCATIONPTS
+</pre></td>
+<td><pre> number &#40;&#61;k&#41; of collocation points per
+ sub&#45;interval&#46;
+ Requirement&#58;
+   orders&#91;i&#93; &#8804; k &#8804; 7
+ Default&#58;
+   k &#61; max&#40; max&#40;orders&#41;&#43;1&#44; 5&#45;max&#40;orders&#41; &#41;
+</pre></td>
+<td><pre> see left
+</pre></td>
+</tr>
+<tr><td><pre> SUBINTERVALS
+</pre></td>
+<td><pre> Either a positive integer scalar or a
+ vector of &#40;Float&#41;&#45;times&#58;
+ &#40;a&#41; scalar&#58; use a &#34;uniform&#45;like&#34; initial
+ grid with the given integer as number
+ of subintervals&#46;
+ Why &#34;uniform&#45;like&#34; and not &#34;uniform&#34;&#63;
+ Because all values of &#950; and all values of
+ OPT&#95;ADDGRIDPOINTS have to be in the grid&#46;
+ If the scalar is too small for all this
+ values it is increased &#40;internally&#41;&#46;
+ &#40;b&#41; vector&#58; all points must be inside
+ the interval &#40;a&#44;b&#41;&#46; Then this points
+ are used as initial grid&#46; Values of &#950;&#44;
+ OPT&#95;ADDGRIDPOINTS and a and b are added
+ automatically by this interface&#46;
+</pre></td>
+<td><pre>       5
+</pre></td>
+</tr>
+<tr><td><pre> FREEZEINTERVALS
+</pre></td>
+<td><pre> Only used if OPT&#95;SUBINTERVALS is a
+ vector&#46; In this case this flags indicates
+ if colnew is allowed to adaptively
+ change the grid&#46;
+ If true&#44; all grid adaption is turned off
+ and no mesh selection is done&#46;
+</pre></td>
+<td><pre>   false
+</pre></td>
+</tr>
+<tr><td><pre> MAXSUBINTERVALS
+</pre></td>
+<td><pre> number of maximal subintervals&#46;
+</pre></td>
+<td><pre>      50
+</pre></td>
+</tr>
+<tr><td><pre> DIAGNOSTICOUTPUT
+</pre></td>
+<td><pre> diagnostic output for colnew&#58;
+   &#45;1 &#58; full diagnostic printout
+    0 &#58; selected printout
+    1 &#58; no printout
+</pre></td>
+<td><pre>       1
+</pre></td>
+</tr>
+<tr><td><pre> ADDGRIDPOINTS
+</pre></td>
+<td><pre> additional points that are always added
+ to every &#40;time&#45;&#41;grid&#46;
+ Every grid contains all values in &#950; and
+ the values in the interval argument&#46;
+</pre></td>
+<td><pre>      &#91;&#93;
+</pre></td>
+</tr>
+</table>
+
+

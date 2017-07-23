@@ -55,9 +55,12 @@ Also supported:
   boundary value problems using either a local linear solver or a global
   sparse linear solver. **Please note: The license for `bvpsol` only 
   covers non commercial use, see [License](./LICENSE.md).**
-
-written by P. Deuflhard, G. Bader, L. Weimann, see
-[CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
+  Written by P. Deuflhard, G. Bader, L. Weimann, see
+  [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
+* colnew: a multi-point boundary value problem solver for mixed order
+  systems using collocation.
+  Written by U. Ascher, G. Bader, see
+  [Colnew Homepage](https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html)
 
 Description: [Calling the Solvers](./doc/CallSolvers.md) 
 
