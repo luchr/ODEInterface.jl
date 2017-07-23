@@ -16,6 +16,7 @@ macro import_help()
     @ODEInterface.import_ddeabm_help
     @ODEInterface.import_ddebdf_help
     @ODEInterface.import_bvpsol_help
+    @ODEInterface.import_colnew_help
   end
 end
 
