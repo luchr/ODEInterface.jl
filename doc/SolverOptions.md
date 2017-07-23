@@ -1670,6 +1670,7 @@ In `opt` the following options are used:
   function colnew(interval::Vector, orders::Vector, ζ::Vector,
     rhs::Function, Drhs::Function,
     bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+      -> (sol, retcode, stats)
 ```
 
 Solve multi-point boundary value problem with colnew.
@@ -1677,6 +1678,9 @@ Solve multi-point boundary value problem with colnew.
 ζ∊ℝᵈ with a ≤ ζ(1)=ζ₁ ≤ ζ(2)=ζ₂ ≤ ⋯ ≤ ζ(d) ≤ b are the (time-)points were side/boundary conditions are given:
 
 ```
+       bc₁   bc₂       bc₃                 bcⱼ(ζⱼ, z(x(ζⱼ))) = 0
+        ∙     ∙         ∙  ⋯
+
   ├─────┼─────┼─────────┼─....───┼─────┤
  t=a  t=ζ(1) t=ζ(2)    t=ζ(3)  t=ζ(d)  t=b
 ```
@@ -1696,7 +1700,7 @@ z is the transformation to first order: z(x(t))∊ℝᵈ is the "first-order" st
 
 Hence one has the requirement: ∑m(i) = d.
 
-The boundary-/side-conditions at the points ζ(j) are given in the form
+The boundary-/side-conditions at the points ζⱼ=ζ(j) are given in the form
 
 ```
  bcⱼ(ζⱼ, z(x(ζⱼ))) = 0                         (j=1,2,…,d)
@@ -1708,7 +1712,7 @@ Restrictions (in the colnew code):
   * at maximum 40 dimensions: d ≤ 40
   * The orders m(i) have to satisfy: 1 ≤ m(i) ≤ 4   for all i=1,2,…,n.
 
-All (Julia-)callback-functions (like rhs, etc.) use the in-situ call-mode, i.e. they have to write the result in an preallocated vector.
+All (Julia-)callback-functions (like rhs, etc.) use the in-situ call-mode, i.e. they have to write the result in a preallocated vector.
 
 ## rhs
 
@@ -1764,7 +1768,9 @@ dbc(j) = ─────      (j=1,…,d)
 
 ## guess
 
-`guess` must be function of the form
+`guess` can be `nothing`, i.e. no initial guess given. Or `guess` can be the sol return value of an earilier call of `colnew`. In such a case the former mesh and the former solution is taken as an initial guess (or is coarsen, see `OPT_COARSEGUESSGRID`).
+
+Or `guess` is a function of the form
 
 ```
 function guess(t, z, dmx)
@@ -1776,6 +1782,21 @@ with the input data t∈[a,b]. Guesses are needed for the following values: z=z(
           ∂xᵢ
 dmx(i) = ────────      (i=1,…,n)
           ∂tᵐ⁽ⁱ⁾
+```
+
+## return values
+
+`sol` is a solution object which can be evaluated with the  `evalSolution` functions.
+
+`retcode` can have to following values:
+
+```
+  >0: computation successful
+   0: collocation matrix is singular
+  -1: the expected no. of subintervals exceeds storage
+      (try to increase `OPT_MAXSUBINTERVALS`)
+  -2: the nonlinear iteration has not converged
+  -3: there is an input data error
 ```
 
 In `opt` the following options are used:
@@ -1850,6 +1871,10 @@ In `opt` the following options are used:
  are used as initial grid&#46; Values of &#950;&#44;
  OPT&#95;ADDGRIDPOINTS and a and b are added
  automatically by this interface&#46;
+ If the guess is an solution object&#44;
+ then this grid saved there is used
+ &#40;and not the values given in
+ &#96;OPT&#95;SUBINTERVALS&#96;&#41;&#46;
 </pre></td>
 <td><pre>       5
 </pre></td>
@@ -1871,6 +1896,17 @@ In `opt` the following options are used:
 <td><pre> number of maximal subintervals&#46;
 </pre></td>
 <td><pre>      50
+</pre></td>
+</tr>
+<tr><td><pre> COARSEGUESSGRID
+</pre></td>
+<td><pre> If &#96;guess&#96; is an solution obtained by a
+ former call of &#96;colnew&#96;&#44; then this
+ solution is taken as guess&#44; and the mesh
+ provided by this solution is taken twice
+ as coarse&#46;
+</pre></td>
+<td><pre>    true
 </pre></td>
 </tr>
 <tr><td><pre> DIAGNOSTICOUTPUT

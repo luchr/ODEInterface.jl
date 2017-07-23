@@ -140,6 +140,21 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 <td><pre></pre></td>
 <td><pre></pre></td>
 </tr>
+<tr><td><pre> OPT&#95;COARSEGUESSGRID
+</pre></td>
+<td><pre></pre></td>
+<td><pre> &#10004;
+</pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+<td><pre></pre></td>
+</tr>
 <tr><td><pre> OPT&#95;COLLOCATIONPTS
 </pre></td>
 <td><pre></pre></td>
