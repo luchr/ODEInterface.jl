@@ -1786,7 +1786,7 @@ dmx(i) = ────────      (i=1,…,n)
 
 ## return values
 
-`sol` is a solution object which can be evaluated with the  `evalSolution` functions.
+`sol` is a solution object which can be evaluated with the  `evalSolution` functions. Or you can ask for the (final) grid of the solution with `getSolutionGrid`.
 
 `retcode` can have to following values:
 

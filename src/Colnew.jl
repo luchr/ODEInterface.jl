@@ -9,7 +9,7 @@ const DL_COLNEW_I32           = "colnew_i32"
 """macro for import colnew solver."""
 macro import_colnew()
   :(
-    using ODEInterface: colnew, colnew_i32, evalSolution
+    using ODEInterface: colnew, colnew_i32, evalSolution, getSolutionGrid
   )
 end
 
@@ -438,7 +438,8 @@ end
   ## return values
 
   `sol` is a solution object which can be evaluated with the 
-  `evalSolution` functions.
+  `evalSolution` functions. Or you can ask for the (final) grid
+  of the solution with `getSolutionGrid`.
 
   `retcode` can have to following values:
 
@@ -889,6 +890,15 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
     Z[k,:] = z
   end
   return Z
+end
+
+"""
+        function getSolutionGrid{FInt<:FortranInt}(sol::ColnewSolution{FInt})
+
+  returnes a Float64-vector with the (last) grid points used.
+  """
+function getSolutionGrid{FInt<:FortranInt}(sol::ColnewSolution{FInt})
+  return sol.FSPACE[1:sol.ISPACE[1]]
 end
 
 
