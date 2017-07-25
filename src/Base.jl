@@ -43,7 +43,7 @@ const LOG_EVALSOL    = UInt64(1)<<5
 """Bitmask: log calls to mass function."""
 const LOG_MASS       = UInt64(1)<<6
 
-"""Bitmask: log calls to jacobian function."""
+"""Bitmask: log calls to jacobian function (of right-hand side)."""
 const LOG_JAC        = UInt64(1)<<7
 
 """Bitmask: log calls to boundary condition function."""
@@ -56,6 +56,12 @@ const LOG_BVPIVPSOL  = UInt64(1)<<9
 """Bitmask: log calls to right-hand side derivative function."""
 const LOG_RHSDT      = UInt64(1)<<10
 
+"""Bitmask: log calls to jacobian function of boundary-/side-conditions."""
+const LOG_JACBC      = UInt64(1)<<11
+
+"""Bitmask: log calls to guess function."""
+const LOG_GUESS      = UInt64(1)<<12
+
 """Bitmask: log everything."""
 const LOG_ALL        = UInt64(0xFFFFFFFFFFFFFFFF)
 
@@ -67,7 +73,8 @@ macro import_LOG()
     using ODEInterface: LOG_NOTHING, LOG_GENERAL, LOG_RHS,
                         LOG_SOLVERARGS, LOG_SOLOUT, LOG_OUTPUTFCN,
                         LOG_EVALSOL, LOG_MASS, LOG_JAC, LOG_BC, 
-                        LOG_BVPIVPSOL, LOG_RHSDT,
+                        LOG_BVPIVPSOL, LOG_RHSDT, LOG_JACBC,
+                        LOG_GUESS,
                         LOG_ALL
   )
 end

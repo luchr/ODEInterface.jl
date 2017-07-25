@@ -131,6 +131,10 @@ function docSolverOptions(filename)
   write(io,"# bvpsol",NL,NL)
   formatMDelement(io,Base.Docs.doc(bvpsol))
 
+  # colnew
+  write(io,"# colnew",NL,NL)
+  formatMDelement(io,Base.Docs.doc(colnew))
+
   close(io)
   return nothing
 end

@@ -214,6 +214,12 @@ function build_ddebdf(path::AbstractString)
   #   "xermsg", "xerprn", "xersve", "xgetua"])
 end
 
+function build_colnew(path::AbstractString)
+  compile_gfortran(path, "colnew")
+  link_gfortran(path, ["colnew",])
+  return nothing
+end
+
 # test for gfortran
 gfortran = search_prog("gfortran")
 if isempty(gfortran)
@@ -232,11 +238,13 @@ compile_lapack(dir_of_src)
 build_radau(dir_of_src)
 build_seulex(dir_of_src)
 build_rodas(dir_of_src)
-build_bvpsol(dir_of_src)
 
 compile_slatec(dir_of_src)
 build_ddeabm(dir_of_src)
 build_ddebdf(dir_of_src)
+
+build_colnew(dir_of_src)
+build_bvpsol(dir_of_src)
 
 del_obj_files()
 

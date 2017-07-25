@@ -16,6 +16,7 @@ macro import_help()
     @ODEInterface.import_ddeabm_help
     @ODEInterface.import_ddebdf_help
     @ODEInterface.import_bvpsol_help
+    @ODEInterface.import_colnew_help
   end
 end
 
@@ -281,11 +282,13 @@ end
            LOG_SOLOUT      log calls of the solution output routine
            LOG_EVALSOL     log calls of the eval_sol_fcn
            LOG_MASS        log call(s) of the mass function
-           LOG_JAC         log calls of the jacobian function
+           LOG_JAC         log calls of the jacobian function of RHS
            LOG_BC          log calls of the boundary condition function
            LOG_BVPIVPSOL   log (during boundary value problems) calls to
                            initial value solvers
            LOG_RHSDT       log calls of the right-hand side time-derivative
+           LOG_JACBC       log calls of the jacobian of the boundary condition
+           LOG_GUESS       log calls to the guess function
            LOG_ALL         all of the above
   
   ### Options for the solvers

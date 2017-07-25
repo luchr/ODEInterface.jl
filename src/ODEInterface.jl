@@ -168,6 +168,8 @@ macro import_huge()
     @ODEInterface.import_DLddeabm
     @ODEInterface.import_ddebdf
     @ODEInterface.import_DLddebdf
+    @ODEInterface.import_colnew
+    @ODEInterface.import_DLcolnew
   end
 end
 
@@ -187,6 +189,7 @@ macro import_normal()
     @ODEInterface.import_bvpsol
     @ODEInterface.import_ddeabm
     @ODEInterface.import_ddebdf
+    @ODEInterface.import_colnew
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -230,22 +233,31 @@ const solverInfo = Vector{SolverInfo}()
   """
 @ABSTRACT(AbstractArgumentsODESolver{FInt},Any)
 
+"""
+  Ancestor for all types that represent solutions (of IVPs or BVPs).
+
+  Typically such solutions can be evaluated later.
+  """
+@ABSTRACT(AbstractODESolution{FInt}, Any)
+
 # Common options
 """macro for importing common OPT options."""
 macro import_OPTcommon()
   :(
     using ODEInterface:   OPT_LOGIO, OPT_LOGLEVEL, OPT_RHS_CALLMODE,
-                          OPT_RTOL, OPT_ATOL,
-                          OPT_MAXSTEPS, OPT_EPS, OPT_OUTPUTFCN,
+                          OPT_RTOL, OPT_ATOL, OPT_MAXSTEPS, OPT_EPS, 
                           OPT_METHODCHOICE,
-                          OPT_OUTPUTMODE, OPT_STEST, OPT_RHO, OPT_SSMINSEL,
+                          OPT_OUTPUTFCN, OPT_OUTPUTMODE, OPT_OUTPUTATTIMES,
+                          OPT_STEST, OPT_RHO, OPT_SSMINSEL,
                           OPT_SSMAXSEL, OPT_SSBETA, OPT_MAXSS, OPT_INITIALSS,
+                          OPT_TSTOP,
                           OPT_MAXEXCOLUMN, OPT_MAXSTABCHECKS, 
                           OPT_MAXSTABCHECKLINE, OPT_INTERPOLDEGREE,
                           OPT_ORDERDECFRAC, OPT_ORDERINCFRAC, 
                           OPT_STEPSIZESEQUENCE,
                           OPT_SSREDUCTION, OPT_SSSELECTPAR1, OPT_SSSELECTPAR2,
-                          OPT_RHO2, OPT_DENSEOUTPUTWOEE, OPT_TRANSJTOH,
+                          OPT_RHO2, OPT_DENSEOUTPUTWOEE, 
+                          OPT_TRANSJTOH,
                           OPT_MAXNEWTONITER, OPT_NEWTONSTARTZERO,
                           OPT_DIMOFIND1VAR, OPT_DIMOFIND2VAR, OPT_DIMOFIND3VAR,
                           OPT_STEPSIZESTRATEGY, OPT_M1, OPT_M2,
@@ -259,7 +271,11 @@ macro import_OPTcommon()
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
                           OPT_WORKFORSOL, OPT_RHSTIMEDERIV,
                           OPT_BVPCLASS, OPT_SOLMETHOD,
-                          OPT_IVPOPT, OPT_OUTPUTATTIMES, OPT_TSTOP
+                          OPT_IVPOPT, 
+                          OPT_COLLOCATIONPTS, OPT_SUBINTERVALS,
+                          OPT_FREEZEINTERVALS, OPT_DIAGNOSTICOUTPUT,
+                          OPT_ADDGRIDPOINTS, OPT_MAXSUBINTERVALS,
+                          OPT_COARSEGUESSGRID
   )
 end
 
@@ -344,6 +360,14 @@ const OPT_RHSTIMEDERIV     = "RhsTimeDerivative"
 const OPT_BVPCLASS         = "BoundaryValueProblemClass"
 const OPT_SOLMETHOD        = "SolutionMethod"
 const OPT_IVPOPT           = "OptionsForIVPsolver"
+
+const OPT_COLLOCATIONPTS   = "NumberOfCollocationPoints"
+const OPT_SUBINTERVALS     = "Subintervals"
+const OPT_FREEZEINTERVALS  = "FreezeIntervals"
+const OPT_DIAGNOSTICOUTPUT = "DiagnosticOutput"
+const OPT_ADDGRIDPOINTS    = "AdditionalGridPoints"
+const OPT_MAXSUBINTERVALS  = "MaximalNumberOfSubintervals"
+const OPT_COARSEGUESSGRID  = "CoarseGuessGrid"
 
 
 @enum(RHS_CALL_MODE,
@@ -582,6 +606,7 @@ include("./Rodas.jl")
 include("./Bvpsol.jl")
 include("./Deabm.jl")
 include("./Debdf.jl")
+include("./Colnew.jl")
 
 include("./Call.jl")
 include("./Help.jl")
