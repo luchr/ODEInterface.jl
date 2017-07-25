@@ -71,8 +71,11 @@ const solvers_jac = ( radau5, radau5_i32, radau, radau_i32,
 const solvers_rhsdt = ( rodas, rodas_i32
                       )
 
-const solvers_bv  = ( bvpsol, bvpsol_i32 
-                    )
+const solvers_bvpsol  = ( bvpsol, bvpsol_i32 
+                       )
+
+const solvers_colnew  = ( colnew, colnew_i32 
+                       )
 
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
@@ -554,6 +557,62 @@ function test_bvp3(solver::Function)
   return true
 end
 
+function test_colnew1(solver::Function)
+  a, b = -pi/2, pi/2
+  orders = [1, 1,]
+  ζ = [a, b]
+
+  ε = nothing 
+  ε_old = nothing
+  sol_old = nothing
+
+  function rhs(x, z, f)
+      s² = sin(x)^2
+      f[1] = (s²-z[2]*s²*s²/z[1])/ε
+      f[2] = 0.0
+  end
+  
+  function Drhs(x, z, df)
+      df[:]=0.0
+      s⁴ = sin(x)^4
+      df[1,1] = z[2]*s⁴/(z[1]^2)
+      df[1,2] = -s⁴/z[1]
+  end
+  
+  function bc(i, z, bc)
+      bc[1] = z[1]-1.0
+  end
+  
+  function Dbc(i, z, dbc)
+      dbc[1] = 1.0
+      dbc[2] = 0.0
+  end
+  
+  function initial_guess(x, z, dmz)
+      z[1] = 0.5
+      z[2] = 1.0
+      rhs(x, z, dmz)
+  end
+
+  opt = OptionsODE("colnew1",
+        OPT_BVPCLASS => 2, OPT_COLLOCATIONPTS => 7,
+        OPT_RTOL => [1e-4, 1e-4], OPT_MAXSUBINTERVALS => 200)
+
+  sol = nothing
+  for ε = [1.0, 0.5, 0.2, 0.1]
+    guess = (sol_old≠nothing) ? sol_old : initial_guess    
+    sol, retcode, stats = colnew([a,b], orders, ζ, rhs, Drhs, bc, Dbc, 
+       guess ,opt);
+    @assert retcode>0
+    sol_old = sol; ε_old = ε
+  end
+  
+  z₀ = evalSolution(sol, 0.0)
+  @assert isapprox(z₀[1], 0.161671, rtol=1e-3,atol=1e-3)
+  @assert isapprox(z₀[2], 1.01863, rtol=1e-3,atol=1e-3)
+  return true
+end
+
 function test_Banded()
   @testset "Banded" begin
     @test_throws ArgumentErrorODE  BandedMatrix{Float64}(
@@ -699,8 +758,18 @@ end
 
 function test_bvp()
   problems = (test_bvp1,test_bvp2,test_bvp3,)
-  @testset "bvp" begin
-    @testloop for solver in solvers_bv,
+  @testset "bvpsol" begin
+    @testloop for solver in solvers_bvpsol,
+                  problem in problems
+      @test problem(solver)
+    end
+  end
+end
+
+function test_colnew()
+  problems = (test_colnew1, )
+  @testset "colnew" begin
+    @testloop for solver in solvers_colnew,
                   problem in problems
       @test problem(solver)
     end
@@ -714,6 +783,7 @@ function test_all()
   test_solvers()
   test_odecall()
   test_bvp()
+  test_colnew()
 end
 
 test_all()
