@@ -124,7 +124,7 @@ function dopri5_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("dopri5",rhs,t0,T,x0,opt)
 
   (method_dopri5,method_contd5) = getAllMethodPtrs(
-     (FInt == Int64)? DL_DOPRI5 : DL_DOPRI5_I32 )
+     (FInt == Int64) ? DL_DOPRI5 : DL_DOPRI5_I32 )
 
   (d,nrdense,rhs_mode,output_mode,output_fcn) = 
     dopri_extract_commonOpt(t0,T,x0,opt,args)
@@ -188,8 +188,8 @@ function dopri5_impl{FInt<:FortranInt}(rhs::Function,
   end
 
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
-  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
-     unsafe_dopriSoloutCallback_c(cbi, FInt(0)):
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
+     unsafe_dopriSoloutCallback_c(cbi, FInt(0)) :
      cfunction(dummy_func, Void, () )
   args.IPAR = cbi
 

@@ -20,13 +20,7 @@ macro import_help()
   end
 end
 
-
-# takebuf_string deprecation: 358c4419
-if VERSION < v"0.6.0-dev+1254"
-  buf2str(buf) = takebuf_string(buf)
-else
-  buf2str(buf) = String(take!(buf))
-end
+buf2str(buf) = String(take!(buf))
 
 using Base.Markdown
 
@@ -127,10 +121,10 @@ function help_solversupport()
         catch e
           found = false
         end
-        write(io,"     ║ ",rpad(first[1]?solver.name:"",12),"│ ",
-                 rpad(first[2]?variant.libname:"",14)      ,"│ ",
-                 rpad(first[3]?(loaded?"yes":" no"):"",9)  ,"│ ",
-                 rpad(method,18),found?"  OK  ":"FAILED",
+        write(io,"     ║ ",rpad(first[1] ? solver.name : "",12), "│ ",
+                 rpad(first[2] ? variant.libname : "",14)      ,"│ ",
+                 rpad(first[3] ? (loaded ? "yes" : " no") : "",9)  ,"│ ",
+                 rpad(method,18),found ? "  OK  " : "FAILED",
                  "      ║\n")
         first[1] = first[2] = first[3] = false
       end
@@ -337,7 +331,7 @@ function help_options()
   for opt in opts
     write(io,"      ║ ",rpad(opt,21))
     for solver in solvers; 
-      write(io,"│ ",(solver ∈ opt_usage[opt])?"✔":" ")
+      write(io,"│ ",(solver ∈ opt_usage[opt]) ? "✔" : " ")
     end
     write(io,"║\n")
   end

@@ -87,48 +87,6 @@ __precompile__(true)
   """
 module ODEInterface
 
-using Base
-
-"""
-  Compatibility macro to declare abstract types.
-  v0.4 & v0.5:   abstract NewAbstractType <: SuperType
-  v0.6       :   abstract type NewAbstractType <: SuperType end
-  """
-macro ABSTRACT(type_ex, supertype_ex)
-  return Expr(:abstract, Expr(:<:, esc(type_ex), esc(supertype_ex)))
-end
-
-"""
-  Compatibility macro used for inner constructors with type-parameters.
-  v0.4 & v0.5:  type MyType{T}
-                  x::T
-                  function MyType{S}(x0::S)
-                    return new{S}(x0)
-                  end
-                end
-  v0.5 & v0.6:  type MyType{T}
-                  x::T
-                  function (::Type{MyType{S}}){S}(x0::S)
-                    return new{S}(x0)
-                  end
-                end
-  v0.6       :  type MyType{T}
-                  x::T
-                  function MyType{S}(x0::S) where S
-                    return new{S}(x0)
-                  end
-                end
-  """
-macro WHEREFUNC(where_ex, func_ex)
-  if VERSION >= v"0.6.0-dev.2123" # julia PR #18457
-    return Expr(:function,
-        Expr(:where, esc(func_ex.args[1]), esc(where_ex)),
-        esc(func_ex.args[2]))
-  else
-    return esc(func_ex)
-  end
-end
-
 include("./Error.jl")
 include("./Options.jl")
 include("./DLSolvers.jl")
@@ -203,7 +161,7 @@ end
   integers. The purpose of this type is to have enough fields for 
   describing such an variant.
   """
-immutable SolverVariant
+struct SolverVariant
   name          :: AbstractString   # name of the variant
   description   :: AbstractString   # a short description of the variant
   libname       :: AbstractString   # the name of the dynamic library
@@ -213,7 +171,7 @@ end
 """
   Type describing a solver.
   """
-immutable SolverInfo
+struct SolverInfo
   name          :: AbstractString   # name of the Solver
   description   :: AbstractString   # a short description of the solver
   supported_opts:: Tuple            # Supported OPT_... Symbols
@@ -231,14 +189,14 @@ const solverInfo = Vector{SolverInfo}()
 """
   Ancestor for all types storing arguments for ODE-(C-/Fortran-)solvers.
   """
-@ABSTRACT(AbstractArgumentsODESolver{FInt},Any)
+abstract type AbstractArgumentsODESolver{FInt} end
 
 """
   Ancestor for all types that represent solutions (of IVPs or BVPs).
 
   Typically such solutions can be evaluated later.
   """
-@ABSTRACT(AbstractODESolution{FInt}, Any)
+abstract type AbstractODESolution{FInt} end
 
 # Common options
 """macro for importing common OPT options."""

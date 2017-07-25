@@ -210,7 +210,7 @@ function extractSpecialStructureOpt{FInt<:FortranInt}(
 
     OPT=string(OPT_M1," & ",OPT_M2)
     @assert M1+M2 ≤ d
-    @assert (M1==M2==0) || (M1≠0≠M2)
+    @assert (M1==M2==0) || (M1 ≠ 0 ≠ M2)
     @assert (M1==0) || (0 == M1 % M2)
     NM1 = d - M1
   catch e
@@ -418,9 +418,9 @@ function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
 
-  args.IJAC = [ jacobimatrix==nothing? 0 : 1] 
-  args.MLJAC = [ jacobibandstruct==nothing? d : jacobibandstruct[1]  ];
-  args.MUJAC=[ jacobibandstruct==nothing? d : jacobibandstruct[2] ]
+  args.IJAC = [ jacobimatrix==nothing ? 0 : 1] 
+  args.MLJAC = [ jacobibandstruct==nothing ? d : jacobibandstruct[1]  ];
+  args.MUJAC=[ jacobibandstruct==nothing ? d : jacobibandstruct[2] ]
   jac_lprefix = "unsafe_HW1JacCallback: "
   return (jacobimatrix,jacobibandstruct,jac_lprefix)
 end
@@ -446,7 +446,7 @@ function extractRhsTimeDerivOpt{FInt<:FortranInt}(
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
 
-  args.IDFX = [rhstimederiv==nothing? 0 : 1]
+  args.IDFX = [rhstimederiv==nothing ? 0 : 1]
   rhsdt_prefix = "unsafe_HWRhsTimeDerivCallback: "
   return (rhstimederiv,rhsdt_prefix)
 end

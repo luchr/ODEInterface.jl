@@ -51,7 +51,7 @@ end
 
   see also help of `ODEInterface.SLATEC_continuation_call`.
   """
-type DdebdfInternalCallInfos{FInt<:FortranInt,
+mutable struct DdebdfInternalCallInfos{FInt<:FortranInt,
         RHS_F<:Function, OUT_F<:Function,
         JAC_F<:Function, VIEW_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
@@ -76,13 +76,13 @@ type DdebdfInternalCallInfos{FInt<:FortranInt,
 end
 
 """
-       type DdebdfArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       mutable struct DdebdfArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 
   Stores Arguments for Ddebdf solver.
 
   FInt is the Integer type used for the fortran compilation.
   """
-type DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   FCN     :: Ptr{Void}         # rhs callback
   N       :: Vector{FInt}      # Dimension: NEQ
   t       :: Vector{Float64}   # start time (and current)
@@ -100,11 +100,9 @@ type DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{DdebdfInternalCallInfos} # misuse IPAR
   JAC     :: Ptr{Void}         # Jacobian callback
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function DdebdfArguments{FInt}(dummy::FInt)
+  function DdebdfArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 """

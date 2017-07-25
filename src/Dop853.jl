@@ -124,7 +124,7 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("dop853",rhs,t0,T,x0,opt)
 
   (method_dop853, method_contd8) = getAllMethodPtrs(
-     (FInt == Int64)? DL_DOP853 : DL_DOP853_I32 )
+     (FInt == Int64) ? DL_DOP853 : DL_DOP853_I32 )
 
   (d,nrdense,rhs_mode,output_mode,output_fcn) = 
     dopri_extract_commonOpt(t0,T,x0,opt,args)
@@ -188,8 +188,8 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
   end
 
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
-  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
-     unsafe_dopriSoloutCallback_c(cbi, FInt(0)):
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
+     unsafe_dopriSoloutCallback_c(cbi, FInt(0)) :
      cfunction(dummy_func, Void, () ) 
   args.IPAR = cbi
 

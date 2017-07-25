@@ -58,7 +58,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
+mutable struct RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
         OUT_F<:Function, JAC_F<:Function, RHSDT_F<:Function} <: 
                 ODEinternalCallInfos
   logio        :: IO                    # where to log
@@ -96,14 +96,14 @@ type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
 end
 
 """
-       type RodasArguments{FInt<:FortranInt} <: 
+       mutable struct RodasArguments{FInt<:FortranInt} <: 
                 AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Rodas solver.
   
   FInt is the Integer type used for the fortran compilation.
   """
-type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   IFCN    :: Vector{FInt}      # autonomous (0) or not (1)
@@ -134,11 +134,9 @@ type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{RodasInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function RodasArguments{FInt}(dummy::FInt)
+  function RodasArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 
@@ -408,14 +406,14 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("rodas",rhs,t0,T,x0,opt)
 
   (method_rodas, method_contro) = getAllMethodPtrs(
-     (FInt == Int64)? DL_RODAS : DL_RODAS_I32 )
+     (FInt == Int64) ? DL_RODAS : DL_RODAS_I32 )
 
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
 
-  args.ITOL = [ scalarFlag?0:1 ]
-  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER? 0:
-                     (output_mode == OUTPUTFCN_DENSE?2:1) )]
+  args.ITOL = [ scalarFlag ? 0 : 1 ]
+  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
+                     (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
 
   (M1,M2,NM1) = extractSpecialStructureOpt(d,opt)
   massmatrix = extractMassMatrix(M1,M2,NM1,args,opt)
@@ -429,13 +427,13 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
   flag_jband = args.MLJAC[1] < NM1
 
   # WORK memory
-  ljac = flag_jband? 1+args.MLJAC[1]+args.MUJAC[1]: NM1
-  lmas = (!flag_implct)? 0 :
-         (args.MLMAS[1] == NM1)? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
-  le   = flag_jband? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
+  ljac = flag_jband ? 1+args.MLJAC[1]+args.MUJAC[1] : NM1
+  lmas = (!flag_implct) ? 0 :
+         (args.MLMAS[1] == NM1) ? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
+  le   = flag_jband ? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
 
-  args.LWORK = [ (M1==0)? d*(ljac+lmas+le+14) + 20 :
-                          d*(ljac+14) + NM1*(lmas+le) + 20 ]
+  args.LWORK = [ (M1==0) ? d*(ljac+lmas+le+14) + 20 :
+                           d*(ljac+14) + NM1*(lmas+le) + 20 ]
   args.WORK = zeros(Float64,args.LWORK[1])
 
   # IWORK memory
@@ -446,7 +444,7 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
   try
     OPT=OPT_RHSAUTONOMOUS;
     rhsautonomous = convert(Bool,getOption(opt,OPT,false))
-    args.IFCN = [ FInt(rhsautonomous? 0:1) ]
+    args.IFCN = [ FInt(rhsautonomous ? 0 : 1) ]
 
     OPT=OPT_MAXSTEPS; args.IWORK[1] = convert(FInt,getOption(opt,OPT,100000))
     @assert 0 < args.IWORK[1]
@@ -489,13 +487,13 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
   eval_lprefix = "eval_sol_fcn_closure: "
 
   cbi = RodasInternalCallInfos(lio,l,M1,M2,rhs,rhs_mode,rhs_lprefix,
-      rhsdt==nothing?dummy_func:rhsdt, rhsdt_prefix,
+      rhsdt==nothing ? dummy_func : rhsdt, rhsdt_prefix,
       output_mode,output_fcn,Dict(),
       out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),Vector{FInt}(1),Vector{Float64}(1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
-      massmatrix==nothing?zeros(0,0):massmatrix,
-      jacobimatrix==nothing?dummy_func:jacobimatrix,
+      massmatrix==nothing ? zeros(0,0) : massmatrix,
+      jacobimatrix==nothing ? dummy_func : jacobimatrix,
       jacobibandstruct,jac_lprefix)
 
   if output_mode == OUTPUTFCN_DENSE
@@ -504,8 +502,8 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
 
   args.FCN = unsafe_HW2RHSCallback_c(cbi, FInt(0))
 
-  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
-        unsafe_rodasSoloutCallback_c(cbi, FInt(0)):
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
+        unsafe_rodasSoloutCallback_c(cbi, FInt(0)) :
         cfunction(dummy_func, Void, () )
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
