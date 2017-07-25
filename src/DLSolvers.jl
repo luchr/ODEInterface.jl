@@ -12,7 +12,7 @@ end
 """
   Type describing a dynamically loaded method.
   """
-immutable MethodDLinfo
+struct MethodDLinfo
   generic_name     :: AbstractString     # input for trytoloadmethod
   methodname_found :: AbstractString     # variant of generic_name found
   method_ptr       :: Ptr{Void}          # pointer to method/code
@@ -22,7 +22,7 @@ end
 """
   Type describing the "dynamic parts" of a solver.
   """
-immutable SolverDLinfo
+struct SolverDLinfo
   libname          :: AbstractString     # the name of the dynamic library
   libfilepath      :: AbstractString     # path to lib, result of find_library
   libhandle        :: Ptr{Void}          # handle of lib, result of dlopen

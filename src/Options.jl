@@ -23,7 +23,7 @@ end
   
   Required fields are: `name`, `lastchanged`, `options`
   """
-@ABSTRACT(AbstractOptionsODE,Any)
+abstract type AbstractOptionsODE end
 
 """
   Stores options for ODE-Solver(s) together with a name.
@@ -48,7 +48,7 @@ end
   
   see also: `setOption!`, `setOptions!`
   """
-type OptionsODE <: AbstractOptionsODE
+mutable struct OptionsODE <: AbstractOptionsODE
   name        :: AbstractString
   lastchanged :: DateTime
   options     :: Dict{AbstractString,Any}
@@ -88,7 +88,7 @@ end
   """
 function getOption(opt::AbstractOptionsODE,name::AbstractString,
                    default::Any=nothing)
-  return haskey(opt.options,name)?opt.options[name]:default
+  return haskey(opt.options,name) ? opt.options[name] : default
 end
 
 """
@@ -142,7 +142,7 @@ function show(io::IO, opt::AbstractOptionsODE)
   print(io,typeof(opt)," ")
   isempty(opt.name) || print(io,"'",opt.name,"' ")
   len=length(opt.options)
-  print(io,"with ",len," option",len!=1?"s":"",len>0?":":"."); println(io)
+  print(io,"with ",len," option",len!=1 ? "s" : "", len>0 ? ":" : "."); println(io)
   if len>0
     maxLen=2+max( 0,map(length,keys(opt.options))... )
     for key in sort(collect(keys(opt.options)))

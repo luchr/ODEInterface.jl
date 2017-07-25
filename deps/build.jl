@@ -1,25 +1,6 @@
-# backward compatible: no use of @static
-macro check_for_windows()
-  if isdefined(Base, :is_windows)
-    return is_windows()? true : false 
-  else
-    return :( @windows ? true : false )
-  end
-end
-
-macro check_for_apple()
-  if isdefined(Base, :is_apple)
-    return is_apple()? true : false
-  else
-    return :( @osx ? true : false )
-  end
-end
-
-
-windows_flag = @check_for_windows()
-apple_flag = @check_for_apple()
+windows_flag = Sys.iswindows()
+apple_flag = Sys.isapple()
 file_extension = apple_flag ? ".dylib" : windows_flag ? ".dll" : ".so" 
-read_from_cmd = isdefined(Base,:readstring) ? Base.readstring : Base.readall
 obj_files = []
 verbose_key = "ODEINTERFACE_VERBOSE"
 verbose = haskey(ENV, verbose_key) && 
@@ -34,7 +15,7 @@ function search_prog(progname::AbstractString)
   else
     search_cmd = windows_flag ? `where "$progname"` : `which $progname`
     try
-      output = rstrip(read_from_cmd(search_cmd))
+      output = rstrip(read(search_cmd, String))
     catch e
     end
   end

@@ -8,31 +8,6 @@ using Base.Test
 using ODEInterface
 @ODEInterface.import_huge
 
-if VERSION >= v"0.6.0-dev"
-  # @testloop was merged with @testset 93502e0f7
-  macro testloop(ex::Expr)
-    quote
-      @testset( $(esc(ex))  )
-    end
-  end
-else
-  # v0.4 compatibility
-  if !isdefined(Base.Test, Symbol("@testset"))
-    macro testset(name, start_tag)
-      return Expr(:block, :( println("Testing ",$name) ), start_tag)
-    end
-  end
-  
-  if !isdefined(Base.Test, Symbol("@testloop"))
-    macro testloop(ex::Expr)
-      quote
-        $(esc(ex))
-      end
-    end
-  end
-end
-
-
 const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32, 
                     DL_DOP853, DL_DOP853_I32,
                     DL_ODEX, DL_ODEX_I32,
@@ -683,13 +658,13 @@ end
 function test_DLSolvers()
   @testset "DLSolvers" begin
     result = loadODESolvers()
-    @testloop for dl in dl_solvers
+    @testset for dl in dl_solvers
       @test result[dl].error == nothing
       @test result[dl].libhandle ≠ C_NULL
     end
     
-    @testloop for dl in dl_solvers 
-      @testloop for method in result[dl].methods
+    @testset for dl in dl_solvers 
+      @testset for method in result[dl].methods
         @test method.error == nothing
         @test method.method_ptr ≠ C_NULL
         @test method.generic_name ≠ ""
@@ -702,7 +677,7 @@ end
 function test_vanilla()
   problems = (test_ode1,test_ode2,test_ode3,)
   @testset "solvers" begin
-    @testloop for solver in solvers,
+    @testset for solver in solvers,
                   problem in problems
       @test problem(solver)
     end
@@ -712,7 +687,7 @@ end
 function test_mas_solvers()
   problems = (test_massode1,test_massode2,test_massode3,test_massode4)
   @testset "mas-solvers" begin
-    @testloop for solver in solvers_mas,
+    @testset for solver in solvers_mas,
                   problem in problems
       @test problem(solver)
     end
@@ -722,7 +697,7 @@ end
 function test_jac_solvers()
   problems = (test_jacode1,test_jacode2,test_jacode3,test_jacode4)
   @testset "jac-solvers" begin
-    @testloop for solver in solvers_jac,
+    @testset for solver in solvers_jac,
                   problem in problems
       @test problem(solver)
     end
@@ -732,7 +707,7 @@ end
 function test_rhsdt_solvers()
   problems = (test_rhstimederiv1,)
   @testset "rhs_dt-sol." begin
-    @testloop for solver in solvers_rhsdt,
+    @testset for solver in solvers_rhsdt,
                   problem in problems
       @test problem(solver)
     end
@@ -749,7 +724,7 @@ end
 function test_odecall()
   problems = (test_odecall1,test_odecall2,)
   @testset "odecall" begin
-    @testloop for solver in solvers,
+    @testset for solver in solvers,
                   problem in problems
       @test problem(solver)
     end
@@ -759,7 +734,7 @@ end
 function test_bvp()
   problems = (test_bvp1,test_bvp2,test_bvp3,)
   @testset "bvpsol" begin
-    @testloop for solver in solvers_bvpsol,
+    @testset for solver in solvers_bvpsol,
                   problem in problems
       @test problem(solver)
     end
@@ -769,7 +744,7 @@ end
 function test_colnew()
   problems = (test_colnew1, )
   @testset "colnew" begin
-    @testloop for solver in solvers_colnew,
+    @testset for solver in solvers_colnew,
                   problem in problems
       @test problem(solver)
     end

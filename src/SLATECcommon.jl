@@ -113,9 +113,10 @@ function extractSlatecOutputAtTimes(t0, T, opt::AbstractOptionsODE)
     if any( x -> sign(x) != s, diff(t_values) )
       throw(ArgumentErrorODE(string("Because sign(T-t0)=sign($T-$t0)=$s ",
         "the vector in OPT_OUTPUTATTIMES has to be ",
-        (T≥t0?"ascending":"descending"), ". But this is not the case."),:opt))
+        (T ≥ t0 ? "ascending" : "descending"), 
+        ". But this is not the case."),:opt))
     end
-    if s*(t0-t_values[1])≥0 || s*(t_values[end]-T)≥0
+    if s*(t0-t_values[1]) ≥ 0 || s*(t_values[end]-T) ≥ 0
       throw(ArgumentErrorODE(string("All values of OPT_OUTPUTATTIMES ",
         "must be between t0=$t0 and T=$T"), :opt))
     end

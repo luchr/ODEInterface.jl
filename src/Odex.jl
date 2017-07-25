@@ -50,7 +50,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type OdexInternalCallInfos{FInt<:FortranInt,
+mutable struct OdexInternalCallInfos{FInt<:FortranInt,
        RHS_F<:Function, OUT_F<:Function } <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -77,13 +77,13 @@ type OdexInternalCallInfos{FInt<:FortranInt,
 end
 
 """
-       type OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       mutable struct OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Odex solver.
   
   FInt is the Integer type used for the fortran compilation.
   """
-type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -103,11 +103,9 @@ type OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{OdexInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function OdexArguments{FInt}(dummy::FInt)
+  function OdexArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 """
@@ -364,14 +362,14 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("odex",rhs,t0,T,x0,opt)
   
   (method_odex, method_contex) = getAllMethodPtrs(
-     (FInt == Int64)? DL_ODEX : DL_ODEX_I32 )
+     (FInt == Int64) ? DL_ODEX : DL_ODEX_I32 )
 
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
 
-  args.ITOL = [ scalarFlag?0:1 ]
-  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER? 0:
-                     (output_mode == OUTPUTFCN_DENSE?2:1) )]
+  args.ITOL = [ scalarFlag ? 0 : 1 ]
+  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
+                     (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
   
   OPT = nothing; KM = FInt(0)
   try
@@ -398,7 +396,7 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
     
     OPT = OPT_STEPSIZESEQUENCE
     args.IWORK[3] = convert(FInt,getOption(opt,OPT,
-      output_mode == OUTPUTFCN_DENSE?4:1))
+      output_mode == OUTPUTFCN_DENSE ? 4 : 1))
     @assert 1 ≤ args.IWORK[3] ≤ 5
     
     OPT=OPT_MAXSTABCHECKS; args.IWORK[4] = convert(FInt,getOption(opt,OPT,1))
@@ -408,7 +406,7 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
     
     OPT = OPT_DENSEOUTPUTWOEE
     supp_flag = convert(Bool,getOption(opt,OPT,false))
-    args.IWORK[6] = FInt( supp_flag?1:0 )
+    args.IWORK[6] = FInt( supp_flag ? 1 : 0 )
     @assert !supp_flag || (supp_flag && output_mode == OUTPUTFCN_DENSE)
     
     OPT = OPT_INTERPOLDEGREE
@@ -477,8 +475,8 @@ function odex_impl{FInt<:FortranInt}(rhs::Function,
   end
 
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
-  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
-        unsafe_odexSoloutCallback_c(cbi, FInt(0)):
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
+        unsafe_odexSoloutCallback_c(cbi, FInt(0)) :
      cfunction(dummy_func, Void, () )
   args.IPAR = cbi
 

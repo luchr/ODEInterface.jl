@@ -17,7 +17,7 @@ end
   
   Required fields: msg, error
   """
-@ABSTRACT(WrappedODEException,Base.WrappedException)
+abstract type WrappedODEException <: Base.WrappedException end
 
 function showerror(io::IO,e::WrappedODEException)
   println(io,e.msg)
@@ -34,7 +34,7 @@ end
   was detected by some error/exception then, this initial
   error/exception can be found in the `error` field.
   """
-type ArgumentErrorODE <: WrappedODEException
+mutable struct ArgumentErrorODE <: WrappedODEException
   msg      :: AbstractString
   argname  :: Symbol
   error
@@ -56,7 +56,7 @@ end
 """
   This error indicates that a function returned invalid output.
   """
-type OutputErrorODE <: WrappedODEException
+mutable struct OutputErrorODE <: WrappedODEException
   msg      :: AbstractString
   func     :: Function
   error
@@ -78,7 +78,7 @@ end
 """
   This error indicates that a Fortran/C-solver is not loaded.
   """
-type SolverODEnotLoaded <: WrappedODEException
+mutable struct SolverODEnotLoaded <: WrappedODEException
   msg      :: AbstractString
   error
 end
@@ -91,7 +91,7 @@ end
   This error indicates that a function was called at a time, where
   this is not possible.
   """
-type FunctionCallNotSupported <: WrappedODEException
+mutable struct FunctionCallNotSupported <: WrappedODEException
   msg      :: AbstractString
   error
 end
@@ -104,7 +104,7 @@ end
   This error indicates that a requested feature is not supported or 
   is not possible.
   """
-type FeatureNotSupported <: WrappedODEException
+mutable struct FeatureNotSupported <: WrappedODEException
   msg      :: AbstractString
   error
 end
@@ -116,7 +116,7 @@ end
 """
   This error indicates an internal error.
   """
-type InternalErrorODE <: WrappedODEException
+mutable struct InternalErrorODE <: WrappedODEException
   msg      :: AbstractString
   error
 end

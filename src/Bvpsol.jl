@@ -71,7 +71,7 @@ bvpsol_global_cbi = nothing
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
+mutable struct BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
         BC_F<:Function, ODESOL_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -91,7 +91,7 @@ type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   ivp_lprefix  :: AbstractString        # saved log-prefix for ivp-call
 end
 
-type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   FCN     :: Ptr{Void}         # rhs callback
   BC      :: Ptr{Void}         # boundary conditions
   IVPSOL  :: Ptr{Void}         # Initial Value Problem Solver
@@ -107,11 +107,9 @@ type BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IIW     :: Vector{FInt}      # length of workspace IW
   IW      :: Vector{FInt}      # integer workspace
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function BvpsolArguments{FInt}(dummy::FInt)
+  function BvpsolArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 """
@@ -373,7 +371,7 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   end
 
   (method_bvpsol, method_bldfx1) = getAllMethodPtrs(
-     (FInt == Int64)? DL_BVPSOL : DL_BVPSOL_I32 )
+     (FInt == Int64) ? DL_BVPSOL : DL_BVPSOL_I32 )
   
   d = FInt(0)
   try
@@ -488,8 +486,8 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   try
     global bvpsol_global_cbi = BvpsolInternalCallInfos(lio,l,rhs,rhs_mode,
         rhs_lprefix, bc,bc_lprefix,N, 
-        (odesolver==nothing)?ODE_SOLVER_INTERNAL : ODE_SOLVER_JULIA,
-        (odesolver==nothing)?bvpsol_ivp_dummy : odesolver,
+        (odesolver==nothing) ? ODE_SOLVER_INTERNAL : ODE_SOLVER_JULIA,
+        (odesolver==nothing) ? bvpsol_ivp_dummy : odesolver,
         ivpopt, ivp_lprefix)
     
     if l_solver

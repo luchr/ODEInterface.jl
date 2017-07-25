@@ -82,7 +82,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
+mutable struct RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
         OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -123,7 +123,7 @@ end
   
   FInt is the Integer type used for the fortran compilation.
   """
-type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -151,11 +151,9 @@ type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{RadauInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function RadauArguments{FInt}(dummy::FInt)
+  function RadauArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 
@@ -302,14 +300,14 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
     @assert (!transjtoh) || 
             ( (!flag_jband) && (!flag_implct ))  string(
             "Does not work, if the jacobian is banded or if the system ",
-            " has a mass matrix (≠Id).")
-    args.IWORK[1] = transjtoh? 1 : 0
+            " has a mass matrix ( ≠ Id).")
+    args.IWORK[1] = transjtoh ? 1 : 0
 
     OPT=OPT_MAXSTEPS; args.IWORK[2] = convert(FInt,getOption(opt,OPT,100000))
     @assert 0 < args.IWORK[2]
 
     OPT=OPT_NEWTONSTARTZERO; zflag = convert(Bool,getOption(opt,OPT,false))
-    args.IWORK[4] = zflag? 1 : 0
+    args.IWORK[4] = zflag ? 1 : 0
     
     OPT=OPT_DIMOFIND1VAR; args.IWORK[5] = convert(FInt,getOption(opt,OPT,d))
     @assert 0 < args.IWORK[5]
@@ -387,8 +385,8 @@ function doRadauSolverCall{FInt<:FortranInt}(
       NaN,NaN,Vector{Float64}(),
       Vector{FInt}(1),Vector{Float64}(1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
-      massmatrix==nothing?zeros(0,0):massmatrix,
-      jacobimatrix==nothing?dummy_func:jacobimatrix,
+      massmatrix==nothing ? zeros(0,0) : massmatrix,
+      jacobimatrix==nothing ? dummy_func : jacobimatrix,
       jacobibandstruct,jac_lprefix
       )
 
@@ -397,8 +395,8 @@ function doRadauSolverCall{FInt<:FortranInt}(
   end
 
   args.FCN = unsafe_HW2RHSCallback_c(cbi, FInt(0))
-  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
-        unsafe_radauSoloutCallback_c(cbi, FInt(0)):
+  args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
+        unsafe_radauSoloutCallback_c(cbi, FInt(0)) :
         cfunction(dummy_func, Void, () )
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
@@ -490,13 +488,13 @@ function radau5_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("radau5",rhs,t0,T,x0,opt)
   
   (method_radau5, method_contr5) = getAllMethodPtrs(
-     (FInt == Int64)? DL_RADAU5 : DL_RADAU5_I32 )
+     (FInt == Int64) ? DL_RADAU5 : DL_RADAU5_I32 )
   
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
   
-  args.ITOL = [ scalarFlag?0:1 ]
-  args.IOUT = [ output_mode == OUTPUTFCN_NEVER? 0: 1 ]
+  args.ITOL = [ scalarFlag ? 0 : 1 ]
+  args.IOUT = [ output_mode == OUTPUTFCN_NEVER ? 0 : 1 ]
 
   (M1,M2,NM1) = extractSpecialStructureOpt(d,opt)
   massmatrix = extractMassMatrix(M1,M2,NM1,args,opt)
@@ -508,12 +506,12 @@ function radau5_impl{FInt<:FortranInt}(rhs::Function,
   flag_jband = args.MLJAC[1] < NM1
   
   # WORK memory
-  ljac = flag_jband? 1+args.MLJAC[1]+args.MUJAC[1]: NM1
-  lmas = (!flag_implct)? 0 :
-         (args.MLMAS[1] == NM1)? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
-  le   = flag_jband? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
+  ljac = flag_jband ? 1+args.MLJAC[1]+args.MUJAC[1] : NM1
+  lmas = (!flag_implct) ? 0 :
+         (args.MLMAS[1] == NM1) ? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
+  le   = flag_jband ? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
 
-  args.LWORK = [ (M1==0)? d*(ljac+lmas+3*le+12)+20 :
+  args.LWORK = [ (M1==0) ? d*(ljac+lmas+3*le+12)+20 :
                         d*(ljac+12)+NM1*(lmas+3*le)+20 ]
   args.WORK = zeros(Float64,args.LWORK[1])
 
@@ -767,13 +765,13 @@ function radau_impl{FInt<:FortranInt}(rhs::Function,
   (lio,l,l_g,l_solver,lprefix) = solver_start("radau5",rhs,t0,T,x0,opt)
   
   (method_radau, method_contra) = getAllMethodPtrs(
-     (FInt == Int64)? DL_RADAU : DL_RADAU_I32 )
+     (FInt == Int64) ? DL_RADAU : DL_RADAU_I32 )
   
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
   
-  args.ITOL = [ scalarFlag?0:1 ]
-  args.IOUT = [ output_mode == OUTPUTFCN_NEVER? 0: 1 ]
+  args.ITOL = [ scalarFlag ? 0 : 1 ]
+  args.IOUT = [ output_mode == OUTPUTFCN_NEVER ? 0 : 1 ]
 
   (M1,M2,NM1) = extractSpecialStructureOpt(d,opt)
   massmatrix = extractMassMatrix(M1,M2,NM1,args,opt)
@@ -794,13 +792,13 @@ function radau_impl{FInt<:FortranInt}(rhs::Function,
   end
 
   # WORK memory
-  ljac = flag_jband? 1+args.MLJAC[1]+args.MUJAC[1]: NM1
-  lmas = (!flag_implct)? 0 :
-         (args.MLMAS[1] == NM1)? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
-  le   = flag_jband? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
+  ljac = flag_jband ? 1+args.MLJAC[1]+args.MUJAC[1] : NM1
+  lmas = (!flag_implct) ? 0 :
+         (args.MLMAS[1] == NM1) ? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
+  le   = flag_jband ? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
   
-  args.LWORK = [ (M1==0)? d*(ljac+lmas+NSMAX*le+3*NSMAX+3)+20 :
-                          d*(ljac+3*NSMAX+3)+NM1*(lmas+NSMAX*le)+20 ]
+  args.LWORK = [ (M1==0) ? d*(ljac+lmas+NSMAX*le+3*NSMAX+3)+20 :
+                           d*(ljac+3*NSMAX+3)+NM1*(lmas+NSMAX*le)+20 ]
   args.WORK = zeros(Float64,args.LWORK[1])
    
   # IWORK memoery

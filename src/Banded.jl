@@ -71,7 +71,7 @@ end
   A matrix has upper bandwidth u, if all diagonals above the u upper diagonal
   have only zeros. In the above example the matrix has upper bandwidth u=2.
   
-  A m×n matrix (with m,n≥2) is called banded, if it has a 
+  A m×n matrix (with m,n ≥ 2) is called banded, if it has a 
   lower bandwidth l<m-2 and/or a upper bandwidth u<n-2.
 
   ## What is this type for?
@@ -91,7 +91,7 @@ end
   There is a constructur, where you can give the entries array for
   the non-zero elements (diagonals) as input argument.
   """
-immutable BandedMatrix{T}    <: AbstractMatrix{T}
+struct BandedMatrix{T}    <: AbstractMatrix{T}
   m            :: Integer               # number of rows of banded matrix
   n            :: Integer               # number of colums
                                         #    currently: n == size(entries,2)
@@ -99,13 +99,12 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
   u            :: Integer               # upper bandwidth
   entries      :: AbstractArray{T}      # array with entries
   
-  @WHEREFUNC(T, 
   function BandedMatrix{T}(m::Integer,n::Integer,l::Integer,u::Integer,
-                                entries::AbstractArray{T})
-    m≥1 || throw(ArgumentErrorODE("requirement m≥1", :m))
-    n≥1 || throw(ArgumentErrorODE("requirement n≥1", :n))
-    l≥0 || throw(ArgumentErrorODE("requirement l≥0", :l))
-    u≥0 || throw(ArgumentErrorODE("requirement u≥0", :u))
+                                entries::AbstractArray{T}) where T
+    m ≥ 1 || throw(ArgumentErrorODE("requirement m≥1", :m))
+    n ≥ 1 || throw(ArgumentErrorODE("requirement n≥1", :n))
+    l ≥ 0 || throw(ArgumentErrorODE("requirement l≥0", :l))
+    u ≥ 0 || throw(ArgumentErrorODE("requirement u≥0", :u))
     l+1 > m &&
         throw(ArgumentErrorODE("requirement: l=$l ≤ m-1 = $m -1", :l))
     u+1 > n &&
@@ -117,7 +116,6 @@ immutable BandedMatrix{T}    <: AbstractMatrix{T}
     fill!(entries, zero(T))
     return new{T}(m, n, l, u, entries)
   end
-  )
 end
 
 """
@@ -210,7 +208,7 @@ end
 
 function size(bm::BandedMatrix,d::Integer)
   if d<1
-    throw(ArgumentErrorODE("requirement: d≥1, d=$d",:d))
+    throw(ArgumentErrorODE("requirement: d ≥ 1, d=$d",:d))
   end
   return  1==d ? bm.m  : 2==d ? bm.n  : 1
 end
@@ -319,7 +317,7 @@ function setindex!(bm::BandedMatrix,value,i::Integer,ra::UnitRange)
                                    throw(BoundsError(bm,(i,ra))) 
   ni = i+bm.u+1-ra.start; nj = ra.start
   for k = 1:length(ra)
-    bm.entries[ni,nj] = isa(value,Number)?value:value[k]
+    bm.entries[ni,nj] = isa(value,Number) ? value : value[k]
     ni -= 1; nj += 1
   end
 end
@@ -331,7 +329,7 @@ function setindex!(bm::BandedMatrix,value,zra::UnitRange,sra::UnitRange)
   for nj in sra
     ni = zra.start+bm.u+1-nj; 
     for z = 1:length(zra)
-      bm.entries[ni,nj] = isa(value,Number)?value:value[z,s]
+      bm.entries[ni,nj] = isa(value,Number) ? value : value[z,s]
       ni += 1;
     end
     s += 1
@@ -340,7 +338,7 @@ end
 
 function getindex{T}(bm::BandedMatrix{T},i::Integer,j::Integer)
   ((1 ≤ i ≤ bm.m) && (1 ≤ j ≤ bm.n)) || throw(BoundsError(bm,(i,j)))
-  return isinband(bm,i,j)?bm.entries[i-j+bm.u+1,j]:zero(T)
+  return isinband(bm,i,j) ? bm.entries[i-j+bm.u+1,j] : zero(T)
 end
 
 function getindex{T}(bm::BandedMatrix{T},ind::Integer)

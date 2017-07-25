@@ -87,7 +87,7 @@ function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
     s = sign(T-t0)   # direction: forward or backward in time
     if any( x -> sign(x) != s, diff(t) )
       throw(ArgumentErrorODE(string("Because sign(T-t0)=sign($T-$t0)=$s ",
-        "the vector t has to be ",(T≥t0?"ascending":"descending"),
+        "the vector t has to be ",(T ≥ t0 ? "ascending" : "descending"),
         ". But this is not the case."),:t))
     end
     # We know the size of tVec and xVec (if the solver completes)

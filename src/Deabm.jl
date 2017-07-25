@@ -47,7 +47,7 @@ end
 
   see also help of `ODEInterface.SLATEC_continuation_call`.
   """
-type DdeabmInternalCallInfos{FInt<:FortranInt,
+mutable struct DdeabmInternalCallInfos{FInt<:FortranInt,
         RHS_F<:Function, OUT_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -64,13 +64,13 @@ type DdeabmInternalCallInfos{FInt<:FortranInt,
 end
 
 """
-       type DdeabmArguments{FInt} <: AbstractArgumentsODESolver{FInt}
+       mutable struct DdeabmArguments{FInt} <: AbstractArgumentsODESolver{FInt}
 
   Stores Arguments for Ddeabm solver.
 
   FInt is the Integer type used for the fortran compilation.
   """
-type DdeabmArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct DdeabmArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   FCN     :: Ptr{Void}         # rhs callback
   N       :: Vector{FInt}      # Dimension: NEQ
   t       :: Vector{Float64}   # start time (and current)
@@ -87,11 +87,9 @@ type DdeabmArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{DdeabmInternalCallInfos} # misuse IPAR
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function DdeabmArguments{FInt}(dummy::FInt)
+  function DdeabmArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 """

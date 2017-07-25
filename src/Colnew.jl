@@ -42,7 +42,7 @@ colnew_global_cbi = nothing
   We have the typical calling stack:
 
   """
-type ColnewInternalCallInfos{FInt<:FortranInt, 
+mutable struct ColnewInternalCallInfos{FInt<:FortranInt, 
         RHS_F<:Function, DRHS_F<:Function,
         BC_F<:Function, DBC_F<:Function,
         GUESS_F<:Function} <: ODEinternalCallInfos
@@ -71,7 +71,7 @@ type ColnewInternalCallInfos{FInt<:FortranInt,
   guess_lprefix:: AbstractString        # saved log-prefix for guess
 end
 
-type ColnewArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct ColnewArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   NCOMP   :: Vector{FInt}      # number of diff. equations
   M       :: Vector{FInt}      # order of the j-th diff. eq.
   ALEFT   :: Vector{Float64}   # left end of (time-)interval
@@ -85,14 +85,12 @@ type ColnewArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   FSPACE  :: Vector{Float64}   # floating-point work space
   IFLAG   :: Vector{FInt}      # return-code of colnew
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function ColnewArguments{FInt}(dummy::FInt)
+  function ColnewArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
-type ColnewSolution{FInt<:FortranInt} <: AbstractODESolution{FInt}
+mutable struct ColnewSolution{FInt<:FortranInt} <: AbstractODESolution{FInt}
   method_appsln :: Ptr{Void}   # Ptr to Fortran-method for solution eval
   t_a     :: Float64           # a
   t_b     :: Float64           # b
@@ -570,7 +568,7 @@ function colnew_impl{FInt<:FortranInt}(
   end
 
   (method_colnew, method_appsln) = getAllMethodPtrs(
-    (FInt == Int64)? DL_COLNEW : DL_COLNEW_I32 )
+    (FInt == Int64) ? DL_COLNEW : DL_COLNEW_I32 )
 
   # (time-)vector with interval [a,b]
   t_ab = nothing

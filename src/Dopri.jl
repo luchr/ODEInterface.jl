@@ -23,7 +23,7 @@
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type DopriInternalCallInfos{FInt<:FortranInt, 
+mutable struct DopriInternalCallInfos{FInt<:FortranInt, 
         RHS_F<:Function, OUT_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -49,14 +49,14 @@ type DopriInternalCallInfos{FInt<:FortranInt,
 end
 
 """
-       type DopriArguments{FInt<:FortranInt} <: 
+       mutable struct DopriArguments{FInt<:FortranInt} <: 
                 AbstractArgumentsODESolver{FInt}
   
   Stores Arguments for Dopri solver.
   
   FInt is the Integer type used for the fortran compilation.
   """
-type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
+mutable struct DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
   FCN     :: Ptr{Void}         # rhs callback
   t       :: Vector{Float64}   # start time (and current)
@@ -75,11 +75,9 @@ type DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   IPAR    :: Ref{DopriInternalCallInfos} # misuse IPAR
   IDID    :: Vector{FInt}      # Status code
     ## Allow uninitialized construction
-  @WHEREFUNC(FInt,
-  function DopriArguments{FInt}(dummy::FInt)
+  function DopriArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
   end
-  )
 end
 
 """
@@ -226,9 +224,9 @@ function dopri_extract_commonOpt{FInt<:FortranInt}(
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
 
-  args.ITOL = [ scalarFlag?0:1 ]
-  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER? 0:
-                     (output_mode == OUTPUTFCN_DENSE?2:1) )]
+  args.ITOL = [ scalarFlag ? 0 : 1 ]
+  args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
+                     (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
   
   return (d,nrdense,rhs_mode,output_mode,output_fcn)
 end
