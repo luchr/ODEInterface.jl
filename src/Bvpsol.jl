@@ -71,8 +71,8 @@ bvpsol_global_cbi = nothing
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        BC_F<:Function, ODESOL_F<:Function} <: ODEinternalCallInfos
+type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F,
+        BC_F, ODESOL_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -361,7 +361,7 @@ function bvpsol_i32(rhs, bc,
 end
 
 function bvpsol_impl{FInt<:FortranInt}(rhs, bc,
-  t::Vector, x::Matrix, odesolver, 
+  t::Vector, x::Matrix, odesolver,
   opt::AbstractOptionsODE, args::BvpsolArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("bvpsol",opt)

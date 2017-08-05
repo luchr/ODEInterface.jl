@@ -54,8 +54,8 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type SeulexInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
+type SeulexInternalCallInfos{FInt<:FortranInt, RHS_F,
+        OUT_F, JAC_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
@@ -410,7 +410,7 @@ function seulex_i32(rhs, t0::Real, T::Real,
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}(Int32(0)))
 end
 
-function seulex_impl{FInt<:FortranInt}(rhs, 
+function seulex_impl{FInt<:FortranInt}(rhs,
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::SeulexArguments{FInt})
 

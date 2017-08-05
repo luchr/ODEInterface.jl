@@ -51,7 +51,7 @@ end
                output_fcn ( ... DONE ...)
   """
 type OdexInternalCallInfos{FInt<:FortranInt,
-       RHS_F<:Function, OUT_F<:Function } <: ODEinternalCallInfos
+       RHS_F, OUT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:

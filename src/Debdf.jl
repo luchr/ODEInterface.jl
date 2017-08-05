@@ -52,8 +52,8 @@ end
   see also help of `ODEInterface.SLATEC_continuation_call`.
   """
 type DdebdfInternalCallInfos{FInt<:FortranInt,
-        RHS_F<:Function, OUT_F<:Function,
-        JAC_F<:Function, VIEW_F<:Function} <: ODEinternalCallInfos
+        RHS_F, OUT_F,
+        JAC_F, VIEW_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -241,7 +241,7 @@ const ddebdf_maxnum = 500
       ╚═══════════════════╧══════════════════════════════════════════════════╝
 
   """
-function ddebdf_impl{FInt<:FortranInt}(rhs, 
+function ddebdf_impl{FInt<:FortranInt}(rhs,
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::DdebdfArguments{FInt})
 

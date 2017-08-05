@@ -43,9 +43,9 @@ colnew_global_cbi = nothing
 
   """
 type ColnewInternalCallInfos{FInt<:FortranInt,
-        RHS_F<:Function, DRHS_F<:Function,
-        BC_F<:Function, DBC_F<:Function,
-        GUESS_F<:Function} <: ODEinternalCallInfos
+        RHS_F, DRHS_F,
+        BC_F, DBC_F,
+        GUESS_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   n            :: FInt                  # number of ODEs

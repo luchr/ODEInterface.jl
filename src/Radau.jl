@@ -82,8 +82,8 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
+type RadauInternalCallInfos{FInt<:FortranInt, RHS_F,
+        OUT_F, JAC_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
