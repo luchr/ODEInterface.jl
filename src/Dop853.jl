@@ -40,7 +40,7 @@ end
        -2: larger OPT_MAXSTEPS is needed
        -3: step size becomes too small
        -4: problem is probably stiff (interrupted)
-  
+
   main call for using Fortran-dopri5 solver. In `opt` the following
   options are used:
 
@@ -94,10 +94,10 @@ end
       ║ INITIALSS       │ initial step size                        │     0.0 ║
       ║                 │ if OPT_INITIALSS == 0 then a initial     │         ║
       ║                 │ guess is computed                        │         ║
-      ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
-  
+      ╚═════════════════╧══════════════════════════════════════════╧═════════╝
+
   """
-function dop853(rhs::Function, t0::Real, T::Real,
+function dop853(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(Int64(0)))
 end
@@ -105,20 +105,20 @@ end
 """
   dop853 with 32bit integers, see dop853
   """
-function dop853_i32(rhs::Function, t0::Real, T::Real,
+function dop853_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int32}(Int32(0)))
 end
 
 """
-        function dop853_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, 
+        function dop853_impl{FInt<:FortranInt}(rhs::Function,
+                t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE,args::DopriArguments{FInt})
-  
+
   implementation of dop853 for FInt.
   """
-function dop853_impl{FInt<:FortranInt}(rhs::Function, 
-        t0::Real, T::Real, x0::Vector, 
+function dop853_impl{FInt<:FortranInt}(rhs,
+        t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE,args::DopriArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("dop853",rhs,t0,T,x0,opt)
@@ -126,7 +126,7 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
   (method_dop853, method_contd8) = getAllMethodPtrs(
      (FInt == Int64)? DL_DOP853 : DL_DOP853_I32 )
 
-  (d,nrdense,rhs_mode,output_mode,output_fcn) = 
+  (d,nrdense,rhs_mode,output_mode,output_fcn) =
     dopri_extract_commonOpt(t0,T,x0,opt,args)
 
   # WORK memory
@@ -176,7 +176,7 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
   out_lprefix = "unsafe_dopriSoloutCallback: "
   eval_lprefix = "eval_sol_fcn_closure: "
 
-  cbi = DopriInternalCallInfos(lio,l,rhs,rhs_mode,rhs_lprefix, 
+  cbi = DopriInternalCallInfos(lio,l,rhs,rhs_mode,rhs_lprefix,
       output_mode,output_fcn,
       Dict(), out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
@@ -190,7 +190,7 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER?
      unsafe_dopriSoloutCallback_c(cbi, FInt(0)):
-     cfunction(dummy_func, Void, () ) 
+     cfunction(dummy_func, Void, () )
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&
@@ -212,9 +212,9 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
      Ptr{Float64}, Ref{DopriInternalCallInfos}, # RPAR, IPAR,
      Ptr{FInt},                                 #  IDID
     ),
-    args.N, args.FCN, 
+    args.N, args.FCN,
     args.t, args.x, args.tEnd,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.SOLOUT, args.IOUT,
     args.WORK, args.LWORK,
     args.IWORK, args.LIWORK,
@@ -242,8 +242,8 @@ function dop853_impl{FInt<:FortranInt}(rhs::Function,
 
 end
 
-"""  
-  ## Compile DOP853 
+"""
+  ## Compile DOP853
 
   The julia ODEInterface tries to compile and link the solvers
   automatically at the build-time of this module. The following
@@ -251,67 +251,67 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_dop853_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile DOP853 with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dop853.o dop853.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
+
        gfortran -shared -fPIC -o dop853.so dop853.o
        gfortran -shared -fPIC -o dop853.dylib dop853.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile DOP853 with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dop853.o dop853.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
+
        gfortran -shared -o dop853.dll dop853.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile DOP853 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC  
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC
+                -fdefault-real-8 -fdefault-double-8
                 -o dop853_i32.o   dop853.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
        gfortran -shared -fPIC -o dop853_i32.so dop853_i32.o
        gfortran -shared -fPIC -o dop853_i32.dylib dop853_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile DOP853 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
+
        gfortran -c
-                -fdefault-real-8 -fdefault-double-8 
+                -fdefault-real-8 -fdefault-double-8
                 -o dop853_i32.o   dop853.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o dop853_i32.dll dop853_i32.o
-  
+
   """
 function help_dop853_compile()
   return Docs.doc(help_dop853_compile)
@@ -327,10 +327,10 @@ end
 push!(solverInfo,
   SolverInfo("dop853",
     "Runge-Kutta method of order 8(5,3) due to Dormand & Prince",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
-          :OPT_MAXSTEPS, :OPT_STEST, :OPT_EPS, :OPT_RHO, 
-          :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_SSBETA, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
+          :OPT_MAXSTEPS, :OPT_STEST, :OPT_EPS, :OPT_RHO,
+          :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_SSBETA,
           :OPT_MAXSS, :OPT_INITIALSS),
     tuple(
       SolverVariant("dop853_i64",

@@ -56,14 +56,14 @@ end
 
 """
   Type encapsulating all required data for Radau5/Radau-Solver-Callbacks.
-  
+
   We have the typical calling stack:
 
        radau5/radau
            call_julia_output_fcn(  ... INIT ... )
                output_fcn ( ... INIT ...)
            ccall( RADAU5_/RADAU_ ... )
-               unsafe_HW1MassCallback  
+               unsafe_HW1MassCallback
               ┌───────────────────────────────────────────┐  ⎫
               │unsafe_HW2RHSCallback                      │  ⎬ cb. rhs
               │    rhs                                    │  ⎪
@@ -82,7 +82,7 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
+type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
         OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -90,7 +90,7 @@ type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   M1           :: FInt
   M2           :: FInt
   # RHS:
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # SOLOUT & output function
@@ -98,7 +98,7 @@ type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   output_fcn   :: OUT_F                 # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
   out_lprefix  :: AbstractString        # saved log-prefix for solout
-  eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_sol_fcn :: Function              # eval_sol_fcn
   eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
@@ -116,11 +116,11 @@ type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
 end
 
 """
-       type RadauArguments{FInt<:FortranInt} <: 
+       type RadauArguments{FInt<:FortranInt} <:
                 AbstractArgumentsODESolver{FInt}
-  
+
   Stores Arguments for Radau5 and Radau solver.
-  
+
   FInt is the Integer type used for the fortran compilation.
   """
 type RadauArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
@@ -161,34 +161,34 @@ end
 
 """
         function unsafe_radauSoloutCallback{FInt<:FortranInt}(
-                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-                n_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt},
+                n_::Ptr{FInt}, rpar_::Ptr{Float64},
                 ipar_::Ptr{FInt}, irtrn_::Ptr{FInt})
-  
+
   This is the solout given as callback to Fortran radau5/radau.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
   `RadauInternalCallInfos`, where they can be found by
   the `eval_sol_fcn`, see `create_radau_eval_sol_fcn_closure`.
-  
+
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
-  
+
   The return value of the `output_fcn` is propagated to `RADAU5_`/`RADAU_`.
-  
+
   For the typical calling sequence, see `RadauInternalCallInfos`.
   """
 function unsafe_radauSoloutCallback{FInt<:FortranInt,
         CI<:RadauInternalCallInfos}(
-        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-        n_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt},
+        n_::Ptr{FInt}, rpar_::Ptr{Float64},
         cbi::CI, irtrn_::Ptr{FInt})
-  
+
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_);
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -199,11 +199,11 @@ function unsafe_radauSoloutCallback{FInt<:FortranInt,
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
                                " t=",t," x=",x)
-  
+
   cbi.tOld = told; cbi.tNew = t; cbi.xNew = x;
   cbi.cont_cont = cont_; cbi.cont_lrc = lrc_;
   cbi.output_data["nr"] = nr
-  
+
   ret = call_julia_output_fcn(cbi,OUTPUTFCN_CALL_STEP,told,t,x,
                               cbi.eval_sol_fcn)
 
@@ -217,12 +217,12 @@ function unsafe_radauSoloutCallback{FInt<:FortranInt,
   else
     throw(InternalErrorODE(string("Unkown ret=",ret," of output function")))
   end
-  
+
   return nothing
 end
 
 """
-        function unsafe_radauSoloutCallback_c{FInt,CI}(cbi::CI, 
+        function unsafe_radauSoloutCallback_c{FInt,CI}(cbi::CI,
                 fint_flag::FInt)
   """
 function unsafe_radauSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
@@ -236,9 +236,9 @@ end
         function create_radau_eval_sol_fcn_closure{FInt<:FortranInt,
                 CI<:RadauInternalCallInfos}(
                 cbi::CI, d::FInt, method_cont::Ptr{Void})
-  
+
   generates a eval_sol_fcn for radau and radau5.
-  
+
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTR5_` OR `CONTRA_` (with `ccall`).
   But `CONTR5_`/`CONTRA_` need the informations for the current state. This
@@ -246,7 +246,7 @@ end
   `RadauInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   Here comes `create_radau_eval_sol_fcn_closure` into play: this function
   takes call informations and generates a `eval_sol_fcn` with this data.
-  
+
   Why doesn't `unsafe_radauSoloutCallback` generate a closure (then
   the current state needs not to be saved in `RadauInternalCallInfos`)?
   Because then every call to `unsafe_radauSoloutCallback` would have
@@ -259,7 +259,7 @@ end
 function create_radau_eval_sol_fcn_closure{FInt<:FortranInt,
         CI<:RadauInternalCallInfos}(
         cbi::CI, d::FInt, method_cont::Ptr{Void})
-  
+
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -279,7 +279,7 @@ function create_radau_eval_sol_fcn_closure{FInt<:FortranInt,
           )
       end
     end
-    
+
     l_eval && println(lio,lprefix,"contr5 returned ",result)
     return result
   end
@@ -297,9 +297,9 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
   OPT = nothing
   try
     # fill IWORK
-    OPT=OPT_TRANSJTOH; 
+    OPT=OPT_TRANSJTOH;
     transjtoh  = convert(Bool,getOption(opt,OPT,false))
-    @assert (!transjtoh) || 
+    @assert (!transjtoh) ||
             ( (!flag_jband) && (!flag_implct ))  string(
             "Does not work, if the jacobian is banded or if the system ",
             " has a mass matrix (≠Id).")
@@ -310,7 +310,7 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
 
     OPT=OPT_NEWTONSTARTZERO; zflag = convert(Bool,getOption(opt,OPT,false))
     args.IWORK[4] = zflag? 1 : 0
-    
+
     OPT=OPT_DIMOFIND1VAR; args.IWORK[5] = convert(FInt,getOption(opt,OPT,d))
     @assert 0 < args.IWORK[5]
     OPT=OPT_DIMOFIND2VAR; args.IWORK[6] = convert(FInt,getOption(opt,OPT,0))
@@ -323,8 +323,8 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
     @assert(d == args.IWORK[5]+args.IWORK[6]+args.IWORK[7],string(
       "Sum of dim1, dim2 and dim3 variables must be the dimension of the ",
       "system."))
-    
-    OPT = OPT_STEPSIZESTRATEGY; 
+
+    OPT = OPT_STEPSIZESTRATEGY;
     args.IWORK[8] = convert(FInt,getOption(opt,OPT,1))
     @assert args.IWORK[8] ∈ (1,2,)
 
@@ -335,7 +335,7 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
     OPT = OPT_RHO
     args.WORK[2] = convert(Float64,getOption(opt,OPT,0.9))
     @assert 0.001 < args.WORK[2] < 1.0
-    
+
     OPT = OPT_JACRECOMPFACTOR
     args.WORK[3] = convert(Float64,getOption(opt,OPT,0.001))
     @assert !(args.WORK[3]==0)
@@ -347,10 +347,10 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
     OPT = OPT_FREEZESSRIGHT
     args.WORK[6] = convert(Float64,getOption(opt,OPT,1.2))
     @assert args.WORK[6] ≥ 1.0
-    
+
     OPT=OPT_MAXSS; args.WORK[7]=convert(Float64,getOption(opt,OPT,T-t0))
     @assert 0 ≠ args.WORK[7]
-    
+
     OPT=OPT_SSMINSEL; args.WORK[8]=convert(Float64,getOption(opt,OPT,0.2))
     @assert args.WORK[8] ≤ 1
     OPT=OPT_SSMAXSEL; args.WORK[9]=convert(Float64,getOption(opt,OPT,8.0))
@@ -368,7 +368,7 @@ function extractCommonRadauOpt{FInt<:FortranInt}(
   rhs_lprefix = "unsafe_HW2RHSCallback: "
   out_lprefix = "unsafe_radauSoloutCallback: "
   eval_lprefix = "eval_sol_fcn_closure: "
-  
+
   return (rhs_lprefix,out_lprefix,eval_lprefix)
 end
 
@@ -376,7 +376,7 @@ end
   calls the radau5 or radau solver after all solver arguments are prepared.
   """
 function doRadauSolverCall{FInt<:FortranInt}(
-        lio,l,l_g,l_solver,lprefix, d::FInt,M1::FInt,M2::FInt, 
+        lio,l,l_g,l_solver,lprefix, d::FInt,M1::FInt,M2::FInt,
         rhs,rhs_mode,rhs_lprefix, output_mode,output_fcn,out_lprefix,
         eval_lprefix,massmatrix, jacobimatrix,jacobibandstruct,
         jac_lprefix,args,method_solver,method_cont)
@@ -429,7 +429,7 @@ function doRadauSolverCall{FInt<:FortranInt}(
     args.N, args.FCN,
     args.t, args.x, args.tEnd,
     args.H,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.JAC, args.IJAC, args.MLJAC, args.MUJAC,
     args.MAS, args.IMAS, args.MLMAS, args.MUMAS,
     args.SOLOUT, args.IOUT,
@@ -463,7 +463,7 @@ end
 
 # Same documentation than for radau, is copied after
 # the definition of the radau function.
-function radau5(rhs::Function, t0::Real, T::Real,
+function radau5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
@@ -471,42 +471,42 @@ end
 """
   radau5 with 32bit integers, see radau5.
   """
-function radau5_i32(rhs::Function, t0::Real, T::Real,
+function radau5_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}(Int32(0)))
 end
 
 """
-        function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+        function radau5_impl{FInt<:FortranInt}(rhs::Function,
                 t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  
+
   implementation of radau5 for FInt.
   """
-function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+function radau5_impl{FInt<:FortranInt}(rhs,
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::RadauArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("radau5",rhs,t0,T,x0,opt)
-  
+
   (method_radau5, method_contr5) = getAllMethodPtrs(
      (FInt == Int64)? DL_RADAU5 : DL_RADAU5_I32 )
-  
+
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
-  
+
   args.ITOL = [ scalarFlag?0:1 ]
   args.IOUT = [ output_mode == OUTPUTFCN_NEVER? 0: 1 ]
 
   (M1,M2,NM1) = extractSpecialStructureOpt(d,opt)
   massmatrix = extractMassMatrix(M1,M2,NM1,args,opt)
-  
+
   (jacobimatrix,jacobibandstruct,jac_lprefix) =
     extractJacobiOpt(d,M1,M2,NM1,args,opt)
-  
+
   flag_implct = args.IMAS[1] ≠ 0
   flag_jband = args.MLJAC[1] < NM1
-  
+
   # WORK memory
   ljac = flag_jband? 1+args.MLJAC[1]+args.MUJAC[1]: NM1
   lmas = (!flag_implct)? 0 :
@@ -522,7 +522,7 @@ function radau5_impl{FInt<:FortranInt}(rhs::Function,
   args.IWORK = zeros(FInt,args.LIWORK[1])
 
   args.IWORK[9] = M1; args.IWORK[10] = M2
-  (rhs_lprefix,out_lprefix,eval_lprefix) = 
+  (rhs_lprefix,out_lprefix,eval_lprefix) =
     extractCommonRadauOpt(d,T,t0,args,opt)
 
   OPT = nothing
@@ -531,7 +531,7 @@ function radau5_impl{FInt<:FortranInt}(rhs::Function,
     @assert 0 < args.IWORK[3]
 
     OPT = OPT_NEWTONSTOPCRIT
-    args.WORK[4] = convert(Float64,getOption(opt,OPT, 
+    args.WORK[4] = convert(Float64,getOption(opt,OPT,
                            max(10*args.WORK[1]/args.RTOL[1],
                                min(0.03,sqrt(args.RTOL[1])))))
     @assert args.WORK[4]>args.WORK[1]/args.RTOL[1]
@@ -550,11 +550,11 @@ end
        function radau(rhs::Function, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
-       
+
        function radau5(rhs::Function, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
-  
+
   `retcode` can have the following values:
 
         1: computation successful
@@ -563,18 +563,18 @@ end
        -2: larger OPT_MAXSTEPS is needed
        -3: step size becomes too small
        -4: matrix is repeatedly singular
-  
+
   main call for using Fortran radau or radau5 solver.
-  
+
   This solver support problems with special structure, see
   `help_specialstructure`.
-  
+
   Remark:
-  Because radau and radau5 are collocation methods, there is no difference 
+  Because radau and radau5 are collocation methods, there is no difference
   in the computational costs for OUTPUTFCN_WODENSE and OUTPUTFCN_DENSE.
-  
+
   In `opt` the following options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -754,33 +754,33 @@ function radau_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-        function radau_impl{FInt<:FortranInt}(rhs::Function, 
+        function radau_impl{FInt<:FortranInt}(rhs::Function,
                 t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
-  
+
   implementation of radau for FInt.
   """
-function radau_impl{FInt<:FortranInt}(rhs::Function, 
+function radau_impl{FInt<:FortranInt}(rhs::Function,
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::RadauArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("radau5",rhs,t0,T,x0,opt)
-  
+
   (method_radau, method_contra) = getAllMethodPtrs(
      (FInt == Int64)? DL_RADAU : DL_RADAU_I32 )
-  
+
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
-  
+
   args.ITOL = [ scalarFlag?0:1 ]
   args.IOUT = [ output_mode == OUTPUTFCN_NEVER? 0: 1 ]
 
   (M1,M2,NM1) = extractSpecialStructureOpt(d,opt)
   massmatrix = extractMassMatrix(M1,M2,NM1,args,opt)
-  
+
   (jacobimatrix,jacobibandstruct,jac_lprefix) =
     extractJacobiOpt(d,M1,M2,NM1,args,opt)
-  
+
   flag_implct = args.IMAS[1] ≠ 0
   flag_jband = args.MLJAC[1] < NM1
 
@@ -798,31 +798,31 @@ function radau_impl{FInt<:FortranInt}(rhs::Function,
   lmas = (!flag_implct)? 0 :
          (args.MLMAS[1] == NM1)? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
   le   = flag_jband? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
-  
+
   args.LWORK = [ (M1==0)? d*(ljac+lmas+NSMAX*le+3*NSMAX+3)+20 :
                           d*(ljac+3*NSMAX+3)+NM1*(lmas+NSMAX*le)+20 ]
   args.WORK = zeros(Float64,args.LWORK[1])
-   
+
   # IWORK memoery
   args.LIWORK = [ (2+(NSMAX-1)÷2)*d+20  ]
   args.IWORK = zeros(FInt,args.LIWORK[1])
 
   args.IWORK[9] = M1; args.IWORK[10] = M2
-  (rhs_lprefix,out_lprefix,eval_lprefix) = 
+  (rhs_lprefix,out_lprefix,eval_lprefix) =
     extractCommonRadauOpt(d,T,t0,args,opt)
 
   try
     OPT=OPT_MAXNEWTONITER; args.IWORK[3] = convert(FInt,getOption(opt,OPT,7))
     @assert 0 < args.IWORK[3] < 50
-    
+
     OPT = OPT_MINSTAGES; NSMIN = convert(FInt,getOption(opt,OPT,3))
     @assert NSMIN ∈ (1,3,5,7) && NSMIN ≤ NSMAX
     args.IWORK[11] = NSMIN
-    
+
     OPT = OPT_INITSTAGES; NSINIT = convert(FInt,getOption(opt,OPT,NSMIN))
     @assert NSINIT ∈ (1,3,5,7) && NSMIN ≤ NSINIT ≤ NSMAX
     args.IWORK[13] = NSINIT
-    
+
     OPT = OPT_ORDERINCFACTOR
     orderincfactor = convert(Float64,getOption(opt,OPT,0.002))
     OPT = OPT_ORDERDECFACTOR
@@ -831,19 +831,19 @@ function radau_impl{FInt<:FortranInt}(rhs::Function,
     @assert 0 < orderincfactor < orderdecfactor
     args.WORK[10] = orderincfactor
     args.WORK[11] = orderdecfactor
-    
+
     OPT = OPT_ORDERDECSTEPFAC1
     orderdecstepfac1 = convert(Float64,getOption(opt,OPT,1.2))
     OPT = OPT_ORDERDECSTEPFAC2
     orderdecstepfac2 = convert(Float64,getOption(opt,OPT,0.8))
     OPT = string(OPT_ORDERDECSTEPFAC1," & ",OPT_ORDERDECSTEPFAC2)
     @assert 0 < orderdecstepfac2 < orderdecstepfac1
-    args.WORK[12] = orderdecstepfac1 
+    args.WORK[12] = orderdecstepfac1
     args.WORK[13] = orderdecstepfac2
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
-  
+
   return doRadauSolverCall(lio,l,l_g,l_solver,lprefix,d,M1,M2,
          rhs,rhs_mode,rhs_lprefix,output_mode,output_fcn,
          out_lprefix,eval_lprefix,massmatrix,
@@ -851,8 +851,8 @@ function radau_impl{FInt<:FortranInt}(rhs::Function,
          method_radau,method_contra)
 end
 
-"""  
-  ## Compile RADAU5 
+"""
+  ## Compile RADAU5
 
   The julia ODEInterface tries to compile and link the solvers
   automatically at the build-time of this module. The following
@@ -860,101 +860,101 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_radau5_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RADAU5 with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o radau5.o radau5.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o radau5.so 
+       gfortran -shared -fPIC -o radau5.so
                 radau5.o dc_lapack.o lapack.o lapackc.o
        gfortran -shared -fPIC -o radau5.dylib
                 radau5.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile RADAU5 with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o radau5.o radau5.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
-       gfortran -shared -o radau5.so 
+
+       gfortran -shared -o radau5.so
                 radau5.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RADAU5 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o radau5_i32.o radau5.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
-       gfortran -shared -fPIC -o radau5_i32.so 
+
+       gfortran -shared -fPIC -o radau5_i32.so
                  radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
        gfortran -shared -fPIC -o radau5_i32.dylib
                  radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile RADAU5 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o radau5_i32.o radau5.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o radau5_i32.dll
                  radau5_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   """
 function help_radau5_compile()
   return Docs.doc(help_radau5_compile)
@@ -966,8 +966,8 @@ end
 
 @doc(@doc(hw_license),help_radau5_license)
 
-"""  
-  ## Compile RADAU 
+"""
+  ## Compile RADAU
 
   The julia ODEInterface tries to compile and link the solvers
   automatically at the build-time of this module. The following
@@ -975,101 +975,101 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_radau_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RADAU with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o radau.o radau.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o radau.so 
+       gfortran -shared -fPIC -o radau.so
                 radau.o dc_lapack.o lapack.o lapackc.o
        gfortran -shared -fPIC -o radau.dylib
                 radau.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile RADAU with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o radau.o radau.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
-       gfortran -shared -o radau.so 
+
+       gfortran -shared -o radau.so
                 radau.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RADAU with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o radau_i32.o radau.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
-       gfortran -shared -fPIC -o radau_i32.so 
+
+       gfortran -shared -fPIC -o radau_i32.so
                  radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
        gfortran -shared -fPIC -o radau_i32.dylib
                  radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile RADAU with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o radau_i32.o radau.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o radau_i32.dll
                  radau_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   """
 function help_radau_compile()
   return Docs.doc(help_radau_compile)
@@ -1085,14 +1085,14 @@ end
 push!(solverInfo,
   SolverInfo("radau5",
     "Implicit Runge-Kutta method (Radau IIA) of order 5",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_M1, :OPT_M2,
           :OPT_MASSMATRIX,
           :OPT_TRANSJTOH, :OPT_MAXSTEPS, :OPT_MAXNEWTONITER,
-          :OPT_NEWTONSTARTZERO, 
+          :OPT_NEWTONSTARTZERO,
           :OPT_DIMOFIND1VAR, :OPT_DIMOFIND2VAR, :OPT_DIMOFIND3VAR,
-          :OPT_STEPSIZESTRATEGY, 
+          :OPT_STEPSIZESTRATEGY,
           :OPT_RHO, :OPT_JACRECOMPFACTOR, :OPT_NEWTONSTOPCRIT,
           :OPT_FREEZESSLEFT, :OPT_FREEZESSRIGHT,
           :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_INITIALSS,
@@ -1116,14 +1116,14 @@ push!(solverInfo,
 push!(solverInfo,
   SolverInfo("radau",
     "Implicit Runge-Kutta method (Radau IIA) of variable order ∈ (5,9,13)",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_M1, :OPT_M2,
           :OPT_MASSMATRIX,
           :OPT_TRANSJTOH, :OPT_MAXSTEPS, :OPT_MAXNEWTONITER,
-          :OPT_NEWTONSTARTZERO, 
+          :OPT_NEWTONSTARTZERO,
           :OPT_DIMOFIND1VAR, :OPT_DIMOFIND2VAR, :OPT_DIMOFIND3VAR,
-          :OPT_STEPSIZESTRATEGY, 
+          :OPT_STEPSIZESTRATEGY,
           :OPT_RHO, :OPT_JACRECOMPFACTOR, :OPT_NEWTONSTOPCRIT,
           :OPT_FREEZESSLEFT, :OPT_FREEZESSRIGHT,
           :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_INITIALSS,

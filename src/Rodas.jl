@@ -29,7 +29,7 @@ end
 
 """
   Type encapsulating all required data for Rodas-Solver-Callbacks.
-  
+
   We have the typical calling stack:
 
        rodas
@@ -59,7 +59,7 @@ end
                output_fcn ( ... DONE ...)
   """
 type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        OUT_F<:Function, JAC_F<:Function, RHSDT_F<:Function} <: 
+        OUT_F<:Function, JAC_F<:Function, RHSDT_F<:Function} <:
                 ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
@@ -67,7 +67,7 @@ type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   M1           :: FInt
   M2           :: FInt
   # RHS
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # RHS time derivative
@@ -78,7 +78,7 @@ type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
   output_fcn   :: OUT_F                 # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
   out_lprefix  :: AbstractString        # saved log-prefix for solout
-  eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_sol_fcn :: Function              # eval_sol_fcn
   eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
@@ -96,11 +96,11 @@ type RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
 end
 
 """
-       type RodasArguments{FInt<:FortranInt} <: 
+       type RodasArguments{FInt<:FortranInt} <:
                 AbstractArgumentsODESolver{FInt}
-  
+
   Stores Arguments for Rodas solver.
-  
+
   FInt is the Integer type used for the fortran compilation.
   """
 type RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
@@ -145,32 +145,32 @@ end
 """
         function unsafe_rodasSoloutCallback{FInt<:FortranInt,
                 CI<:RodasInternalCallInfos}(
-                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-                n_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI, 
+                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+                x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt},
+                n_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI,
                 irtrn_::Ptr{FInt})
-  
+
   This is the solout given as callback to Fortran-rodas.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
   `RodasInternalCallInfos`, where they can be found by
   the `eval_sol_fcn`, see `create_rodas_eval_sol_fcn_closure`.
-  
+
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
-  
+
   The return value of the `output_fcn` is propagated to `RODAS_`.
-  
+
   For the typical calling sequence, see `RodasInternalCallInfos`.
   """
 function unsafe_rodasSoloutCallback{FInt<:FortranInt,
         CI<:RodasInternalCallInfos}(
-        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-        n_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI, 
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+        x_::Ptr{Float64}, cont_::Ptr{Float64}, lrc_::Ptr{FInt},
+        n_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI,
         irtrn_::Ptr{FInt})
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
@@ -211,8 +211,8 @@ end
   """
 function unsafe_rodasSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
   return cfunction(unsafe_rodasSoloutCallback, Void, (Ptr{FInt},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{Float64}, Ptr{FInt}, 
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
+    Ptr{Float64}, Ptr{FInt},
     Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
 end
 
@@ -220,9 +220,9 @@ end
         function create_rodas_eval_sol_fcn_closure{FInt<:FortranInt,
                 CI<:RodasInternalCallInfos}(
                 cbi::CI, d::FInt, method_contro::Ptr{Void})
-  
+
   generates a eval_sol_fcn for rodas.
-  
+
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTRO_` (with `ccall`).
   But `CONTRO_` needs the informations for the current state. This
@@ -230,7 +230,7 @@ end
   `RodasInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   Here comes `create_rodas_eval_sol_fcn_closure` into play: this function
   takes the call informations and generates a `eval_sol_fcn` with this data.
-  
+
   Why doesn't `unsafe_rodasSoloutCallback` generate a closure (then
   the current state needs not to be saved in `RodasInternalCallInfos`)?
   Because then every call to `unsafe_rodasSoloutCallback` would have
@@ -243,7 +243,7 @@ end
 function create_rodas_eval_sol_fcn_closure{FInt<:FortranInt,
         CI<:RodasInternalCallInfos}(
         cbi::CI, d::FInt, method_contro::Ptr{Void})
-  
+
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -262,7 +262,7 @@ function create_rodas_eval_sol_fcn_closure{FInt<:FortranInt,
           cbi.cont_i,cbi.cont_s, cbi.cont_cont, cbi.cont_lrc)
       end
     end
-    
+
     l_eval && println(lio,lprefix,"contro returned ",result)
     return result
   end
@@ -274,7 +274,7 @@ end
         function rodas(rhs::Function, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
-  
+
 
   `retcode` can have the following values:
 
@@ -287,9 +287,9 @@ end
 
   This solver support problems with special structure, see
   `help_specialstructure`.
-  
+
   In `opt` the following options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -388,7 +388,7 @@ end
       ║                 │ matrix (BandedMatrix).                   │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function rodas(rhs::Function, t0::Real, T::Real,
+function rodas(rhs, t0::Real, T::Real,
                x0::Vector, opt::AbstractOptionsODE)
   return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}(Int64(0)))
 end
@@ -396,12 +396,12 @@ end
 """
   rodas with 32bit integers, see rodas.
   """
-function rodas_i32(rhs::Function, t0::Real, T::Real,
+function rodas_i32(rhs, t0::Real, T::Real,
                    x0::Vector, opt::AbstractOptionsODE)
   return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}(Int32(0)))
 end
 
-function rodas_impl{FInt<:FortranInt}(rhs::Function, 
+function rodas_impl{FInt<:FortranInt}(rhs,
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::RodasArguments{FInt})
 
@@ -454,11 +454,11 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
     OPT=OPT_METHODCHOICE; args.IWORK[2] = convert(FInt,getOption(opt,OPT,1))
     @assert 1 ≤ args.IWORK[2] ≤ 3
 
-    OPT = OPT_STEPSIZESTRATEGY; 
+    OPT = OPT_STEPSIZESTRATEGY;
     args.IWORK[3] = convert(FInt,getOption(opt,OPT,1))
     @assert args.IWORK[3] ∈ (1,2,)
 
-    args.IWORK[9] = M1 
+    args.IWORK[9] = M1
     args.IWORK[10] = M2
 
     OPT=OPT_EPS; args.WORK[1]=convert(Float64,getOption(opt,OPT,1e-16))
@@ -538,7 +538,7 @@ function rodas_impl{FInt<:FortranInt}(rhs::Function,
     args.N, args.FCN, args.IFCN,
     args.t, args.x, args.tEnd,
     args.H,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.JAC, args.IJAC, args.MLJAC, args.MUJAC,
     args.DFX, args.IDFX,
     args.MAS, args.IMAS, args.MLMAS, args.MUMAS,
@@ -580,91 +580,91 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_rodas_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RODAS with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o rodas.o rodas.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o rodas.so 
+       gfortran -shared -fPIC -o rodas.so
                 rodas.o dc_lapack.o lapack.o
        gfortran -shared -fPIC -o rodas.dylib
                 rodas.o dc_lapack.o lapack.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile RODAS with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o rodas.o rodas.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
-       gfortran -shared -o rodas.so 
+
+       gfortran -shared -o rodas.so
                 rodas.o dc_lapack.o lapack.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile RODAS with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o rodas_i32.o rodas.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
-       gfortran -shared -fPIC -o rodas_i32.so 
+
+       gfortran -shared -fPIC -o rodas_i32.so
                  rodas_i32.o dc_lapack_i32.o lapack_i32.o
        gfortran -shared -fPIC -o rodas_i32.dylib
                  rodas_i32.o dc_lapack_i32.o lapack_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile RODAS with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o rodas_i32.o rodas.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o rodas_i32.dll
                  rodas_i32.o dc_lapack_i32.o lapack_i32.o
-  
+
   """
 function help_rodas_compile()
   return Docs.doc(help_rodas_compile)
@@ -680,8 +680,8 @@ end
 push!(solverInfo,
   SolverInfo("rodas",
     "Rosenbrock method of order 4(3)",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_M1, :OPT_M2,
           :OPT_RHSAUTONOMOUS,
           :OPT_MASSMATRIX,

@@ -36,13 +36,13 @@ colnew_global_cbi = nothing
 
 """
   Type encapsulating all required data for colnew-Callbacks.
-  
+
   Unfortunately colnew.f does not support passthrough arguments.
-  
+
   We have the typical calling stack:
 
   """
-type ColnewInternalCallInfos{FInt<:FortranInt, 
+type ColnewInternalCallInfos{FInt<:FortranInt,
         RHS_F<:Function, DRHS_F<:Function,
         BC_F<:Function, DBC_F<:Function,
         GUESS_F<:Function} <: ODEinternalCallInfos
@@ -120,20 +120,20 @@ function colnew_rhs{CI}(t, z, f, cbi::CI)
 end
 
 """
-        function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64}, 
+        function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
           f_::Ptr{Float64})
 
   This is the right-hand side given as callback to colnew.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
-function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64}, 
+function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
   f_::Ptr{Float64})
 
   cbi = colnew_global_cbi :: ColnewInternalCallInfos
   n = cbi.n; d = cbi.d
-  
+
   t = unsafe_load(t_)
   z = unsafe_wrap(Array, z_, (d,), false)
   f = unsafe_wrap(Array, f_, (n,), false)
@@ -143,7 +143,7 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_rhs_c{FInt}(fint_flag::FInt)
-  return cfunction(unsafe_colnew_rhs, Void, 
+  return cfunction(unsafe_colnew_rhs, Void,
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
 
@@ -169,7 +169,7 @@ end
 
   This is the Jacobian for the right-hand side given as callback to colnew.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
@@ -214,7 +214,7 @@ end
   This is the side-/boundary-conditions given as callback
   to colnew.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_colnew_bc{FInt<:FortranInt}(i_::Ptr{FInt},
@@ -259,7 +259,7 @@ end
   This is the jacobian for the side-/boundary-conditions given as callback
   to colnew.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_colnew_Dbc{FInt<:FortranInt}(i_::Ptr{FInt},
@@ -298,7 +298,7 @@ end
 """
   This is the guess function given as callback to colnew.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
@@ -376,7 +376,7 @@ end
       function rhs(t, z, f)
 
   with the input data: t (scalar) time and z∈ℝᵈ (z=z(x(t))).
-  The values of the right-hand side have to be saved in f: f∈ℝⁿ! 
+  The values of the right-hand side have to be saved in f: f∈ℝⁿ!
   Only the non-trivial parts of the right-hand side must be calculated.
 
   ## Drhs
@@ -410,7 +410,7 @@ end
       function Dbc(i, z, dbc)
 
   with the input data: integer index i and z∈ℝᵈ (z=z(x(t))).
-  The  values of the derivative of the i-th side-condition 
+  The  values of the derivative of the i-th side-condition
   (at time ζ(i)) has to be saved in dbc:
 
                 ∂bcᵢ
@@ -437,7 +437,7 @@ end
 
   ## return values
 
-  `sol` is a solution object which can be evaluated with the 
+  `sol` is a solution object which can be evaluated with the
   `evalSolution` functions. Or you can ask for the (final) grid
   of the solution with `getSolutionGrid`.
 
@@ -451,7 +451,7 @@ end
         -3: there is an input data error
 
   In `opt` the following options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -536,10 +536,10 @@ end
 
   """
 function colnew(interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
+  rhs, Drhs,
   bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
 
-  return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt, 
+  return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt,
     ColnewArguments{Int64}(Int64(0)))
 end
 
@@ -547,17 +547,17 @@ end
   colnew with 32bit integers, see colnew.
   """
 function colnew_i32(interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
-  bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+  rhs, Drhs,
+  bc, Dbc, guess, opt::AbstractOptionsODE)
 
-  return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt, 
+  return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt,
     ColnewArguments{Int32}(Int32(0)))
 end
 
 function colnew_impl{FInt<:FortranInt}(
   interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
-  bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE,
+  rhs, Drhs,
+  bc, Dbc, guess, opt::AbstractOptionsODE,
   args::ColnewArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("colnew",opt)
@@ -578,7 +578,7 @@ function colnew_impl{FInt<:FortranInt}(
     t_ab = getVectorCheckLength(interval, Float64, 2)
   catch e
     throw(ArgumentErrorODE(
-      "cannot convert interval to Vector{Float64} with 2 components", 
+      "cannot convert interval to Vector{Float64} with 2 components",
       :interval, e))
   end
   t_ab[1] ≥ t_ab[2] && throw(ArgumentErrorODE(
@@ -639,7 +639,7 @@ function colnew_impl{FInt<:FortranInt}(
     # RTOL ( => ltol, tol)
     OPT = OPT_RTOL
     rtol = getOption(opt, OPT, 1e-6)
-    if isscalar(rtol) 
+    if isscalar(rtol)
       rtol = rtol*ones(Float64, d)
     end
     rtol = getVectorCheckLength(rtol, Float64, d, false)
@@ -656,7 +656,7 @@ function colnew_impl{FInt<:FortranInt}(
       "All components in RTOL were NaN!"), :opt)
     args.IPAR[4] = FInt( length(args.LTOL) )
 
-    OPT = OPT_BVPCLASS; 
+    OPT = OPT_BVPCLASS;
     bvpclass = convert(FInt, getOption(opt, OPT, 1))
     @assert 0 ≤ bvpclass ≤ 3
     args.IPAR[1] = FInt( bvpclass == 0 ? 0 : 1)
@@ -673,12 +673,12 @@ function colnew_impl{FInt<:FortranInt}(
 
     OPT = OPT_SUBINTERVALS
     subintervals = getOption(opt, OPT, 5)
-    if isscalar(subintervals) 
+    if isscalar(subintervals)
       args.IPAR[8] = FInt(0) # uniform(-like) initial grid
       args.IPAR[3] = FInt(subintervals)
       @assert 0 < args.IPAR[3] ≤ max_subintervals
     else
-      subintervals = getVectorCheckLength(subintervals, Float64, 
+      subintervals = getVectorCheckLength(subintervals, Float64,
         length(subintervals)) # always copy
       append!(subintervals, ζ)
       subintervals = unique(sort!(subintervals))
@@ -721,7 +721,7 @@ function colnew_impl{FInt<:FortranInt}(
     nsizef = 4 + 3*d + (5+kd)*kdm + (2*d-nrec)*2*d
 
     args.IPAR[5] = FInt(max_subintervals*nsizef)
-    args.IPAR[6] = FInt(max_subintervals*nsizei) 
+    args.IPAR[6] = FInt(max_subintervals*nsizei)
 
     args.FSPACE = zeros(Float64, args.IPAR[5])
     args.ISPACE = zeros(FInt, args.IPAR[6])
@@ -772,7 +772,7 @@ function colnew_impl{FInt<:FortranInt}(
   end
   cbi = nothing
   try
-    global colnew_global_cbi = cbi = ColnewInternalCallInfos(lio, l, n, d, 
+    global colnew_global_cbi = cbi = ColnewInternalCallInfos(lio, l, n, d,
       rhs, "unsafe_colnewrhs: ", 0,  Drhs, "unsafe_colnew_Drhs: ",0,
       bc, "unsafe_colnew_bc: ", 0,   Dbc, "unsafe_colnew_Dbc: ", 0,
       guess, "unsafe_colnew_guess")
@@ -816,7 +816,7 @@ function colnew_impl{FInt<:FortranInt}(
   end
   l_g && println(lio, lprefix, string("done IFALG=", args.IFLAG[1]))
   solobj = ColnewSolution(
-    method_appsln, t_ab[1], t_ab[2], n, d, 
+    method_appsln, t_ab[1], t_ab[2], n, d,
     args.ISPACE[1:(7+n)],
     args.FSPACE[1:args.ISPACE[7]])
   stats = Dict{AbstractString,Any}(
@@ -834,8 +834,8 @@ end
           t::Real, z::Array{Float64})
 
   Evaluates an already obtained solution `sol` at time `t`.
-  The values of the solution are saved in `z` which must be a 
-  vector (of length d). 
+  The values of the solution are saved in `z` which must be a
+  vector (of length d).
   `t` must be in the interval [a,b] where the problem was solved.
   """
 function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
@@ -853,14 +853,14 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
 end
 
 """
-        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
+        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
           t::Real)
 
   Evaluates an already obtained solution `sol` at time `t`.
   A newly allocated vector with the solution values is retured.
   `t` must be in the interval [a,b] where the problem was solved.
   """
-function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
+function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
   t::Real)
 
   z = Vector{Float64}(sol.d)
@@ -869,16 +869,16 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
 end
 
 """
-        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
+        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
           t::Vector)
 
   Evaluates an already obtained solution `sol` at time all
   times in the vector `t`.
-  A newly allocated matrix of size `(length(t), d)` with the solution 
+  A newly allocated matrix of size `(length(t), d)` with the solution
   values is retured.
   All values of `t` must be in the interval [a,b] where the problem was solved.
   """
-function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
+function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
   t::Vector)
 
   tno = length(t)
@@ -902,7 +902,7 @@ function getSolutionGrid{FInt<:FortranInt}(sol::ColnewSolution{FInt})
 end
 
 
-"""  
+"""
   ## Compile COLNEW
 
   The julia ODEInterface tries to compile and link the solvers
@@ -911,37 +911,37 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
+
        https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html
-  
+
   See `help_colnew_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile BVPSOL with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o colnew.o colnew.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
        gfortran -shared -fPIC -o colnew.so colnew.o
        gfortran -shared -fPIC -o colnew.dylib colnew.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile BVPSOL with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o colnew.o colnew.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
+
        gfortran -shared -o colnew.dll colnew.o
   """
 function help_colnew_compile()
@@ -958,104 +958,104 @@ end
   ```
                    GNU LESSER GENERAL PUBLIC LICENSE
                          Version 3, 29 June 2007
-  
+
    Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
    Everyone is permitted to copy and distribute verbatim copies
    of this license document, but changing it is not allowed.
-  
-  
+
+
     This version of the GNU Lesser General Public License incorporates
   the terms and conditions of version 3 of the GNU General Public
   License, supplemented by the additional permissions listed below.
-  
+
     0. Additional Definitions.
-  
+
     As used herein, "this License" refers to version 3 of the GNU Lesser
   General Public License, and the "GNU GPL" refers to version 3 of the GNU
   General Public License.
-  
+
     "The Library" refers to a covered work governed by this License,
   other than an Application or a Combined Work as defined below.
-  
+
     An "Application" is any work that makes use of an interface provided
   by the Library, but which is not otherwise based on the Library.
   Defining a subclass of a class defined by the Library is deemed a mode
   of using an interface provided by the Library.
-  
+
     A "Combined Work" is a work produced by combining or linking an
   Application with the Library.  The particular version of the Library
   with which the Combined Work was made is also called the "Linked
   Version".
-  
+
     The "Minimal Corresponding Source" for a Combined Work means the
   Corresponding Source for the Combined Work, excluding any source code
   for portions of the Combined Work that, considered in isolation, are
   based on the Application, and not on the Linked Version.
-  
+
     The "Corresponding Application Code" for a Combined Work means the
   object code and/or source code for the Application, including any data
   and utility programs needed for reproducing the Combined Work from the
   Application, but excluding the System Libraries of the Combined Work.
-  
+
     1. Exception to Section 3 of the GNU GPL.
-  
+
     You may convey a covered work under sections 3 and 4 of this License
   without being bound by section 3 of the GNU GPL.
-  
+
     2. Conveying Modified Versions.
-  
+
     If you modify a copy of the Library, and, in your modifications, a
   facility refers to a function or data to be supplied by an Application
   that uses the facility (other than as an argument passed when the
   facility is invoked), then you may convey a copy of the modified
   version:
-  
+
      a) under this License, provided that you make a good faith effort to
      ensure that, in the event an Application does not supply the
      function or data, the facility still operates, and performs
      whatever part of its purpose remains meaningful, or
-  
+
      b) under the GNU GPL, with none of the additional permissions of
      this License applicable to that copy.
-  
+
     3. Object Code Incorporating Material from Library Header Files.
-  
+
     The object code form of an Application may incorporate material from
   a header file that is part of the Library.  You may convey such object
   code under terms of your choice, provided that, if the incorporated
   material is not limited to numerical parameters, data structure
   layouts and accessors, or small macros, inline functions and templates
   (ten or fewer lines in length), you do both of the following:
-  
+
      a) Give prominent notice with each copy of the object code that the
      Library is used in it and that the Library and its use are
      covered by this License.
-  
+
      b) Accompany the object code with a copy of the GNU GPL and this license
      document.
-  
+
     4. Combined Works.
-  
+
     You may convey a Combined Work under terms of your choice that,
   taken together, effectively do not restrict modification of the
   portions of the Library contained in the Combined Work and reverse
   engineering for debugging such modifications, if you also do each of
   the following:
-  
+
      a) Give prominent notice with each copy of the Combined Work that
      the Library is used in it and that the Library and its use are
      covered by this License.
-  
+
      b) Accompany the Combined Work with a copy of the GNU GPL and this license
      document.
-  
+
      c) For a Combined Work that displays copyright notices during
      execution, include the copyright notice for the Library among
      these notices, as well as a reference directing the user to the
      copies of the GNU GPL and this license document.
-  
+
      d) Do one of the following:
-  
+
          0) Convey the Minimal Corresponding Source under the terms of this
          License, and the Corresponding Application Code in a form
          suitable for, and under terms that permit, the user to
@@ -1063,14 +1063,14 @@ end
          the Linked Version to produce a modified Combined Work, in the
          manner specified by section 6 of the GNU GPL for conveying
          Corresponding Source.
-  
+
          1) Use a suitable shared library mechanism for linking with the
          Library.  A suitable mechanism is one that (a) uses at run time
          a copy of the Library already present on the user's computer
          system, and (b) will operate properly with a modified version
          of the Library that is interface-compatible with the Linked
          Version.
-  
+
      e) Provide Installation Information, but only if you would otherwise
      be required to provide such information under section 6 of the
      GNU GPL, and only to the extent that such information is
@@ -1082,30 +1082,30 @@ end
      Code. If you use option 4d1, you must provide the Installation
      Information in the manner specified by section 6 of the GNU GPL
      for conveying Corresponding Source.)
-  
+
     5. Combined Libraries.
-  
+
     You may place library facilities that are a work based on the
   Library side by side in a single library together with other library
   facilities that are not Applications and are not covered by this
   License, and convey such a combined library under terms of your
   choice, if you do both of the following:
-  
+
      a) Accompany the combined library with a copy of the same work based
      on the Library, uncombined with any other library facilities,
      conveyed under the terms of this License.
-  
+
      b) Give prominent notice with the combined library that part of it
      is a work based on the Library, and explaining where to find the
      accompanying uncombined form of the same work.
-  
+
     6. Revised Versions of the GNU Lesser General Public License.
-  
+
     The Free Software Foundation may publish revised and/or new versions
   of the GNU Lesser General Public License from time to time. Such new
   versions will be similar in spirit to the present version, but may
   differ in detail to address new problems or concerns.
-  
+
     Each version is given a distinguishing version number. If the
   Library as you received it specifies that a certain numbered version
   of the GNU Lesser General Public License "or any later version"
@@ -1115,14 +1115,14 @@ end
   received it does not specify a version number of the GNU Lesser
   General Public License, you may choose any version of the GNU Lesser
   General Public License ever published by the Free Software Foundation.
-  
+
     If the Library as you received it specifies that a proxy can decide
   whether future versions of the GNU Lesser General Public License shall
   apply, that proxy's public statement of acceptance of any version is
   permanent authorization for you to choose that version for the
   Library.
   ```
-  
+
   """
 function help_colnew_license()
   return Docs.doc(help_colnew_license)
@@ -1132,9 +1132,9 @@ end
 push!(solverInfo,
   SolverInfo("colnew",
     "Multi-Point boundary value solver for mixed order systems with collocation",
-    tuple( :OPT_BVPCLASS, :OPT_RTOL, :OPT_COLLOCATIONPTS, 
-           :OPT_SUBINTERVALS, :OPT_FREEZEINTERVALS, 
-           :OPT_ADDGRIDPOINTS, :OPT_MAXSUBINTERVALS, 
+    tuple( :OPT_BVPCLASS, :OPT_RTOL, :OPT_COLLOCATIONPTS,
+           :OPT_SUBINTERVALS, :OPT_FREEZEINTERVALS,
+           :OPT_ADDGRIDPOINTS, :OPT_MAXSUBINTERVALS,
            :OPT_DIAGNOSTICOUTPUT, :OPT_COARSEGUESSGRID,
           ),
     tuple(
@@ -1154,4 +1154,3 @@ push!(solverInfo,
 
 
 # vim:syn=julia:cc=79:fdm=indent:
-

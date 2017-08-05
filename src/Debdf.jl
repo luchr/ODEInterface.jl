@@ -58,7 +58,7 @@ type DdebdfInternalCallInfos{FInt<:FortranInt,
   loglevel     :: UInt64                # log level
   # RHS:
   N            :: FInt                  # Dimension of Problem
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   rhs_count    :: Int                   # count: number of calls to rhs
@@ -189,10 +189,10 @@ end
       ║                 │ the Jacobian matrix is banded and the    │         ║
       ║                 │ code is told this.                       │         ║
       ║                 │ see also help of BandedMatrix            │         ║
-      ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
+      ╚═════════════════╧══════════════════════════════════════════╧═════════╝
 
   """
-function ddebdf(rhs::Function, t0::Real, T::Real,
+function ddebdf(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddebdf_impl(rhs, t0, T, x0, opt, DdebdfArguments{Int64}(Int64(0)))
 end
@@ -200,7 +200,7 @@ end
 """
   ddebdf with 32bit integers, see ddebdf.
   """
-function ddebdf_i32(rhs::Function, t0::Real, T::Real,
+function ddebdf_i32(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddebdf_impl(rhs, t0, T, x0, opt, DdebdfArguments{Int32}(Int32(0)))
 end
@@ -211,10 +211,10 @@ end
 const ddebdf_maxnum = 500
 
 """
-       function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+       function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
+                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
                 args::DdebdfArguments{FInt})
-  
+
   implementation of ddebdf-call for FInt.
 
   This solver has the conecpt of continuation calls (CC), see
@@ -238,11 +238,11 @@ const ddebdf_maxnum = 500
       ║ OUTPUTFCN_WODENSE │ given vector      │ no   INFO(3)=0     │  C3     ║
       ╠═══════════════════╪═══════════════════╧════════════════════╧═════════╣
       ║ OUTPUTFCN_DENSE   │        N O T    S U P P O R T E D !              ║
-      ╚═══════════════════╧══════════════════════════════════════════════════╝ 
+      ╚═══════════════════╧══════════════════════════════════════════════════╝
 
   """
-function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+function ddebdf_impl{FInt<:FortranInt}(rhs, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::DdebdfArguments{FInt})
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("ddebdf",rhs,t0,T,x0,opt)
@@ -261,8 +261,8 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   args.INFO = zeros(FInt, 15)
 
   # RWORK
-  args.LRW = [ FInt( 
-    jacobibandstruct == nothing ? 
+  args.LRW = [ FInt(
+    jacobibandstruct == nothing ?
       250+10*d+d*d : 250+10*d+(2*jacobibandstruct[1]+jacobibandstruct[2]+1)*d
     ) ]
   args.RWORK = zeros(Float64, args.LRW[1])
@@ -317,7 +317,7 @@ function ddebdf_impl{FInt<:FortranInt}(rhs::Function,
   retcode = -100
 
   cbi = DdebdfInternalCallInfos(lio, l, d, rhs, rhs_mode, rhs_lprefix,
-        0, output_mode, output_fcn, Dict(), 
+        0, output_mode, output_fcn, Dict(),
         jacobimatrix == nothing ? dummy_func : jacobimatrix,
         jacobibandstruct, jac_lprefix, 0, get_view_function())
 
@@ -433,13 +433,13 @@ end
   See `help_ddebdf_license` for the licsense information.
 
   ### Using `gfortran` and 64bit integers (Linux, Mac and Windows)
-  
+
   Here is an example how to compile DDEBDF with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fPIC -fdefault-integer-8 
+       gfortran -c -fPIC -fdefault-integer-8
                 -fdefault-real-8 -fdefault-double-8 -o slatec.o slatec.f
-       gfortran -c -fPIC -fdefault-integer-8 
+       gfortran -c -fPIC -fdefault-integer-8
                 -fdefault-real-8 -fdefault-double-8 -o ddebdf.o ddbdfm.f
 
   In order to get create a shared library (from the object file above) use
@@ -463,7 +463,7 @@ end
 push!(solverInfo,
   SolverInfo("ddebdf",
     "Backward Differentiation Formula (orders: 1-5)",
-    tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE, 
+    tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE,
           :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_OUTPUTATTIMES,
           :OPT_TSTOP, :OPT_MAXSTEPS,
