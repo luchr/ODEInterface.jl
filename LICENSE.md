@@ -1,6 +1,6 @@
 # Licenses
 
-# The ODEInterface.jl package is licensed under the MIT "Expat" License:
+## The ODEInterface.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2015-2016: Christian Ludwig.
 >
@@ -24,7 +24,8 @@
 > SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-# This package contains Fortran source code files from
+## This package contains Fortran source code files from
+
 http://www.unige.ch/~hairer/software.html
 
 This files (`dop853.f`, `dopri5.f`, `odex.f`, `radau5.f`, `radau.f`, 
@@ -56,7 +57,8 @@ see [License](http://www.unige.ch/~hairer/prog/licence.txt)
 > NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 > SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# This package contains Fortran source code files from
+## This package contains Fortran source code files from
+
 http://elib.zib.de/pub/elib/codelib/bvpsol/
 
 This files (`bvpsol.f`, `linalg_bvpsol.f`, `zibconst.f`) are licensed 
@@ -78,7 +80,7 @@ under the following license:
 > which may follow from aquisition or application of this code.
 
 
-# This package contains Fortran source code files from
+## This package contains Fortran source code files from
 http://www.netlib.org/slatec/src/
 
 This files (`d1mach.f`, `daxpa.f`, `dcfod.f`, `ddeabm.f`, `ddebdf.f`, `ddes.f`,
@@ -89,7 +91,8 @@ This files (`d1mach.f`, `daxpa.f`, `dcfod.f`, `ddeabm.f`, `ddebdf.f`, `ddes.f`,
 of the SLATEC Common Mathematical Library which is in the public
 domain.
 
-# This package contains Fortran source code files from
+## This package contains Fortran source code files from
+
 https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html
 
 This file `colnew.f` was written by U. Ascher and G. Bader and is licensed under
@@ -261,3 +264,72 @@ the GNU LGPL:
 > apply, that proxy's public statement of acceptance of any version is
 > permanent authorization for you to choose that version for the
 > Library.
+
+## This package contains Fortran source code files from
+
+http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml
+
+This files (`bvp_m-2.f90`, `bvp_la-2.f`) were written by 
+J. J. Boisvert, P.H. Muir and R. J. Spiteri. They are licensed under
+the following license:
+
+> BVP_SOLVER, Release 2, with global error estimation and control options.
+> Copyright (c) 2012, Jason Boisvert, Paul Muir, Ray Spiteri.
+> Jason Boisvert, Ray Spiteri, Department of Computer Science, University of Saskatchewan.
+> Paul Muir, Mathematics and Computing Science, Saint Mary's University.
+> All rights reserved.
+>
+> Redistribution and use in source and binary forms, with or without
+> modification, are permitted provided that the following conditions are met:
+>     * Redistributions of source code must retain the above copyright
+>       notice, this list of conditions and the following disclaimer.
+>     * Redistributions in binary form must reproduce the above copyright
+>       notice, this list of conditions and the following disclaimer in the
+>       documentation and/or other materials provided with the distribution.
+>     * Neither Saint Mary's University nor Southern Methodist University nor 
+>       the names of its contributors may be used to endorse or promote products
+>       derived from this software without specific prior written permission.
+>
+> THIS SOFTWARE IS PROVIDED BY Jason Boisvert, Paul Muir, and Ray Spiteri ''AS IS'' AND ANY
+> EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+> WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+> DISCLAIMED. IN NO EVENT SHALL Paul Muir and Larry Shampine BE LIABLE FOR ANY
+> DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+> LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+> ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+> SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+>
+> See documentation below for FUNCTION BVP_SOLVER for a description of the changes
+> to the argument list for BVP_SOLVER. 
+>
+> Copyright (c) 2006, Paul Muir and Larry Shampine.
+> Paul Muir, Mathematics and Computing Science, Saint Mary's University.
+> Larry Shampine, Mathematics, Southern Methodist University.
+> All rights reserved.
+>
+> Redistribution and use in source and binary forms, with or without
+> modification, are permitted provided that the following conditions are met:
+>     * Redistributions of source code must retain the above copyright
+>       notice, this list of conditions and the following disclaimer.
+>     * Redistributions in binary form must reproduce the above copyright
+>       notice, this list of conditions and the following disclaimer in the
+>       documentation and/or other materials provided with the distribution.
+>     * Neither Saint Mary's University nor Southern Methodist University nor 
+>       the names of its contributors may be used to endorse or promote products
+>       derived from this software without specific prior written permission.
+>
+> THIS SOFTWARE IS PROVIDED BY Paul Muir and Larry Shampine ''AS IS'' AND ANY
+> EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+> WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+> DISCLAIMED. IN NO EVENT SHALL Paul Muir and Larry Shampine BE LIABLE FOR ANY
+> DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+> LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+> ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+> SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+>
+> L.F. Shampine, P.H. Muir, H. Xu, A user-friendly Fortran BVP solver, 
+> J. Numer. Anal. Indust. Appl. Math., 1, 2006, 201--217.

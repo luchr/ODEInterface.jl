@@ -24,7 +24,7 @@
                output_fcn ( ... DONE ...)
   """
 mutable struct DopriInternalCallInfos{FInt<:FortranInt, 
-        RHS_F<:Function, OUT_F<:Function} <: ODEinternalCallInfos
+        RHS_F, OUT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -81,9 +81,9 @@ mutable struct DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FI
 end
 
 """
-        function create_dopri_eval_sol_fcn_closure
-                {FInt<:FortranInt, CI<:DopriInternalCallInfos}
-                (cbi::CI, d::FInt, method_contd::Ptr{Void})
+       function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
+               method_contd::Ptr{Void}) where {FInt<:FortranInt, 
+                                               CI<:DopriInternalCallInfos}
   
   generates a eval_sol_fcn for dopri5 and dop853.
   
@@ -104,9 +104,9 @@ end
 
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
-function create_dopri_eval_sol_fcn_closure{FInt<:FortranInt, 
-        CI<:DopriInternalCallInfos}(
-        cbi::CI, d::FInt, method_contd::Ptr{Void})
+function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
+        method_contd::Ptr{Void}) where {FInt<:FortranInt, 
+                                        CI<:DopriInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
@@ -134,12 +134,12 @@ function create_dopri_eval_sol_fcn_closure{FInt<:FortranInt,
 end
 
 """
-        function unsafe_dopriSoloutCallback
-                {FInt<:FortranInt, CI<:DopriInternalCallInfos}
-                (nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-                x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
-                icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-                cbi::CI, irtrn_::Ptr{FInt})
+       function unsafe_dopriSoloutCallback(
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+               x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
+               icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+               cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+                                                  CI<:DopriInternalCallInfos}
   
   This is the solout given as callback to Fortran-dopri.
   
@@ -158,12 +158,12 @@ end
   
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
-function unsafe_dopriSoloutCallback{FInt<:FortranInt, 
-        CI<:DopriInternalCallInfos}(
+function unsafe_dopriSoloutCallback(
         nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
         x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
         icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-        cbi::CI, irtrn_::Ptr{FInt})
+        cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+                                           CI<:DopriInternalCallInfos}
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -197,11 +197,12 @@ function unsafe_dopriSoloutCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_dopriSoloutCallback_c{FInt,CI}
-                (cbi::CI, fint_flag::FInt)
+       function unsafe_dopriSoloutCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_dopriSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_dopriSoloutCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_dopriSoloutCallback, Void, (Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64},Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64},
@@ -210,16 +211,16 @@ function unsafe_dopriSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
 end
 
 """
-        function dopri_extract_commonOpt{FInt<:FortranInt}(
-                t0::Real, T::Real, x0::Vector, 
-                opt::AbstractOptionsODE, args::DopriArguments{FInt})
+       function dopri_extract_commonOpt(
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::DopriArguments{FInt}) where FInt<:FortranInt
              -> (d,nrdense,rhs_mode,output_mode,output_fcn)
   
   calls solver_extract_commonOpt and additionally sets args.ITOL, args.IOUT 
   """
-function dopri_extract_commonOpt{FInt<:FortranInt}(
-        t0::Real, T::Real, x0::Vector, 
-        opt::AbstractOptionsODE, args::DopriArguments{FInt})
+function dopri_extract_commonOpt(
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+        args::DopriArguments{FInt}) where FInt<:FortranInt
   
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)

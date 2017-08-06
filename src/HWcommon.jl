@@ -1,7 +1,7 @@
 # Functions used for several Hairer-Wanner Solvers
 
-function hw1rhs{FInt,CI}(n::FInt, t::Float64, x::Array{Float64},
-        f::Array{Float64},cbi::CI)
+function hw1rhs(n::FInt, t::Float64, x::Array{Float64},
+        f::Array{Float64},cbi::CI) where {FInt,CI}
 
   lprefix = cbi.rhs_lprefix
 
@@ -28,10 +28,10 @@ function hw1rhs{FInt,CI}(n::FInt, t::Float64, x::Array{Float64},
 end
 
 """
-        function unsafe_HW1RHSCallback{FInt<:FortranInt, 
-                                       CI<:ODEinternalCallInfos}(
-                n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-                f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+       function unsafe_HW1RHSCallback(
+               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+               f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+               cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
   
   This is the right-hand side given as callback to several Fortran-solvers,
@@ -40,9 +40,10 @@ end
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.
   """
-function unsafe_HW1RHSCallback{FInt<:FortranInt, CI<:ODEinternalCallInfos}(
+function unsafe_HW1RHSCallback(
         n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-        f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+        f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+        cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -53,7 +54,8 @@ function unsafe_HW1RHSCallback{FInt<:FortranInt, CI<:ODEinternalCallInfos}(
 end
 
 """
-        function unsafe_HW1RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt) 
+       function unsafe_HW1RHSCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
 
   This method generates a Pointer to C-callable instructions.
@@ -67,16 +69,17 @@ end
   calls to such Julia-functions can be resolved at compile-time
   (instead of dynamic calls during run-time).
   """
-function unsafe_HW1RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt) 
+function unsafe_HW1RHSCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_HW1RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 """
-        function unsafe_HW2RHSCallback{FInt<:FortranInt,
-                CI<:ODEinternalCallInfos}(
-                n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-                f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+       function unsafe_HW2RHSCallback(
+               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+               f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+               cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
   
   This is the right-hand side given as callback to Fortran-solvers
@@ -86,10 +89,10 @@ end
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.
   """
-function unsafe_HW2RHSCallback{FInt<:FortranInt,
-        CI<:ODEinternalCallInfos}(
+function unsafe_HW2RHSCallback(
         n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-        f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+        f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+        cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -127,21 +130,22 @@ function unsafe_HW2RHSCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_HW2RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+       function unsafe_HW2RHSCallback_c(cbi::CI,
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
 
   see `unsafe_HW1RHSCallback_c` for an explanation of `FInt`, `CI`.
   """
-function unsafe_HW2RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_HW2RHSCallback_c(cbi::CI,
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_HW2RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI})) 
 end
 
 """
-        function unsafe_HW1MassCallback{FInt<:FortranInt,
-                CI<:ODEinternalCallInfos}
-                (n_::Ptr{FInt}, am_::Ptr{Float64}, lmas_::Ptr{FInt}, 
-                rpar_::Ptr{Float64}, cbi::CI)
+       function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64}, 
+               lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+               cbi::CI) where {FInt<:FortranInt,CI<:ODEinternalCallInfos}
                 -> nothing
   
   This is the MAS callback given to radau5, radau and seulex.
@@ -152,9 +156,9 @@ end
   This function takes the values of  the mass matrix saved in 
   the InternalCallInfos.
   """
-function unsafe_HW1MassCallback{FInt<:FortranInt,CI<:ODEinternalCallInfos}(
-        n_::Ptr{FInt}, am_::Ptr{Float64}, lmas_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, cbi::CI)
+function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64}, 
+        lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        cbi::CI) where {FInt<:FortranInt,CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   lmas = unsafe_load(lmas_)
   am = unsafe_wrap(Array, am_,(lmas,n,),false)
@@ -182,24 +186,26 @@ function unsafe_HW1MassCallback{FInt<:FortranInt,CI<:ODEinternalCallInfos}(
 end
 
 """
-        function unsafe_HW1MassCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+       function unsafe_HW1MassCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HW1MassCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_HW1MassCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
  return cfunction(unsafe_HW1MassCallback, Void, (Ptr{FInt},
     Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
 end
 
 """
-        function extractSpecialStructureOpt{FInt<:FortranInt}(
-                d::FInt,opt::AbstractOptionsODE)
+       function extractSpecialStructureOpt(
+               d::FInt,opt::AbstractOptionsODE) where FInt<:FortranInt
 
   extracts parameters for special structure (M1, M2).
 
   reads options: `OPT_M1`, `OPT_M2`
   """
-function extractSpecialStructureOpt{FInt<:FortranInt}(
-        d::FInt,opt::AbstractOptionsODE)
+function extractSpecialStructureOpt(
+        d::FInt,opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = nothing
   M1 = 0; M2 = 0; NM1 = 0
   try
@@ -220,17 +226,17 @@ function extractSpecialStructureOpt{FInt<:FortranInt}(
 end
 
 """
-        function extractMassMatrix{FInt<:FortranInt}(M1::FInt, M2::FInt, 
-                NM1::FInt, args::AbstractArgumentsODESolver{FInt},
-                opt::AbstractOptionsODE)
+       function extractMassMatrix(M1::FInt, M2::FInt, 
+               NM1::FInt, args::AbstractArgumentsODESolver{FInt},
+               opt::AbstractOptionsODE) where FInt<:FortranInt
   
   extracts mass matrix and fills `IMAS`, `MLMAS` und `MUMAS` in args.
 
   reads options: `OPT_MASSMATRIX`
   """
-function extractMassMatrix{FInt<:FortranInt}(M1::FInt, M2::FInt, 
+function extractMassMatrix(M1::FInt, M2::FInt, 
         NM1::FInt, args::AbstractArgumentsODESolver{FInt},
-        opt::AbstractOptionsODE)
+        opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = nothing
   massmatrix = nothing
   try
@@ -263,10 +269,10 @@ function extractMassMatrix{FInt<:FortranInt}(M1::FInt, M2::FInt,
 end
 
 """
-        function unsafe_HW1JacCallback{FInt<:FortranInt,
-                CI<:ODEinternalCallInfos}(n_::Ptr{FInt},
-                t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-                ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI)
+       function unsafe_HW1JacCallback(n_::Ptr{FInt},
+               t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
+               ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+               cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
   
   This is the JAC callback given to radau5, radau and seulex.
@@ -277,10 +283,10 @@ end
   This function calls the user-given Julia function cbi.jacobimatrix
   with the appropriate arguments (depending on M1 and jacobibandstruct).
   """
-function unsafe_HW1JacCallback{FInt<:FortranInt,
-        CI<:ODEinternalCallInfos}(n_::Ptr{FInt},
+function unsafe_HW1JacCallback(n_::Ptr{FInt},
         t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, cbi::CI)
+        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -320,10 +326,12 @@ function unsafe_HW1JacCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_HW1JacCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt) 
+       function unsafe_HW1JacCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HW1JacCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_HW1JacCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
  return cfunction(unsafe_HW1JacCallback, Void, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ref{CI}))
@@ -331,10 +339,10 @@ end
 
 
 """
-        function unsafe_HWRhsTimeDerivCallback{FInt<:FortranInt,
-                CI<:ODEinternalCallInfos}
-                (n_::Ptr{FInt}, t_::Ptr{Float64},x_::Ptr{Float64},
-                dfdt_::Ptr{Float64}, rpar_::Ptr{Float64},cbi::CI)
+       function unsafe_HWRhsTimeDerivCallback(
+               n_::Ptr{FInt}, t_::Ptr{Float64},x_::Ptr{Float64},
+               dfdt_::Ptr{Float64}, rpar_::Ptr{Float64},
+               cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
   
   This is the DFX callback given to rodas.
@@ -345,10 +353,10 @@ end
   This function calls the user-given Julia function cbi.rhstimederiv
   with the appropriate arguments.
   """
-function unsafe_HWRhsTimeDerivCallback{FInt<:FortranInt,
-        CI<:ODEinternalCallInfos}(
+function unsafe_HWRhsTimeDerivCallback(
         n_::Ptr{FInt}, t_::Ptr{Float64},x_::Ptr{Float64},
-        dfdt_::Ptr{Float64}, rpar_::Ptr{Float64},cbi::CI)
+        dfdt_::Ptr{Float64}, rpar_::Ptr{Float64},
+        cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -366,37 +374,38 @@ function unsafe_HWRhsTimeDerivCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_HWRhsTimeDerivCallback_c{FInt,CI}
-                (cbi::CI, fint_flag::FInt)
+       function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HWRhsTimeDerivCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return  cfunction(unsafe_HWRhsTimeDerivCallback, Void, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 """
-        function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
-                M1::FInt,M2::FInt, NM1::FInt,
-                args::AbstractArgumentsODESolver{FInt}, 
-                opt::AbstractOptionsODE)
+       function extractJacobiOpt(d::FInt,
+               M1::FInt,M2::FInt, NM1::FInt,
+               args::AbstractArgumentsODESolver{FInt}, 
+               opt::AbstractOptionsODE) where FInt<:FortranInt
   
   extracts jacobi options and
   fills `IJAC`, `MLJAC` and `MUJAC` in args.
 
   reads options: `OPT_JACOBIMATRIX`, `OPT_JACOBIBANDSTRUCT`
   """
-function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
+function extractJacobiOpt(d::FInt,
         M1::FInt,M2::FInt, NM1::FInt,
         args::AbstractArgumentsODESolver{FInt}, 
-        opt::AbstractOptionsODE)
+        opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = nothing
   jacobimatrix = nothing
   jacobibandstruct = nothing
   try
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt,OPT,nothing)
-    @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    # @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
     
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)
@@ -426,22 +435,22 @@ function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
 end
 
 """
-        function extractRhsTimeDerivOpt{FInt<:FortranInt}(
-                args::AbstractArgumentsODESolver{FInt}, 
-                opt::AbstractOptionsODE)
+       function extractRhsTimeDerivOpt(
+               args::AbstractArgumentsODESolver{FInt}, 
+               opt::AbstractOptionsODE) where FInt<:FortranInt
   
   extracts options for callback function for time-derivatives 
   of the right-hand-side and
   fills `IDFX` in args.
   """
-function extractRhsTimeDerivOpt{FInt<:FortranInt}(
+function extractRhsTimeDerivOpt(
         args::AbstractArgumentsODESolver{FInt}, 
-        opt::AbstractOptionsODE)
+        opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = OPT_RHSTIMEDERIV
   rhstimederiv = nothing
   try
     rhstimederiv = getOption(opt,OPT,nothing)
-    @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
+    # @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end

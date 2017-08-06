@@ -14,7 +14,7 @@ end
 const solvers_outputattimes = (ddeabm, ddeabm_i32, ddebdf, ddebdf_i32)
 
 """
-      function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
+      function odecall(solver, rhs, t::Vector, x0::Vector,
                       opt::AbstractOptionsODE)
           -> (tVec,xVec,retcode,stats)
   
@@ -38,7 +38,7 @@ const solvers_outputattimes = (ddeabm, ddeabm_i32, ddebdf, ddebdf_i32)
   If in `opt` a output function is given, then this output function is
   also called/used.
   """
-function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector, 
+function odecall(solver, rhs, t::Vector, x0::Vector, 
                  opt::AbstractOptionsODE)
   tLen = length(t)
   tLen < 2 && throw(ArgumentErrorODE(

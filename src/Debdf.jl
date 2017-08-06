@@ -52,8 +52,7 @@ end
   see also help of `ODEInterface.SLATEC_continuation_call`.
   """
 mutable struct DdebdfInternalCallInfos{FInt<:FortranInt,
-        RHS_F<:Function, OUT_F<:Function,
-        JAC_F<:Function, VIEW_F<:Function} <: ODEinternalCallInfos
+        RHS_F, OUT_F, JAC_F, VIEW_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -106,7 +105,7 @@ mutable struct DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{F
 end
 
 """
-       function ddebdf(rhs::Function, t0::Real, T::Real,
+       function ddebdf(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
 
@@ -190,7 +189,7 @@ end
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
 
   """
-function ddebdf(rhs::Function, t0::Real, T::Real,
+function ddebdf(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddebdf_impl(rhs, t0, T, x0, opt, DdebdfArguments{Int64}(Int64(0)))
 end
@@ -198,7 +197,7 @@ end
 """
   ddebdf with 32bit integers, see ddebdf.
   """
-function ddebdf_i32(rhs::Function, t0::Real, T::Real,
+function ddebdf_i32(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddebdf_impl(rhs, t0, T, x0, opt, DdebdfArguments{Int32}(Int32(0)))
 end
@@ -209,9 +208,9 @@ end
 const ddebdf_maxnum = 500
 
 """
-       function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-                args::DdebdfArguments{FInt})
+       function ddebdf_impl(rhs, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::DdebdfArguments{FInt}) where FInt<:FortranInt
   
   implementation of ddebdf-call for FInt.
 
@@ -239,9 +238,9 @@ const ddebdf_maxnum = 500
       ╚═══════════════════╧══════════════════════════════════════════════════╝ 
 
   """
-function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
+function ddebdf_impl(rhs, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-        args::DdebdfArguments{FInt})
+        args::DdebdfArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("ddebdf",rhs,t0,T,x0,opt)
 

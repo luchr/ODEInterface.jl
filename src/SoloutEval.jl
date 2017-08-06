@@ -112,9 +112,9 @@ end
   This is more than a simple call, because this function takes care of
   logging, error-checking, etc.
   """
-function call_julia_output_fcn{CI<:ODEinternalCallInfos}(cbi::CI,
+function call_julia_output_fcn(cbi::CI,
   reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
-  x::Vector{Float64},eval_sol_fcn::Function)
+  x::Vector{Float64},eval_sol_fcn::Function) where CI<:ODEinternalCallInfos
 
   lprefix = "call_julia_output_fcn: "
 

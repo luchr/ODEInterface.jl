@@ -71,8 +71,8 @@ bvpsol_global_cbi = nothing
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-mutable struct BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
-        BC_F<:Function, ODESOL_F<:Function} <: ODEinternalCallInfos
+mutable struct BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F,
+        BC_F, ODESOL_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -113,8 +113,8 @@ mutable struct BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{F
 end
 
 """
-        function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt}, 
-                t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64})
+       function unsafe_bvpsolrhs(n_::Ptr{FInt}, t_::Ptr{Float64}, 
+               x_::Ptr{Float64}, f_::Ptr{Float64}) where FInt<:FortranInt
   
   This is the right-hand side given as callback to bvpsol.
   
@@ -123,8 +123,8 @@ end
   
   uses hw1rhs
   """
-function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt}, 
-        t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64})
+function unsafe_bvpsolrhs(n_::Ptr{FInt}, t_::Ptr{Float64}, 
+        x_::Ptr{Float64}, f_::Ptr{Float64}) where FInt<:FortranInt
   
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_,(n,),false)
@@ -135,9 +135,9 @@ function unsafe_bvpsolrhs{FInt<:FortranInt}(n_::Ptr{FInt},
 end
 
 """
-        function unsafe_bvpsolrhs_c{FInt}(fint_flag::FInt)
+       function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   """
-function unsafe_bvpsolrhs_c{FInt}(fint_flag::FInt)
+function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_bvpsolrhs, Void, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64},Ptr{Float64}))
 end
@@ -147,7 +147,7 @@ end
   
   This function calls `bc` saved in `BvpsolInternalCallInfos`.
   """
-function bvpsolbc{CI}(xa,xb,r,cbi::CI)
+function bvpsolbc(xa,xb,r,cbi::CI) where CI
   lprefix = cbi.bc_lprefix
   
   (lio,l)=(cbi.logio,cbi.loglevel)
@@ -190,9 +190,9 @@ function unsafe_bvpsolbc_c()
         (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
 end
 
-function bvpsolivp{FInt,CI}(t::Vector{Float64},
+function bvpsolivp(t::Vector{Float64},
         x::Vector{Float64}, tend,tol,hmax,h::Vector{Float64},
-        kflag::Vector{FInt}, cbi::CI)
+        kflag::Vector{FInt}, cbi::CI) where {FInt, CI}
 
   @assert cbi.odesol_usage == ODE_SOLVER_JULIA
 
@@ -230,10 +230,10 @@ function bvpsolivp{FInt,CI}(t::Vector{Float64},
 end
 
 """
-        function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt}, 
-                fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-                tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
-                h_::Ptr{Float64}, kflag_::Ptr{FInt})
+       function unsafe_bvpsolivp(n_::Ptr{FInt}, 
+               fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+               tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
+               h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
   This is the callback for bvpsol to solve initial value problems.
   
@@ -242,10 +242,10 @@ end
   
   uses bvpsolivp
   """
-function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt}, 
+function unsafe_bvpsolivp(n_::Ptr{FInt}, 
         fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
         tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
-        h_::Ptr{Float64}, kflag_::Ptr{FInt})
+        h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
   cbi = bvpsol_global_cbi::BvpsolInternalCallInfos
   n = cbi.N
@@ -259,7 +259,7 @@ function unsafe_bvpsolivp{FInt<:FortranInt}(n_::Ptr{FInt},
   return nothing
 end
 
-function unsafe_bvpsolivp_c{FInt}(fint_flag::FInt)
+function unsafe_bvpsolivp_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_bvpsolivp, Void, 
     (Ptr{FInt},Ptr{Void},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
@@ -272,7 +272,7 @@ function bvpsol_ivp_dummy(rhs,t,tend,x,opt)
 end
 
 """
-       function bvpsol(rhs::Function, bc::Function,
+       function bvpsol(rhs, bc,
          t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -345,7 +345,7 @@ end
       ║ RHS_CALLMODE    │ see help_callsolvers()                   │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function bvpsol(rhs::Function, bc::Function,
+function bvpsol(rhs, bc,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
   return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(Int64(0)))
 end
@@ -353,14 +353,14 @@ end
 """
   bvpsol with 32bit integers, see bvpsol.
   """
-function bvpsol_i32(rhs::Function, bc::Function,
+function bvpsol_i32(rhs, bc,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
   return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int32}(Int32(0))) 
 end
 
-function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
+function bvpsol_impl(rhs, bc,
   t::Vector, x::Matrix, odesolver, 
-  opt::AbstractOptionsODE, args::BvpsolArguments{FInt})
+  opt::AbstractOptionsODE, args::BvpsolArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("bvpsol",opt)
 
@@ -462,11 +462,6 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   args.BC = unsafe_bvpsolbc_c()
   args.INFO = zeros(FInt,1)
 
-  try
-    @assert (odesolver == nothing) || isa(odesolver,Function)
-  catch e
-    throw(ArgumentErrorODE("odesolver not valid",:odesolver,e))
-  end
   if odesolver==nothing && d>1024
     throw(ArgumentErrorODE(string("internal solver of bvpsol cannot handle ",
       "more than 1024 equations")))
