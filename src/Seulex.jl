@@ -54,8 +54,8 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-mutable struct SeulexInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
+mutable struct SeulexInternalCallInfos{FInt<:FortranInt, RHS_F,
+        OUT_F, JAC_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
@@ -265,7 +265,7 @@ function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt,
 end
 
 """
-       function seulex(rhs::Function, t0::Real, T::Real,
+       function seulex(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -398,7 +398,7 @@ end
       ║                 │ WORKFORSOL: Forward- and Backward subst. │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function seulex(rhs::Function, t0::Real, T::Real,
+function seulex(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int64}(Int64(0)))
 end
@@ -406,12 +406,12 @@ end
 """
   seulex with 32bit integers, see seulex.
   """
-function seulex_i32(rhs::Function, t0::Real, T::Real,
+function seulex_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}(Int32(0)))
 end
 
-function seulex_impl(rhs::Function, 
+function seulex_impl(rhs, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::SeulexArguments{FInt}) where FInt<:FortranInt
   

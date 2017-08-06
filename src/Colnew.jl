@@ -43,9 +43,7 @@ colnew_global_cbi = nothing
 
   """
 mutable struct ColnewInternalCallInfos{FInt<:FortranInt, 
-        RHS_F<:Function, DRHS_F<:Function,
-        BC_F<:Function, DBC_F<:Function,
-        GUESS_F<:Function} <: ODEinternalCallInfos
+        RHS_F, DRHS_F, BC_F, DBC_F, GUESS_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   n            :: FInt                  # number of ODEs
@@ -321,8 +319,8 @@ end
 
 """
         function colnew(interval::Vector, orders::Vector, ζ::Vector,
-          rhs::Function, Drhs::Function,
-          bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+          rhs, Drhs,
+          bc, Dbc, guess, opt::AbstractOptionsODE)
             -> (sol, retcode, stats)
 
   Solve multi-point boundary value problem with colnew.
@@ -534,8 +532,8 @@ end
 
   """
 function colnew(interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
-  bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+  rhs, Drhs,
+  bc, Dbc, guess, opt::AbstractOptionsODE)
 
   return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt, 
     ColnewArguments{Int64}(Int64(0)))
@@ -545,8 +543,8 @@ end
   colnew with 32bit integers, see colnew.
   """
 function colnew_i32(interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
-  bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+  rhs, Drhs,
+  bc, Dbc, guess, opt::AbstractOptionsODE)
 
   return colnew_impl(interval, orders, ζ, rhs, Drhs, bc, Dbc, guess, opt, 
     ColnewArguments{Int32}(Int32(0)))
@@ -554,8 +552,8 @@ end
 
 function colnew_impl(
   interval::Vector, orders::Vector, ζ::Vector,
-  rhs::Function, Drhs::Function,
-  bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE,
+  rhs, Drhs,
+  bc, Dbc, guess, opt::AbstractOptionsODE,
   args::ColnewArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("colnew",opt)

@@ -58,9 +58,8 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-mutable struct RodasInternalCallInfos{FInt<:FortranInt, RHS_F<:Function,
-        OUT_F<:Function, JAC_F<:Function, RHSDT_F<:Function} <: 
-                ODEinternalCallInfos
+mutable struct RodasInternalCallInfos{FInt<:FortranInt, RHS_F,
+        OUT_F, JAC_F, RHSDT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
@@ -270,7 +269,7 @@ end
 
 
 """
-        function rodas(rhs::Function, t0::Real, T::Real,
+        function rodas(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -387,7 +386,7 @@ end
       ║                 │ matrix (BandedMatrix).                   │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function rodas(rhs::Function, t0::Real, T::Real,
+function rodas(rhs, t0::Real, T::Real,
                x0::Vector, opt::AbstractOptionsODE)
   return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int64}(Int64(0)))
 end
@@ -395,12 +394,12 @@ end
 """
   rodas with 32bit integers, see rodas.
   """
-function rodas_i32(rhs::Function, t0::Real, T::Real,
+function rodas_i32(rhs, t0::Real, T::Real,
                    x0::Vector, opt::AbstractOptionsODE)
   return rodas_impl(rhs,t0,T,x0,opt,RodasArguments{Int32}(Int32(0)))
 end
 
-function rodas_impl(rhs::Function, 
+function rodas_impl(rhs, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::RodasArguments{FInt}) where FInt<:FortranInt
 

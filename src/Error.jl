@@ -59,7 +59,7 @@ end
   """
 mutable struct OutputErrorODE <: WrappedODEException
   msg      :: AbstractString
-  func     :: Function
+  func
   error
 end
 

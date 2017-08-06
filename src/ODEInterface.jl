@@ -475,7 +475,7 @@ function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE)
 end
 
 """
-       function solver_start(solver_name::AbstractString, rhs::Function, 
+       function solver_start(solver_name::AbstractString, rhs, 
                    t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
           ->  (lio,l,l_g,l_solver,lprefix)
   
@@ -483,7 +483,7 @@ end
 
   reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
-function solver_start(solver_name::AbstractString, rhs::Function, 
+function solver_start(solver_name::AbstractString, rhs, 
             t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
   
   (lio,l,l_g,l_solver,lprefix) = solver_init(solver_name,opt)
