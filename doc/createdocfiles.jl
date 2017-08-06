@@ -67,9 +67,9 @@ function formatTable(io,s::AbstractString)
     if write_row
       write(io,"<tr>")
       for col in columns
-        write(io,table_head?"<th>":"<td>",
+        write(io,table_head ? "<th>" : "<td>",
           "<pre>",buf2str(col),"</pre>",
-          table_head?"</th>":"</td>",NL)
+          table_head ? "</th>" : "</td>",NL)
       end
       write(io,"</tr>",NL)
       write_row = false; table_head = false
@@ -135,6 +135,12 @@ function docSolverOptions(filename)
   write(io,"# colnew",NL,NL)
   formatMDelement(io,Base.Docs.doc(colnew))
 
+  # bvpm2
+  write(io,"# bvpm2",NL,NL)
+  formatMDelement(io,Base.Docs.doc(Bvpm2))
+  formatMDelement(io,Base.Docs.doc(bvpm2_init))
+  formatMDelement(io,Base.Docs.doc(bvpm2_solve))
+
   close(io)
   return nothing
 end
@@ -143,7 +149,7 @@ function docstringToFile(filename,docobjs)
   io = open(filename,"w")
   introHeader(io)
   for docobj in docobjs
-    md_elem = isa(docobj,Base.Markdown.MD)?docobj:Base.Docs.doc(docobj)
+    md_elem = isa(docobj,Base.Markdown.MD) ? docobj : Base.Docs.doc(docobj)
     formatMDelement(io,md_elem)
     write(io,NL)
   end

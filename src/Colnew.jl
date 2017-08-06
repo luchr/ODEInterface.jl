@@ -104,7 +104,7 @@ end
 """
   This function calls `rhs` saved in ColnewInternalCallInfos.
   """
-function colnew_rhs{CI}(t, z, f, cbi::CI)
+function colnew_rhs(t, z, f, cbi::CI) where CI
   lprefix = cbi.rhs_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_rhs = l & LOG_RHS > 0
@@ -140,7 +140,7 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
   return nothing
 end
 
-function unsafe_colnew_rhs_c{FInt}(fint_flag::FInt)
+function unsafe_colnew_rhs_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_rhs, Void, 
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -148,7 +148,7 @@ end
 """
   This function calls `Drhs` saved in ColnewInternalCallInfos.
   """
-function colnew_Drhs{CI}(t, z, df, cbi::CI)
+function colnew_Drhs(t, z, df, cbi::CI) where CI
   lprefix = cbi.Drhs_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_Drhs = l & LOG_JAC > 0
@@ -184,7 +184,7 @@ function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
   return nothing
 end
 
-function unsafe_colnew_Drhs_c{FInt}(fint_flag::FInt)
+function unsafe_colnew_Drhs_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_Drhs, Void,
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -192,7 +192,7 @@ end
 """
   This function calls `bc` saved in ColnewInternalCallInfos.
   """
-function colnew_bc{CI}(i, z, bc, cbi::CI)
+function colnew_bc(i, z, bc, cbi::CI) where CI
   lprefix = cbi.bc_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_bc = l & LOG_BC > 0
@@ -206,8 +206,8 @@ function colnew_bc{CI}(i, z, bc, cbi::CI)
 end
 
 """
-        function unsafe_colnew_bc{FInt<:FortranInt}(i_::Ptr{FInt},
-          z_::Ptr{Float64}, bc_::Ptr{Float64})
+       function unsafe_colnew_bc(i_::Ptr{FInt},
+         z_::Ptr{Float64}, bc_::Ptr{Float64}) where FInt<:FortranInt
 
   This is the side-/boundary-conditions given as callback
   to colnew.
@@ -215,8 +215,8 @@ end
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.
   """
-function unsafe_colnew_bc{FInt<:FortranInt}(i_::Ptr{FInt},
-  z_::Ptr{Float64}, bc_::Ptr{Float64})
+function unsafe_colnew_bc(i_::Ptr{FInt},
+  z_::Ptr{Float64}, bc_::Ptr{Float64}) where FInt<:FortranInt
 
   cbi = colnew_global_cbi :: ColnewInternalCallInfos
   d = cbi.d
@@ -229,7 +229,7 @@ function unsafe_colnew_bc{FInt<:FortranInt}(i_::Ptr{FInt},
   return nothing
 end
 
-function unsafe_colnew_bc_c{FInt}(fint_flag::FInt)
+function unsafe_colnew_bc_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_bc, Void,
     (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -237,7 +237,7 @@ end
 """
   This function calls `Dbc` saved in ColnewInternalCallInfos.
   """
-function colnew_Dbc{CI}(i, z, dbc, cbi::CI)
+function colnew_Dbc(i, z, dbc, cbi::CI) where CI
   lprefix = cbi.Dbc_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_Dbc = l & LOG_JACBC > 0
@@ -251,8 +251,8 @@ function colnew_Dbc{CI}(i, z, dbc, cbi::CI)
 end
 
 """
-        function unsafe_colnew_Dbc{FInt<:FortranInt}(i_::Ptr{FInt},
-          z_::Ptr{Float64}, Dbc_::Ptr{Float64})
+       function unsafe_colnew_Dbc(i_::Ptr{FInt},
+         z_::Ptr{Float64}, Dbc_::Ptr{Float64}) where FInt<:FortranInt
 
   This is the jacobian for the side-/boundary-conditions given as callback
   to colnew.
@@ -260,8 +260,8 @@ end
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.
   """
-function unsafe_colnew_Dbc{FInt<:FortranInt}(i_::Ptr{FInt},
-  z_::Ptr{Float64}, Dbc_::Ptr{Float64})
+function unsafe_colnew_Dbc(i_::Ptr{FInt},
+  z_::Ptr{Float64}, Dbc_::Ptr{Float64}) where FInt<:FortranInt
 
   cbi = colnew_global_cbi :: ColnewInternalCallInfos
   d = cbi.d
@@ -274,7 +274,7 @@ function unsafe_colnew_Dbc{FInt<:FortranInt}(i_::Ptr{FInt},
   return nothing
 end
 
-function unsafe_colnew_Dbc_c{FInt}(fint_flag::FInt)
+function unsafe_colnew_Dbc_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_Dbc, Void,
     (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -282,7 +282,7 @@ end
 """
   This function calls `guess` saved in ColnewInternalCallInfos.
   """
-function colnew_guess{CI}(t, z, dxm, cbi::CI)
+function colnew_guess(t, z, dxm, cbi::CI) where CI
   lprefix = cbi.guess_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_guess = l & LOG_GUESS > 0
@@ -313,7 +313,7 @@ function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
   return nothing
 end
 
-function unsafe_colnew_guess_c{FInt}(fint_flag::FInt)
+function unsafe_colnew_guess_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_guess, Void,
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -552,11 +552,11 @@ function colnew_i32(interval::Vector, orders::Vector, ζ::Vector,
     ColnewArguments{Int32}(Int32(0)))
 end
 
-function colnew_impl{FInt<:FortranInt}(
+function colnew_impl(
   interval::Vector, orders::Vector, ζ::Vector,
   rhs::Function, Drhs::Function,
   bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE,
-  args::ColnewArguments{FInt})
+  args::ColnewArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("colnew",opt)
 
@@ -828,16 +828,16 @@ function colnew_impl{FInt<:FortranInt}(
 end
 
 """
-        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
-          t::Real, z::Vector{Float64})
+       function evalSolution(sol::ColnewSolution{FInt},
+         t::Real, z::Vector{Float64}) where FInt<:FortranInt
 
   Evaluates an already obtained solution `sol` at time `t`.
   The values of the solution are saved in `z` which must be a 
   vector (of length d). 
   `t` must be in the interval [a,b] where the problem was solved.
   """
-function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
-  t::Real, z::Vector{Float64})
+function evalSolution(sol::ColnewSolution{FInt},
+  t::Real, z::Vector{Float64}) where FInt<:FortranInt
 
   @assert length(z)==sol.d
   @assert sol.t_a ≤ t ≤ sol.t_b
@@ -851,15 +851,15 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
 end
 
 """
-        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
-          t::Real)
+       function evalSolution(sol::ColnewSolution{FInt}, 
+         t::Real) where FInt<:FortranInt
 
   Evaluates an already obtained solution `sol` at time `t`.
   A newly allocated vector with the solution values is retured.
   `t` must be in the interval [a,b] where the problem was solved.
   """
-function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
-  t::Real)
+function evalSolution(sol::ColnewSolution{FInt}, 
+  t::Real) where FInt<:FortranInt
 
   z = Vector{Float64}(sol.d)
   evalSolution(sol, t, z)
@@ -867,8 +867,8 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
 end
 
 """
-        function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
-          t::Vector)
+        function evalSolution(sol::ColnewSolution{FInt}, 
+          t::Vector) where FInt<:FortranInt
 
   Evaluates an already obtained solution `sol` at time all
   times in the vector `t`.
@@ -876,8 +876,8 @@ end
   values is retured.
   All values of `t` must be in the interval [a,b] where the problem was solved.
   """
-function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt}, 
-  t::Vector)
+function evalSolution(sol::ColnewSolution{FInt}, 
+  t::Vector) where FInt<:FortranInt
 
   tno = length(t)
 
@@ -891,11 +891,12 @@ function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
 end
 
 """
-        function getSolutionGrid{FInt<:FortranInt}(sol::ColnewSolution{FInt})
+       function getSolutionGrid(sol::ColnewSolution{FInt})
+                where FInt<:FortranInt
 
   returnes a Float64-vector with the (last) grid points used.
   """
-function getSolutionGrid{FInt<:FortranInt}(sol::ColnewSolution{FInt})
+function getSolutionGrid(sol::ColnewSolution{FInt}) where FInt<:FortranInt
   return sol.FSPACE[1:sol.ISPACE[1]]
 end
 

@@ -22,57 +22,72 @@ function search_prog(progname::AbstractString)
   return output
 end
 
-function compile_gfortran(path::AbstractString, basename::AbstractString)
-  ffile = joinpath(path,string(basename,".f"))
-  flags_i64 = [ "-fdefault-integer-8", "-fdefault-real-8",
-                "-fdefault-double-8" ]
-  flags_i32 = [ "-fdefault-real-8", "-fdefault-double-8" ]
+function compile_gfortran(path::AbstractString, basename::AbstractString,
+         options::Dict=Dict())
+  fext = get(options, "file_extension", ".f")
+  ffile = joinpath(path,string(basename, fext))
+  flags_i64 = get(options, "flags_i64",
+              [ "-fdefault-integer-8", "-fdefault-real-8",
+                "-fdefault-double-8" ])
+  append!(flags_i64, get(options, "add_flags_i64", []))
+  flags_i32 = get(options, "flags_i32",
+              [ "-fdefault-real-8", "-fdefault-double-8" ])
+  append!(flags_i32, get(options, "add_flags_i32", []))
   comp_flags = windows_flag ? [ "-c" ] : [ "-c", "-fPIC" ]
 
-  ofile = joinpath(path,string(basename,".o"))
-  if windows_flag
-    cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o "$ofile"  "$ffile"`
-  else
-    cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o $ofile  $ffile` 
+  if get(options, "build_i64", true)
+    ofile = joinpath(path,string(basename,".o"))
+    if windows_flag
+      cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o "$ofile"  "$ffile"`
+    else
+      cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o $ofile  $ffile` 
+    end
+    verbose && println(cmd_i64)
+    run(cmd_i64)
+    push!(obj_files,ofile)
   end
-  verbose && println(cmd_i64)
-  run(cmd_i64)
-  push!(obj_files,ofile)
 
-  ofile = joinpath(path,string(basename,"_i32.o"))
-  if windows_flag
-    cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o "$ofile"  "$ffile"`
-  else
-    cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o $ofile  $ffile`
+  if get(options, "build_i32", true)
+    ofile = joinpath(path,string(basename,"_i32.o"))
+    if windows_flag
+      cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o "$ofile"  "$ffile"`
+    else
+      cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o $ofile  $ffile`
+    end
+    verbose && println(cmd_i32)
+    run(cmd_i32)
+    push!(obj_files,ofile)
   end
-  verbose && println(cmd_i32)
-  run(cmd_i32)
-  push!(obj_files,ofile)
 
   return nothing
 end
 
-function link_gfortran(path::AbstractString, basenames)
+function link_gfortran(path::AbstractString, basenames, options::Dict=Dict())
   link_flags = windows_flag ? [ "-shared" ] : [ "-shared", "-fPIC" ]
-  i64_obj = map( name -> joinpath(path,string(name,".o")), basenames )
-  sofile = joinpath(path,string(basenames[1],file_extension))
-  if windows_flag
-    cmd_i64 = `"$gfortran" $link_flags -o "$sofile" "$i64_obj"`
-  else
-    cmd_i64 = `"$gfortran" $link_flags -o $sofile $i64_obj`
+  
+  if get(options, "build_i64", true)
+    i64_obj = map( name -> joinpath(path,string(name,".o")), basenames )
+    sofile = joinpath(path,string(basenames[1],file_extension))
+    if windows_flag
+      cmd_i64 = `"$gfortran" $link_flags -o "$sofile" "$i64_obj"`
+    else
+      cmd_i64 = `"$gfortran" $link_flags -o $sofile $i64_obj`
+    end
+    verbose && println(cmd_i64)
+    run(cmd_i64)
   end
-  verbose && println(cmd_i64)
-  run(cmd_i64)
 
-  i32_obj = map( name -> joinpath(path,string(name,"_i32.o")), basenames )
-  sofile = joinpath(path,string(basenames[1],"_i32",file_extension))
-  if windows_flag
-    cmd_i32 = `"$gfortran" $link_flags -o "$sofile" "$i32_obj"`
-  else
-    cmd_i32 = `"$gfortran" $link_flags -o $sofile $i32_obj`
+  if get(options, "build_i32", true)
+    i32_obj = map( name -> joinpath(path,string(name,"_i32.o")), basenames )
+    sofile = joinpath(path,string(basenames[1],"_i32",file_extension))
+    if windows_flag
+      cmd_i32 = `"$gfortran" $link_flags -o "$sofile" "$i32_obj"`
+    else
+      cmd_i32 = `"$gfortran" $link_flags -o $sofile $i32_obj`
+    end
+    verbose && println(cmd_i32)
+    run(cmd_i32)
   end
-  verbose && println(cmd_i32)
-  run(cmd_i32)
   return nothing
 end
 
@@ -127,7 +142,11 @@ function build_rodas(path::AbstractString)
 end
 
 function build_bvpsol(path::AbstractString)
-  compile_gfortran(path,"bvpsol")
+  options = Dict(
+    "add_flags_i64" => ["-w", ],
+    "add_flags_i32" => ["-w", ],
+  )
+  compile_gfortran(path,"bvpsol", options)
   compile_gfortran(path,"linalg_bvpsol")
   compile_gfortran(path,"zibconst")
   compile_gfortran(path,"ma28_bvpsol")
@@ -196,9 +215,28 @@ function build_ddebdf(path::AbstractString)
 end
 
 function build_colnew(path::AbstractString)
-  compile_gfortran(path, "colnew")
+  options = Dict(
+    "add_flags_i64" => ["-w", ],
+    "add_flags_i32" => ["-w", ],
+  )
+  compile_gfortran(path, "colnew", options)
   link_gfortran(path, ["colnew",])
   return nothing
+end
+
+function build_bvpm2(path::AbstractString)
+  opt = Dict("build_i32"      => false)
+  proxy_options = Dict(
+    "file_extension" => ".f90",
+    "build_i32"      => false,
+    "add_flags_i64"  => [ "-Wall", "-Wextra", "-Wimplicit-interface" ],
+  )
+  compile_gfortran(path, "bvp_la-2", opt)
+  compile_gfortran(path, "bvp_m-2", Dict(
+    "file_extension" => ".f90",
+    "build_i32"      => false,))
+  compile_gfortran(path, "bvp_m_proxy", proxy_options)
+  link_gfortran(path, ["bvp_m_proxy", "bvp_m-2", "bvp_la-2"], opt)
 end
 
 # test for gfortran
@@ -224,8 +262,9 @@ compile_slatec(dir_of_src)
 build_ddeabm(dir_of_src)
 build_ddebdf(dir_of_src)
 
-build_colnew(dir_of_src)
 build_bvpsol(dir_of_src)
+build_colnew(dir_of_src)
+build_bvpm2(dir_of_src)
 
 del_obj_files()
 

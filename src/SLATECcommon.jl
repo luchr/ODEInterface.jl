@@ -57,13 +57,13 @@ function check_slatec_output_mode(output_mode::OUTPUTFCN_MODE)
 end
 
 """
-       function extractSlatecJacobiOpt{FInt<:FortranInt}(d::FInt,
-               opt::AbstractOptionsODE)
+       function extractSlatecJacobiOpt(d::FInt,
+               opt::AbstractOptionsODE) where FInt<:FortranInt
 
   extracts jacobi options for some SLATEC solvers, like ddebdf.
   """
-function extractSlatecJacobiOpt{FInt<:FortranInt}(d::FInt,
-        opt::AbstractOptionsODE)
+function extractSlatecJacobiOpt(d::FInt,
+        opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT, jacobimatrix, jacobibandstruct = nothing, nothing, nothing
   try
     OPT = OPT_JACOBIMATRIX
@@ -126,9 +126,9 @@ function extractSlatecOutputAtTimes(t0, T, opt::AbstractOptionsODE)
 end
 
 """
-       function unsafe_SLATEC1RHSCallback{CI<:ODEinternalCallInfos}(
-                t_::Ptr{Float64}, x_::Ptr{Float64},
-                f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+       function unsafe_SLATEC1RHSCallback(
+               t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64}, 
+               rpar_::Ptr{Float64}, cbi::CI) where CI<:ODEinternalCallInfos
   
   This is the right-hand side given as callback to SLATEC solvers,
   e.g. ddeabm.
@@ -136,9 +136,9 @@ end
   The `unsafe` prefix in the name indicates that no validations are 
   performed on the `Ptr`-arguments.
   """
-function unsafe_SLATEC1RHSCallback{CI<:ODEinternalCallInfos}(
-        t_::Ptr{Float64}, x_::Ptr{Float64},
-        f_::Ptr{Float64}, rpar_::Ptr{Float64}, cbi::CI)
+function unsafe_SLATEC1RHSCallback(
+        t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64}, 
+        rpar_::Ptr{Float64}, cbi::CI) where CI<:ODEinternalCallInfos
   n = cbi.N
   t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_, (n,), false)
@@ -150,7 +150,8 @@ function unsafe_SLATEC1RHSCallback{CI<:ODEinternalCallInfos}(
 end
 
 """
-        function unsafe_SLATEC1RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+       function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
 
   This method generates a Pointer to C-callable instructions.
@@ -164,16 +165,16 @@ end
   calls to such Julia-functions can be resolved at compile-time
   (instead of dynamic calls during run-time).
   """
-function unsafe_SLATEC1RHSCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt) 
+function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_SLATEC1RHSCallback, Void, (Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 
-function unsafe_SLATEC1JacCallback{FInt<:FortranInt,
-        CI<:ODEinternalCallInfos}(t_::Ptr{Float64}, x_::Ptr{Float64}, 
+function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64}, 
         dfx_::Ptr{Float64}, dfx_rows_::Ptr{FInt}, rpar_::Ptr{Float64},
-        cbi::CI)
+        cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = cbi.N
   t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_, (n,), false)
@@ -204,11 +205,12 @@ function unsafe_SLATEC1JacCallback{FInt<:FortranInt,
 end
 
 """
-       function unsafe_SLATEC1JacCallback_c{FInt, CI}
-                (cbi::CI, fint_flag::FInt)
+       function unsafe_SLATEC1JacCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt, CI}
           -> C-callable function pointer
   """
-function unsafe_SLATEC1JacCallback_c{FInt, CI}(cbi::CI, fint_flag::FInt)
+function unsafe_SLATEC1JacCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt, CI}
   return cfunction(unsafe_SLATEC1JacCallback, Void, (Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
 end

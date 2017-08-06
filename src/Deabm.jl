@@ -176,9 +176,9 @@ end
 const ddeabm_maxnum = 500
 
 """
-       function ddeabm_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-                args::DdeabmArguments{FInt})
+       function ddeabm_impl(rhs::Function, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::DdeabmArguments{FInt}) where FInt<:FortranInt
   
   implementation of ddeabm-call for FInt.
 
@@ -206,9 +206,9 @@ const ddeabm_maxnum = 500
       ╚═══════════════════╧══════════════════════════════════════════════════╝ 
 
   """
-function ddeabm_impl{FInt<:FortranInt}(rhs::Function, 
+function ddeabm_impl(rhs::Function, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-        args::DdeabmArguments{FInt})
+        args::DdeabmArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("ddeabm",rhs,t0,T,x0,opt)
 

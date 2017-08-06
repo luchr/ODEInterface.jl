@@ -111,15 +111,15 @@ function dop853_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-        function dop853_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, 
-                opt::AbstractOptionsODE,args::DopriArguments{FInt})
+       function dop853_impl(rhs::Function, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
+               args::DopriArguments{FInt}) where {FInt<:FortranInt}
   
   implementation of dop853 for FInt.
   """
-function dop853_impl{FInt<:FortranInt}(rhs::Function, 
-        t0::Real, T::Real, x0::Vector, 
-        opt::AbstractOptionsODE,args::DopriArguments{FInt})
+function dop853_impl(rhs::Function, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
+        args::DopriArguments{FInt}) where {FInt<:FortranInt}
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("dop853",rhs,t0,T,x0,opt)
 

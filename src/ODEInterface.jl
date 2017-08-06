@@ -58,9 +58,16 @@ __precompile__(true)
     boundary value problems using either a local linear solver or a global
     sparse linear solver. **Please note: The license for `bvpsol` only 
     covers non commercial use, see [License](./LICENSE.md).**
-  
-  written by P. Deuflhard, G. Bader, L. Weimann, see
-  [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
+    written by P. Deuflhard, G. Bader, L. Weimann, see
+    [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
+  * colnew: a multi-point boundary value problem solver for mixed order
+    systems using collocation.
+    Written by U. Ascher, G. Bader, see
+    [Colnew Homepage](https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html).
+  * BVP_M-2: a boundary value problem solver for the numerical solution of
+    boundary value ordinary differential equations with defect and global error control.
+    Written by J. J. Boisvert, P.H. Muir and R. J. Spiteri, see
+    [BVP_M-2 Page](http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml).
   
   ## What are the requirements for this module
   
@@ -128,6 +135,8 @@ macro import_huge()
     @ODEInterface.import_DLddebdf
     @ODEInterface.import_colnew
     @ODEInterface.import_DLcolnew
+    @ODEInterface.import_bvpm2
+    @ODEInterface.import_DLbvpm2
   end
 end
 
@@ -145,6 +154,7 @@ macro import_normal()
     @ODEInterface.import_seulex
     @ODEInterface.import_rodas
     @ODEInterface.import_bvpsol
+    @ODEInterface.import_bvpm2
     @ODEInterface.import_ddeabm
     @ODEInterface.import_ddebdf
     @ODEInterface.import_colnew
@@ -233,7 +243,8 @@ macro import_OPTcommon()
                           OPT_COLLOCATIONPTS, OPT_SUBINTERVALS,
                           OPT_FREEZEINTERVALS, OPT_DIAGNOSTICOUTPUT,
                           OPT_ADDGRIDPOINTS, OPT_MAXSUBINTERVALS,
-                          OPT_COARSEGUESSGRID
+                          OPT_COARSEGUESSGRID, OPT_ERRORCONTROL,
+                          OPT_SINGULARTERM
   )
 end
 
@@ -326,6 +337,10 @@ const OPT_DIAGNOSTICOUTPUT = "DiagnosticOutput"
 const OPT_ADDGRIDPOINTS    = "AdditionalGridPoints"
 const OPT_MAXSUBINTERVALS  = "MaximalNumberOfSubintervals"
 const OPT_COARSEGUESSGRID  = "CoarseGuessGrid"
+
+const OPT_ERRORCONTROL     = "ErrorControl"
+const OPT_SINGULARTERM     = "SingularTerm"
+
 
 
 @enum(RHS_CALL_MODE,
@@ -499,8 +514,9 @@ function solver_extract_rhsMode(opt::AbstractOptionsODE)
 end
 
 """
-       function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector, 
-             opt::AbstractOptionsODE, args::AbstractArgumentsODESolver{FInt})
+       function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector, 
+                    opt::AbstractOptionsODE, 
+                    args::AbstractArgumentsODESolver{FInt}) where FInt
          -> (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn)
 
   get d, fill args.N, args.x, args.t, args.tEnd, args.RTOL, args.ATOL
@@ -508,8 +524,9 @@ end
   reads options: `OPT_RTOL`, `OPT_ATOL`, `OPT_RHS_CALLMODE`, 
   `OPT_OUTPUTMODE`, `OPT_OUTPUTFCN`
   """
-function solver_extract_commonOpt{FInt}(t0::Real, T::Real, x0::Vector, 
-             opt::AbstractOptionsODE, args::AbstractArgumentsODESolver{FInt})
+function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector, 
+             opt::AbstractOptionsODE, 
+             args::AbstractArgumentsODESolver{FInt}) where FInt
   
   d = FInt(0)
   try
@@ -565,6 +582,7 @@ include("./Bvpsol.jl")
 include("./Deabm.jl")
 include("./Debdf.jl")
 include("./Colnew.jl")
+include("./Bvpm2.jl")
 
 include("./Call.jl")
 include("./Help.jl")
