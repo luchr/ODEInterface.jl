@@ -61,6 +61,10 @@ Also supported:
   systems using collocation.
   Written by U. Ascher, G. Bader, see
   [Colnew Homepage](https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html)
+* BVP_M-2: a boundary value problem solver for the numerical solution of
+  boundary value ordinary differential equations with defect and global error control.
+  Written by J. J. Boisvert, P.H. Muir and R. J. Spiteri, see
+  [BVP_M-2 Page](http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml)
 
 Description: [Calling the Solvers](./doc/CallSolvers.md) 
 
