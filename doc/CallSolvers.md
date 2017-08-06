@@ -13,7 +13,7 @@ All ODE-solvers have the same calling convention:
 
 ```
 (t,x,retcode,stats) = 
-    odesolver(rhs::Function, t0::Real, T::Real,
+    odesolver(rhs, t0::Real, T::Real,
               x0::Vector, opt::AbstractOptionsODErhs)
 
 function rhs(t::Float64,x::Vector{Float64}) -> Vector{Float64}
@@ -59,7 +59,7 @@ There is a simplified calling convention (using the methods above) to provide a 
 
 
 ```
-function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
+function odecall(solver, rhs, t::Vector, x0::Vector,
                 opt::AbstractOptionsODE)
     -> (tVec,xVec,retcode,stats)
 ```

@@ -78,6 +78,37 @@ const solvers_bvpsol  = ( bvpsol, bvpsol_i32
 const solvers_colnew  = ( colnew, colnew_i32 
                        )
 
+"""
+  create a callable-type in order to check, if solvers
+  can handle callable-types (which are not a subclass of
+  Function) as right-hand sides.
+  """
+type Callable_Type
+  param :: Float64
+end
+
+if isdefined(Base, :call) 
+  using Base.call
+end
+
+macro make_Callable_Type()
+  if VERSION < v"0.5"
+    return quote
+      function Base.call(ct::Callable_Type, t, x)
+        return ct.param*x
+      end
+    end
+  else
+    return quote
+      function (ct::Callable_Type)(t,x)
+        return ct.param*x
+      end
+    end
+  end
+end
+
+@make_Callable_Type
+
 function test_ode1(solver::Function)
   opt = OptionsODE("ode1",
         OPT_RTOL => 1e-10,
@@ -156,6 +187,25 @@ function test_ode3(solver::Function)
   @assert x0 == [1,2]
   @assert isapprox(x[1],exp(1),rtol=1e-7,atol=1e-7)
   @assert isapprox(x[2],2*exp(1),rtol=1e-7,atol=1e-7)
+  return true
+end
+
+function test_ode4(solver::Function)
+  opt = OptionsODE("ode1",
+        OPT_RTOL => 1e-10,
+        OPT_ATOL => 1e-10)
+  t0 = 0; T = 1; x0=[1,2]; 
+  rhs = Callable_Type(1.0)
+
+  (t,x,retcode,stats) = solver(rhs, t0, T, x0, opt)
+  @assert 1 == retcode
+  @assert t == T
+  @assert x0 == [1,2]
+  @assert isapprox(x[1],exp(1),rtol=1e-7,atol=1e-7)
+  @assert isapprox(x[2],2*exp(1),rtol=1e-7,atol=1e-7)
+  if haskey(stats,"step_predict")
+    @assert isa(stats["step_predict"],Number)
+  end
   return true
 end
 
@@ -1047,7 +1097,7 @@ function test_DLSolvers()
 end
 
 function test_vanilla()
-  problems = (test_ode1,test_ode2,test_ode3,)
+  problems = (test_ode1,test_ode2,test_ode3,test_ode4,)
   @testset "solvers" begin
     @testloop for solver in solvers,
                   problem in problems

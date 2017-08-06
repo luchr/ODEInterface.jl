@@ -82,8 +82,8 @@ end
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-type RadauInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
-        OUT_F<:Function, JAC_F<:Function} <: ODEinternalCallInfos
+type RadauInternalCallInfos{FInt<:FortranInt, RHS_F, 
+        OUT_F, JAC_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # special structure
@@ -463,7 +463,7 @@ end
 
 # Same documentation than for radau, is copied after
 # the definition of the radau function.
-function radau5(rhs::Function, t0::Real, T::Real,
+function radau5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
@@ -471,19 +471,19 @@ end
 """
   radau5 with 32bit integers, see radau5.
   """
-function radau5_i32(rhs::Function, t0::Real, T::Real,
+function radau5_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau5_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}(Int32(0)))
 end
 
 """
-        function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+        function radau5_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
   
   implementation of radau5 for FInt.
   """
-function radau5_impl{FInt<:FortranInt}(rhs::Function, 
+function radau5_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::RadauArguments{FInt})
 
@@ -547,11 +547,11 @@ function radau5_impl{FInt<:FortranInt}(rhs::Function,
 end
 
 """
-       function radau(rhs::Function, t0::Real, T::Real,
+       function radau(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
        
-       function radau5(rhs::Function, t0::Real, T::Real,
+       function radau5(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -738,7 +738,7 @@ end
       ║                 │                                          │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function radau(rhs::Function, t0::Real, T::Real,
+function radau(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int64}(Int64(0)))
 end
@@ -748,19 +748,19 @@ end
 """
   radau with 32bit integers, see radau.
   """
-function radau_i32(rhs::Function, t0::Real, T::Real,
+function radau_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return radau_impl(rhs,t0,T,x0,opt,RadauArguments{Int32}(Int32(0)))
 end
 
 """
-        function radau_impl{FInt<:FortranInt}(rhs::Function, 
+        function radau_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector,
                 opt::AbstractOptionsODE, args::RadauArguments{FInt})
   
   implementation of radau for FInt.
   """
-function radau_impl{FInt<:FortranInt}(rhs::Function, 
+function radau_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector,
         opt::AbstractOptionsODE, args::RadauArguments{FInt})
 

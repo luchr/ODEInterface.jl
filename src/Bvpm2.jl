@@ -78,14 +78,14 @@ bvpm2_global_cbi = nothing
 
   For more details of this concept/idea call `help_bvpm2_proxy`.
   """
-type Bvpm2_guess_cbi{GUESS_FCN<:Function} <: ODEinternalCallInfos
+type Bvpm2_guess_cbi{GUESS_FCN} <: ODEinternalCallInfos
   no_odes       :: Int64            # number of ODEs, used for assertion
   # GUESS:
   guess         :: GUESS_FCN        # Julia-function to call for guess
 end
 
-type Bvpm2_solve_cbi{RHS_FCN<:Function, DRHS_FCN<:Function,
-              BC_FCN<:Function, DBC_FCN<:Function} <: ODEinternalCallInfos
+type Bvpm2_solve_cbi{RHS_FCN, DRHS_FCN,
+              BC_FCN, DBC_FCN} <: ODEinternalCallInfos
   logio        :: IO              # where to log
   loglevel     :: UInt64          # log level
   no_odes      :: Int64           # number of ODEs, used for assertion
@@ -1023,7 +1023,7 @@ end
 
 
 """
-       function bvpm2_solve(guess_obj::Bvpm2, rhs::Function, bc::Function, 
+       function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
          opt::AbstractOptionsODE) -> (obj_out, retcode, stats)
 
   ## Right-hand side for the ODEs: `rhs`
@@ -1139,7 +1139,7 @@ end
         <0: failure
         ≥0: computation successful
   """
-function bvpm2_solve(guess_obj::Bvpm2, rhs::Function, bc::Function, 
+function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
   opt::AbstractOptionsODE; Drhs=nothing, Dbc=nothing)
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("bvpm2", opt)
@@ -1157,18 +1157,6 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs::Function, bc::Function,
   no_left_bc = details["no_left_bc"]
   tol = NaN; method = 4; trace =  -1; error_control = 1
   si_dim = 0; si_matrix = [];
-
-  if Drhs ≠ nothing
-    !isa(Drhs, Function) && throw(ArgumentErrorODE(string(
-      "Argument Drhs must be nothing or a Function; found ",
-      typeof(Drhs)), :Drhs))
-  end
-
-  if Dbc ≠ nothing
-    !isa(Dbc, Function) && throw(ArgumentErrorODE(string(
-      "Argument Dbc must be nothing or a Function; found ",
-      typeof(Dbc)), :Dbc)) 
-  end
 
   OPT = nothing
   try

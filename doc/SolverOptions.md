@@ -3,7 +3,7 @@
 # dopri5
 
 ```
-function dopri5(rhs::Function, t0::Real, T::Real,
+function dopri5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -142,7 +142,7 @@ main call for using Fortran-dopri5 solver. In `opt` the following options are us
 # dop853
 
 ```
-function dop853(rhs::Function, t0::Real, T::Real,
+function dop853(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -281,7 +281,7 @@ main call for using Fortran-dopri5 solver. In `opt` the following options are us
 # odex
 
 ```
- function odex(rhs::Function, t0::Real, T::Real, 
+ function odex(rhs, t0::Real, T::Real, 
                x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -485,7 +485,7 @@ main call for using Fortran-odex solver. In `opt` the following options are used
 # seulex
 
 ```
- function seulex(rhs::Function, t0::Real, T::Real,
+ function seulex(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -750,7 +750,7 @@ In `opt` the following options are used:
 # rodas
 
 ```
-  function rodas(rhs::Function, t0::Real, T::Real,
+  function rodas(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -967,7 +967,7 @@ In `opt` the following options are used:
 # ddeabm
 
 ```
- function ddeabm(rhs::Function, t0::Real, T::Real,
+ function ddeabm(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1074,7 +1074,7 @@ main call for using Fortran-ddeabm solver. In `opt` the following options are us
 # ddebdf
 
 ```
- function ddebdf(rhs::Function, t0::Real, T::Real,
+ function ddebdf(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1211,11 +1211,11 @@ main call for using Fortran-ddebdf solver. In `opt` the following options are us
 # radau and radau5
 
 ```
- function radau(rhs::Function, t0::Real, T::Real,
+ function radau(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
  
- function radau5(rhs::Function, t0::Real, T::Real,
+ function radau5(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1553,7 +1553,7 @@ In `opt` the following options are used:
 # bvpsol
 
 ```
- function bvpsol(rhs::Function, bc::Function,
+ function bvpsol(rhs, bc,
    t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1668,8 +1668,7 @@ In `opt` the following options are used:
 
 ```
   function colnew(interval::Vector, orders::Vector, ζ::Vector,
-    rhs::Function, Drhs::Function,
-    bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+    rhs, Drhs, bc, Dbc, guess, opt::AbstractOptionsODE)
       -> (sol, retcode, stats)
 ```
 
@@ -2183,7 +2182,7 @@ initialize Bvpm2 object where the function `guess` is used to get the guesses fo
 
 
 ```
- function bvpm2_solve(guess_obj::Bvpm2, rhs::Function, bc::Function, 
+ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
    opt::AbstractOptionsODE) -> (obj_out, retcode, stats)
 ```
 

@@ -68,7 +68,7 @@ function extractSlatecJacobiOpt{FInt<:FortranInt}(d::FInt,
   try
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt, OPT, nothing)
-    @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    # @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
 
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)

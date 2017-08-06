@@ -59,7 +59,7 @@ end
   """
 type OutputErrorODE <: WrappedODEException
   msg      :: AbstractString
-  func     :: Function
+  func
   error
 end
 

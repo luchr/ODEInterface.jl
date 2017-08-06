@@ -396,7 +396,7 @@ function extractJacobiOpt{FInt<:FortranInt}(d::FInt,
   try
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt,OPT,nothing)
-    @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    # @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
     
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)
@@ -441,7 +441,7 @@ function extractRhsTimeDerivOpt{FInt<:FortranInt}(
   rhstimederiv = nothing
   try
     rhstimederiv = getOption(opt,OPT,nothing)
-    @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
+    # @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
