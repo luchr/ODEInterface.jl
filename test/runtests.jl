@@ -42,6 +42,7 @@ const dl_solvers = (DL_DOPRI5, DL_DOPRI5_I32,
                     DL_BVPSOL, DL_BVPSOL_I32,
                     DL_DDEABM, DL_DDEABM_I32,
                     DL_DDEBDF, DL_DDEBDF_I32,
+                    DL_BVPM2,
                     ) 
 const solvers = (dopri5, dopri5_i32, 
                  dop853, dop853_i32,
@@ -613,6 +614,352 @@ function test_colnew1(solver::Function)
   return true
 end
 
+function test_bvpm2_1()
+  ε = 0.1
+  a, b = -pi/2.0, pi/2.0
+
+  function rhs(x, y, p, f)
+    @assert length(y) == length(f) == 1
+    @assert length(p) == 1
+    f[1] = ( sin(x)^2 - p[1]*sin(x)^4/y[1] ) / ε
+  end
+  
+  function Drhs(x, y, p, dfdy, dfdp)
+    @assert length(y) == 1
+    @assert length(p) == 1
+    @assert size(dfdy) == (1,1)
+    @assert size(dfdp) == (1,1)
+  
+    dfdy[1,1] = ( p[1]*sin(x)^4/y[1]^2 ) / ε
+    dfdp[1,1] = ( -sin(x)^4/y[1] ) / ε
+  end
+  
+  function bc(ya, yb, p, bca, bcb)
+    @assert length(ya) == length(yb) == 1
+    @assert length(bca) == length(bcb) == 1
+    @assert length(p) == 1
+    bca[1] = ya[1] - 1.0
+    bcb[1] = yb[1] - 1.0
+  end
+  
+  function Dbc(ya, yb, dya, dyb, p, dpa, dpb)
+    @assert length(ya) == length(yb) == 1
+    @assert size(dya) == size(dyb) == (1,1)
+    @assert length(p) == 1
+    @assert size(dpa) == size(dpb) == (1,1)
+    dya[1,1] = 1.0
+    dyb[1,1] = 1.0
+    dpa[1,1] = 0.0
+    dpb[1,1] = 0.0
+  end
+
+  opt = OptionsODE("test_bvpm2_1",
+          OPT_RTOL => 1e-6,
+          OPT_METHODCHOICE => 4,)
+  guess_obj = Bvpm2()
+  bvpm2_init(guess_obj, 1, 1, collect(linspace(a, b, 20)), [0.5,], [1.0,])
+  retcode = Vector{Int64}(4)
+  sol = Vector{ODEInterface.Bvpm2}(4)
+  stat = Vector{Dict}(4)
+  z = Vector{Matrix}(4)
+
+  (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
+  (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Drhs=Drhs)
+  (sol[3], retcode[3], stat[3]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Dbc=Dbc)
+  (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                               Drhs=Drhs, Dbc=Dbc)
+  for k=1:length(retcode)
+    @assert retcode[k] == 0
+    @assert stat[k]["no_rhs_calls"] > 0
+    @assert stat[k]["no_bc_calls"] > 0
+    z[k] = evalSolution(sol[k], collect(linspace(a, b, 5)))
+  end
+  @assert stat[1]["no_jac_calls"] == stat[3]["no_jac_calls"] == 0
+  @assert stat[1]["no_Dbc_calls"] == stat[2]["no_Dbc_calls"] == 0
+  @assert stat[2]["no_jac_calls"] > 0
+  @assert stat[4]["no_jac_calls"] > 0
+  @assert stat[1]["no_rhs_calls"] > stat[2]["no_rhs_calls"]
+  @assert stat[1]["no_rhs_calls"] > stat[4]["no_rhs_calls"]
+
+  for k=1:length(retcode)-1
+    @assert isapprox(z[k], z[k+1], rtol=1e-4, atol=1e-4)
+  end
+
+  bvpm2_destroy(guess_obj)
+  for k=1:length(retcode)
+    bvpm2_destroy(sol[k])
+  end
+  return true
+end
+
+function test_bvpm2_2()
+  exact_sol = x -> [ 1/sqrt(1+x^2/3), -9/(9+3*x^2)^1.5*x ]
+  a,b = 0.0, 1.0
+
+  function rhs(x, y, f)
+    @assert length(y) == length(f) == 2
+    f[1] = y[2]
+    f[2] = -y[1]^5
+  end
+
+  function Drhs(x, y, dfdy)
+    @assert length(y) == 2
+    @assert size(dfdy) == (2,2)
+    dfdy[:] = 0
+    dfdy[1,2] = 1.0
+    dfdy[2,1] = -5*y[1]^4
+  end
+
+  function bc(ya, yb, bca, bcb)
+    @assert length(ya) == length(yb) == 2
+    @assert length(bca) == length(bcb) == 1
+    bca[1] = ya[2]
+    bcb[1] = yb[1] - sqrt(0.75)
+  end
+
+  function Dbc(ya, yb, dya, dyb)
+    @assert length(ya) == length(yb) == 2
+    @assert size(dya) == (1,2)
+    @assert size(dyb) == (1,2)
+    dya[:] = 0
+    dya[1,2] = 1.0
+    dyb[:] = 0
+    dyb[1,1] = 1.0
+  end
+
+  opt = OptionsODE("test_bvpm2_2",
+          OPT_RTOL => 1e-6,
+          OPT_METHODCHOICE => 6,
+          OPT_SINGULARTERM => [ 0 0 ; 0 -2 ],
+          )
+
+  guess_obj = Bvpm2()
+  bvpm2_init(guess_obj, 2, 1, collect(linspace(a, b, 10)), [sqrt(0.75), 1e-4])
+  retcode = Vector{Int64}(4)
+  sol = Vector{ODEInterface.Bvpm2}(4)
+  stat = Vector{Dict}(4)
+  z = Vector{Matrix}(4)
+
+  (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
+  (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Drhs=Drhs)
+  (sol[3], retcode[3], stat[3]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Dbc=Dbc)
+  (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                               Drhs=Drhs, Dbc=Dbc)
+  xx = collect(linspace(a, b, 5))
+  for k=1:length(retcode)
+    @assert retcode[k] == 0
+    @assert stat[k]["no_rhs_calls"] > 0
+    @assert stat[k]["no_bc_calls"] > 0
+    z[k] = evalSolution(sol[k], xx)
+  end
+  @assert stat[1]["no_jac_calls"] == stat[3]["no_jac_calls"] == 0
+  @assert stat[1]["no_Dbc_calls"] == stat[2]["no_Dbc_calls"] == 0
+  @assert stat[2]["no_jac_calls"] > 0
+  @assert stat[4]["no_jac_calls"] > 0
+  @assert stat[1]["no_rhs_calls"] > stat[2]["no_rhs_calls"]
+  @assert stat[1]["no_rhs_calls"] > stat[4]["no_rhs_calls"]
+
+  for k=1:length(retcode)
+    for j=1:length(xx)
+      @assert isapprox(z[k][:,j], exact_sol(xx[j]), rtol=1e-4, atol=1e-4)
+    end
+  end
+
+  bvpm2_destroy(guess_obj)
+  for k=1:length(retcode)
+    bvpm2_destroy(sol[k])
+  end
+  return true
+end
+
+function test_bvpm2_3()
+  exact_sol = x -> [ exp(x), exp(x) ]
+  a,b = 0.0, 1.0
+
+  function rhs(x, y, f)
+    @assert length(y) == length(f) == 2
+    f[1] = y[2]
+    f[2] = y[1]
+  end
+  
+  function Drhs(x, y, dfdy)
+    @assert length(y) == 2
+    @assert size(dfdy) == (2,2)
+    dfdy[:] = 0
+    dfdy[1,2] = 1.0
+    dfdy[2,1] = 1.0
+  end
+  
+  function bc(ya, yb, bca, bcb)
+    @assert length(ya) == length(yb) == 2
+    @assert length(bca) == length(bcb) == 1
+    bca[1] = ya[1] - 1.0
+    bcb[1] = yb[1] - exp(1)
+  end
+  
+  function Dbc(ya, yb, dya, dyb)
+    @assert length(ya) == length(yb) == 2
+    @assert size(dya) == (1,2)
+    @assert size(dyb) == (1,2)
+    dya[:] = 0
+    dya[1,1] = 1.0
+    dyb[:] = 0
+    dyb[1,1] = 1.0
+  end
+  
+  function guess(x, y)
+    @assert length(y) == 2
+    y[1] = 1+x
+    y[2] = 1.0
+  end
+
+  opt = OptionsODE("test_bvpm2_3",
+          OPT_RTOL => 1e-6 )
+
+  guess_obj = Bvpm2()
+  bvpm2_init(guess_obj, 2, 1, collect(linspace(a, b, 3)), guess)
+  retcode = Vector{Int64}(4)
+  sol = Vector{ODEInterface.Bvpm2}(4)
+  stat = Vector{Dict}(4)
+  z = Vector{Matrix}(4)
+
+  (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
+  (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Drhs=Drhs)
+  (sol[3], retcode[3], stat[3]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Dbc=Dbc)
+  (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                               Drhs=Drhs, Dbc=Dbc)
+  xx = collect(linspace(a, b, 5))
+  for k=1:length(retcode)
+    @assert retcode[k] == 0
+    @assert stat[k]["no_rhs_calls"] > 0
+    @assert stat[k]["no_bc_calls"] > 0
+    z[k] = evalSolution(sol[k], xx)
+  end
+  @assert stat[1]["no_jac_calls"] == stat[3]["no_jac_calls"] == 0
+  @assert stat[1]["no_Dbc_calls"] == stat[2]["no_Dbc_calls"] == 0
+  @assert stat[2]["no_jac_calls"] > 0
+  @assert stat[4]["no_jac_calls"] > 0
+  @assert stat[1]["no_rhs_calls"] > stat[2]["no_rhs_calls"]
+  @assert stat[1]["no_rhs_calls"] > stat[4]["no_rhs_calls"]
+
+  for k=1:length(retcode)
+    for j=1:length(xx)
+      @assert isapprox(z[k][:,j], exact_sol(xx[j]), rtol=1e-4, atol=1e-4)
+    end
+  end
+
+  bvpm2_destroy(guess_obj)
+  for k=1:length(retcode)
+    bvpm2_destroy(sol[k])
+  end
+  return true
+end
+
+function test_bvpm2_4()
+  exact_sol = x -> [ exp(x), exp(x) ]
+  a,b = 0.0, 1.0
+
+  function rhs(x, y, p, f)
+    @assert length(y) == length(f) == 2
+    @assert length(p) == 1
+    f[1] = y[2]
+    f[2] = y[1]*p[1]
+  end
+  
+  function Drhs(x, y, p, dfdy, dfdp)
+    @assert length(y) == 2
+    @assert length(p) == 1
+    @assert size(dfdy) == (2,2)
+    @assert size(dfdp) == (2,1)
+    dfdy[:] = 0
+    dfdy[1,2] = 1.0
+    dfdy[2,1] = p[1]
+  
+    dfdp[:] = 0
+    dfdp[2,1] = y[1]
+  end
+  
+  function bc(ya, yb, p, bca, bcb)
+    @assert length(ya) == length(yb) == 2
+    @assert length(bca) == 2
+    @assert length(bcb) == 1
+    @assert length(p) == 1
+    bca[1] = ya[1] - 1.0
+    bca[2] = ya[2] - 1.0
+    bcb[1] = yb[1] - exp(1)
+  end
+  
+  function Dbc(ya, yb, dya, dyb, p, dpa, dpb)
+    @assert length(ya) == length(yb) == 2
+    @assert length(p) == 1
+    @assert size(dya) == (2,2)
+    @assert size(dyb) == (1,2)
+    @assert size(dpa) == (2,1)
+    @assert size(dpb) == (1,1)
+    dya[:] = 0
+    dya[1,1] = 1.0
+    dya[2,2] = 1.0
+    dyb[:] = 0
+    dyb[1,1] = 1.0
+    dpa[:] = 0
+  end
+  
+  function guess(x, y)
+    y[1] = 1+x
+    y[2] = 1.0
+  end
+  
+  opt = OptionsODE("test_bvpm2_4",
+          OPT_RTOL => 1e-6 )
+
+  guess_obj = Bvpm2()
+  bvpm2_init(guess_obj, 2, 2, collect(linspace(a, b, 3)), guess, [0.9,])
+  retcode = Vector{Int64}(4)
+  sol = Vector{ODEInterface.Bvpm2}(4)
+  stat = Vector{Dict}(4)
+  z = Vector{Matrix}(4)
+
+  (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
+  (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Drhs=Drhs)
+  (sol[3], retcode[3], stat[3]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                              Dbc=Dbc)
+  (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
+                                               Drhs=Drhs, Dbc=Dbc)
+  xx = collect(linspace(a, b, 5))
+  for k=1:length(retcode)
+    @assert retcode[k] == 0
+    @assert stat[k]["no_rhs_calls"] > 0
+    @assert stat[k]["no_bc_calls"] > 0
+    z[k] = evalSolution(sol[k], xx)
+  end
+  @assert stat[1]["no_jac_calls"] == stat[3]["no_jac_calls"] == 0
+  @assert stat[1]["no_Dbc_calls"] == stat[2]["no_Dbc_calls"] == 0
+  @assert stat[2]["no_jac_calls"] > 0
+  @assert stat[4]["no_jac_calls"] > 0
+  @assert stat[1]["no_rhs_calls"] > stat[2]["no_rhs_calls"]
+  @assert stat[1]["no_rhs_calls"] > stat[4]["no_rhs_calls"]
+
+  for k=1:length(retcode)
+    for j=1:length(xx)
+      @assert isapprox(z[k][:,j], exact_sol(xx[j]), rtol=1e-4, atol=1e-4)
+    end
+    @assert isapprox(bvpm2_get_params(sol[k]),[1.0,], rtol=1e-4, atol=1e-4)
+  end
+
+  bvpm2_destroy(guess_obj)
+  for k=1:length(retcode)
+    bvpm2_destroy(sol[k])
+  end
+  return true
+end
+
 function test_Banded()
   @testset "Banded" begin
     @test_throws ArgumentErrorODE  BandedMatrix{Float64}(
@@ -776,6 +1123,15 @@ function test_colnew()
   end
 end
 
+function test_bvpm2()
+  problems = (test_bvpm2_1, test_bvpm2_2, test_bvpm2_3, test_bvpm2_4, )
+  @testset "bvpm2" begin
+    @testloop for problem in problems
+      @test problem()
+    end
+  end
+end
+
 function test_all()
   test_Banded()
   test_Options()
@@ -784,6 +1140,7 @@ function test_all()
   test_odecall()
   test_bvp()
   test_colnew()
+  test_bvpm2()
 end
 
 test_all()
