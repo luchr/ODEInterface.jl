@@ -10,12 +10,19 @@ using ODEInterface
 # Here ε is given (e.g. ε=0.1) and λ is an unknown parameter: λ'=0
 #
 # We use colsys/colnew and a "homotopy": starting with ε=1.0, using this
-# solution as start-guess für ε=0.5, then using this as start guess
+# solution as start-guess for ε=0.5, then using this as start guess
 # for ε=0.2 and then ε=0.1
 
 a, b = -pi/2, pi/2
 orders = [1, 1,]
 ζ = [a, b]
+
+found_pyplot = true
+try
+  using PyPlot
+catch
+  found_pyplot = false
+end
 
 global ε = nothing 
 global ε_old = nothing
@@ -60,18 +67,16 @@ for ε = [1.0, 0.5, 0.2, 0.1]
   sol, retcode, stats = colnew([a,b], orders, ζ, rhs, Drhs, bc, Dbc, guess ,opt);
   @printf("ε=%g, retcode=%i\n", ε, retcode)
   @assert retcode>0
-    zz_new = evalSolution(sol, xx)
-    if sol_old==nothing
-        zz_old = copy(zz_new); zz_old[:,1] = 0.5; zz_old[:,2] = NaN
-        description = "initial guess"
-    else
-        zz_old = evalSolution(sol_old, xx)
-        description = @sprintf("solution for (old) ε=%g",ε_old)
-    end    
-    ## If you have PyPlot and want to see a plot
-    # plot(xx, zz_old[:,1], xx, zz_new[:,1]);grid(true)
-    # legend((description, "solution")); title(@sprintf("ε=%g, λ=%g",ε, zz_new[1,2]));
-    sol_old = sol; ε_old = ε
+  zz_new = evalSolution(sol, xx)
+  if sol_old == nothing
+      zz_old = copy(zz_new); zz_old[:,1] = 0.5; zz_old[:,2] = NaN
+  else
+      zz_old = evalSolution(sol_old, xx)
+  end    
+  if found_pyplot
+    plot(xx, zz_old[:,1], xx, zz_new[:,1]);grid(true)
+  end
+  sol_old = sol; ε_old = ε
 end
 
 xx = collect(linspace(a, b, 9))

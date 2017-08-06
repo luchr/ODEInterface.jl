@@ -157,8 +157,6 @@ end
 
 """
   Type encapsulating all required data for ODE-Solver-Callbacks.
-  
-  For further explanation see, `GlobalCallInfoDict`
   """
 abstract type ODEinternalCallInfos end
 
