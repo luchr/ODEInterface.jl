@@ -48,7 +48,7 @@ end
   see also help of `ODEInterface.SLATEC_continuation_call`.
   """
 type DdeabmInternalCallInfos{FInt<:FortranInt,
-        RHS_F<:Function, OUT_F<:Function} <: ODEinternalCallInfos
+        RHS_F, OUT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -95,7 +95,7 @@ type DdeabmArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
 end
 
 """
-       function ddeabm(rhs::Function, t0::Real, T::Real,
+       function ddeabm(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
 
@@ -159,7 +159,7 @@ end
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
 
   """
-function ddeabm(rhs::Function, t0::Real, T::Real,
+function ddeabm(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddeabm_impl(rhs, t0, T, x0, opt, DdeabmArguments{Int64}(Int64(0)))
 end
@@ -167,7 +167,7 @@ end
 """
   ddeabm with 32bit integers, see ddeabm.
   """
-function ddeabm_i32(rhs::Function, t0::Real, T::Real,
+function ddeabm_i32(rhs, t0::Real, T::Real,
                   x0::Vector, opt::AbstractOptionsODE)
   return ddeabm_impl(rhs, t0, T, x0, opt, DdeabmArguments{Int32}(Int32(0)))
 end
@@ -178,7 +178,7 @@ end
 const ddeabm_maxnum = 500
 
 """
-       function ddeabm_impl{FInt<:FortranInt}(rhs::Function, 
+       function ddeabm_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
                 args::DdeabmArguments{FInt})
   
@@ -208,7 +208,7 @@ const ddeabm_maxnum = 500
       ╚═══════════════════╧══════════════════════════════════════════════════╝ 
 
   """
-function ddeabm_impl{FInt<:FortranInt}(rhs::Function, 
+function ddeabm_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::DdeabmArguments{FInt})
 

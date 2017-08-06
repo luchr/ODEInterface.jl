@@ -51,7 +51,7 @@ end
                output_fcn ( ... DONE ...)
   """
 type OdexInternalCallInfos{FInt<:FortranInt,
-       RHS_F<:Function, OUT_F<:Function } <: ODEinternalCallInfos
+       RHS_F, OUT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -241,7 +241,7 @@ function create_odex_eval_sol_fcn_closure{FInt<:FortranInt,
 end
 
 """
-       function odex(rhs::Function, t0::Real, T::Real, 
+       function odex(rhs, t0::Real, T::Real, 
                      x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
 
@@ -335,7 +335,7 @@ end
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
 
   """
-function odex(rhs::Function, t0::Real, T::Real,
+function odex(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int64}(Int64(0)))
 end
@@ -343,7 +343,7 @@ end
 """
   odex with 32bit integers, see odex.
   """
-function odex_i32(rhs::Function, t0::Real, T::Real,
+function odex_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
 
   return odex_impl(rhs,t0,T,x0,opt,OdexArguments{Int32}(Int32(0)))
@@ -351,13 +351,13 @@ end
 
 
 """
-        function odex_impl{FInt<:FortranInt}(rhs::Function, 
+        function odex_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
                 args::OdexArguments{FInt})
   
   implementation of odex for FInt.
   """
-function odex_impl{FInt<:FortranInt}(rhs::Function, 
+function odex_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
         args::OdexArguments{FInt})
   

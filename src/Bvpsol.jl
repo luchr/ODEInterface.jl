@@ -71,8 +71,8 @@ bvpsol_global_cbi = nothing
               │    odesolver(rhs,t,tEnd,x,opt)            │  ⎪ IVP
               └───────────────────────────────────────────┘  ⎭
   """
-type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F<:Function, 
-        BC_F<:Function, ODESOL_F<:Function} <: ODEinternalCallInfos
+type BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F, 
+        BC_F, ODESOL_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
@@ -274,7 +274,7 @@ function bvpsol_ivp_dummy(rhs,t,tend,x,opt)
 end
 
 """
-       function bvpsol(rhs::Function, bc::Function,
+       function bvpsol(rhs, bc,
          t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -347,7 +347,7 @@ end
       ║ RHS_CALLMODE    │ see help_callsolvers()                   │         ║
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝
   """
-function bvpsol(rhs::Function, bc::Function,
+function bvpsol(rhs, bc,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
   return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int64}(Int64(0)))
 end
@@ -355,12 +355,12 @@ end
 """
   bvpsol with 32bit integers, see bvpsol.
   """
-function bvpsol_i32(rhs::Function, bc::Function,
+function bvpsol_i32(rhs, bc,
   t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
   return bvpsol_impl(rhs,bc,t,x,odesolver,opt,BvpsolArguments{Int32}(Int32(0))) 
 end
 
-function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
+function bvpsol_impl{FInt<:FortranInt}(rhs, bc,
   t::Vector, x::Matrix, odesolver, 
   opt::AbstractOptionsODE, args::BvpsolArguments{FInt})
 
@@ -464,11 +464,6 @@ function bvpsol_impl{FInt<:FortranInt}(rhs::Function, bc::Function,
   args.BC = unsafe_bvpsolbc_c()
   args.INFO = zeros(FInt,1)
 
-  try
-    @assert (odesolver == nothing) || isa(odesolver,Function)
-  catch e
-    throw(ArgumentErrorODE("odesolver not valid",:odesolver,e))
-  end
   if odesolver==nothing && d>1024
     throw(ArgumentErrorODE(string("internal solver of bvpsol cannot handle ",
       "more than 1024 equations")))

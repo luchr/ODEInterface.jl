@@ -28,7 +28,7 @@ macro import_dop853_help()
 end
 
 """
-      function dop853(rhs::Function, t0::Real, T::Real,
+      function dop853(rhs, t0::Real, T::Real,
                       x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
 
@@ -97,7 +97,7 @@ end
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
   
   """
-function dop853(rhs::Function, t0::Real, T::Real,
+function dop853(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(Int64(0)))
 end
@@ -105,19 +105,19 @@ end
 """
   dop853 with 32bit integers, see dop853
   """
-function dop853_i32(rhs::Function, t0::Real, T::Real,
+function dop853_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dop853_impl(rhs,t0,T,x0,opt,DopriArguments{Int32}(Int32(0)))
 end
 
 """
-        function dop853_impl{FInt<:FortranInt}(rhs::Function, 
+        function dop853_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector, 
                 opt::AbstractOptionsODE,args::DopriArguments{FInt})
   
   implementation of dop853 for FInt.
   """
-function dop853_impl{FInt<:FortranInt}(rhs::Function, 
+function dop853_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector, 
         opt::AbstractOptionsODE,args::DopriArguments{FInt})
 

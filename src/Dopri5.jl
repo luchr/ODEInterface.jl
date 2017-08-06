@@ -28,7 +28,7 @@ macro import_dopri5_help()
 end
 
 """
-      function dopri5(rhs::Function, t0::Real, T::Real,
+      function dopri5(rhs, t0::Real, T::Real,
                       x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
   
@@ -97,7 +97,7 @@ end
       ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
   
   """
-function dopri5(rhs::Function, t0::Real, T::Real,
+function dopri5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dopri5_impl(rhs,t0,T,x0,opt,DopriArguments{Int64}(Int64(0)))
 end
@@ -105,19 +105,19 @@ end
 """
   dopri5 with 32bit integers, see dopri5
   """
-function dopri5_i32(rhs::Function, t0::Real, T::Real,
+function dopri5_i32(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
   return dopri5_impl(rhs,t0,T,x0,opt,DopriArguments{Int32}(Int32(0)))
 end
 
 """
-        function dopri5_impl{FInt<:FortranInt}(rhs::Function, 
+        function dopri5_impl{FInt<:FortranInt}(rhs, 
                 t0::Real, T::Real, x0::Vector, 
                 opt::AbstractOptionsODE, args::DopriArguments{FInt})
   
   implementation of dopri5 for FInt.
   """
-function dopri5_impl{FInt<:FortranInt}(rhs::Function, 
+function dopri5_impl{FInt<:FortranInt}(rhs, 
         t0::Real, T::Real, x0::Vector, 
         opt::AbstractOptionsODE, args::DopriArguments{FInt})
   
