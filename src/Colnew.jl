@@ -831,7 +831,7 @@ end
 
 """
         function evalSolution{FInt<:FortranInt}(sol::ColnewSolution{FInt},
-          t::Real, z::Array{Float64})
+          t::Real, z::Vector{Float64})
 
   Evaluates an already obtained solution `sol` at time `t`.
   The values of the solution are saved in `z` which must be a 

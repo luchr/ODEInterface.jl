@@ -8,6 +8,7 @@ macro import_exceptions()
     using ODEInterface: WrappedODEException, ArgumentErrorODE,
                         OutputErrorODE, SolverODEnotLoaded, 
                         FunctionCallNotSupported, FeatureNotSupported,
+                        StateErrorODE,
                         InternalErrorODE
   )
 end
@@ -111,6 +112,19 @@ end
 
 function FeatureNotSupported(msg)
   FeatureNotSupported(msg,nothing)
+end
+
+"""
+  This error indicates that an object is in the wrong state, e.g.
+  is not initialized.
+  """
+type StateErrorODE <: WrappedODEException
+  msg      :: AbstractString
+  error
+end
+
+function StateErrorODE(msg)
+  StateErrorODE(msg, nothing)
 end
 
 """
