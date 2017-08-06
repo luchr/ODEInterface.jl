@@ -209,9 +209,9 @@ end
 const ddebdf_maxnum = 500
 
 """
-       function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-                args::DdebdfArguments{FInt})
+       function ddebdf_impl(rhs::Function, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::DdebdfArguments{FInt}) where FInt<:FortranInt
   
   implementation of ddebdf-call for FInt.
 
@@ -239,9 +239,9 @@ const ddebdf_maxnum = 500
       ╚═══════════════════╧══════════════════════════════════════════════════╝ 
 
   """
-function ddebdf_impl{FInt<:FortranInt}(rhs::Function, 
+function ddebdf_impl(rhs::Function, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-        args::DdebdfArguments{FInt})
+        args::DdebdfArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("ddebdf",rhs,t0,T,x0,opt)
 

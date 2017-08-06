@@ -132,12 +132,13 @@ mutable struct SeulexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{F
 end
 
 """
-        function unsafe_seulexSoloutCallback{FInt<:FortranInt,
-                CI<:SeulexInternalCallInfos}(
-                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-                x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-                ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
-                rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
+       function unsafe_seulexSoloutCallback(
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+               x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
+               ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
+               rpar_::Ptr{Float64}, cbi::CI, 
+               irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+                                         CI<:SeulexInternalCallInfos}
   
   This is the solout given as callback to Fortran-seulex.
   
@@ -155,12 +156,13 @@ end
   
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
-function unsafe_seulexSoloutCallback{FInt<:FortranInt,
-        CI<:SeulexInternalCallInfos}(
+function unsafe_seulexSoloutCallback(
         nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
         x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
         ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
+        rpar_::Ptr{Float64}, cbi::CI, 
+        irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+                                  CI<:SeulexInternalCallInfos}
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -196,10 +198,11 @@ function unsafe_seulexSoloutCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_seulexSoloutCallback_c{FInt,CI}
-                (cbi::CI, fint_flag::FInt)
+       function unsafe_seulexSoloutCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
   """
-function unsafe_seulexSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_seulexSoloutCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_seulexSoloutCallback, Void, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{Float64}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},
@@ -207,9 +210,9 @@ function unsafe_seulexSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
 end
 
 """
-        function create_seulex_eval_sol_fcn_closure{FInt<:FortranInt,
-                CI<:SeulexInternalCallInfos}(
-                cbi::CI, d::FInt, method_contex::Ptr{Void})
+       function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+               method_contex::Ptr{Void}) where {FInt<:FortranInt, 
+                                                CI<:SeulexInternalCallInfos}
   
   generates a eval_sol_fcn for seulex.
   
@@ -230,9 +233,9 @@ end
 
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
-function create_seulex_eval_sol_fcn_closure{FInt<:FortranInt,
-        CI<:SeulexInternalCallInfos}(
-        cbi::CI, d::FInt, method_contex::Ptr{Void})
+function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+        method_contex::Ptr{Void}) where {FInt<:FortranInt, 
+                                         CI<:SeulexInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
@@ -408,9 +411,9 @@ function seulex_i32(rhs::Function, t0::Real, T::Real,
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}(Int32(0)))
 end
 
-function seulex_impl{FInt<:FortranInt}(rhs::Function, 
-        t0::Real, T::Real, x0::Vector,
-        opt::AbstractOptionsODE, args::SeulexArguments{FInt})
+function seulex_impl(rhs::Function, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+        args::SeulexArguments{FInt}) where FInt<:FortranInt
   
   (lio,l,l_g,l_solver,lprefix) = solver_start("seulex",rhs,t0,T,x0,opt)
   

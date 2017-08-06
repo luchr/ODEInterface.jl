@@ -111,15 +111,15 @@ function dopri5_i32(rhs::Function, t0::Real, T::Real,
 end
 
 """
-        function dopri5_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, 
-                opt::AbstractOptionsODE, args::DopriArguments{FInt})
+       function dopri5_impl(rhs::Function, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::DopriArguments{FInt}) where FInt<:FortranInt
   
   implementation of dopri5 for FInt.
   """
-function dopri5_impl{FInt<:FortranInt}(rhs::Function, 
-        t0::Real, T::Real, x0::Vector, 
-        opt::AbstractOptionsODE, args::DopriArguments{FInt})
+function dopri5_impl(rhs::Function, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+        args::DopriArguments{FInt}) where FInt<:FortranInt
   
   (lio,l,l_g,l_solver,lprefix) = solver_start("dopri5",rhs,t0,T,x0,opt)
 

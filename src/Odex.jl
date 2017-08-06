@@ -109,12 +109,13 @@ mutable struct OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FIn
 end
 
 """
-        function unsafe_odexSoloutCallback{FInt<:FortranInt,
-                CI<:OdexInternalCallInfos}(
-                nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-                x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
-                ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-                rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
+       function unsafe_odexSoloutCallback(
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+               x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
+               ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
+               rpar_::Ptr{Float64}, cbi::CI, 
+               irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
+                                         CI<:OdexInternalCallInfos}
   
   This is the solout given as callback to Fortran-odex.
   
@@ -132,12 +133,13 @@ end
   
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function unsafe_odexSoloutCallback{FInt<:FortranInt,
-        CI<:OdexInternalCallInfos}(
+function unsafe_odexSoloutCallback(
         nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
         x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
         ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, cbi::CI, irtrn_::Ptr{FInt})
+        rpar_::Ptr{Float64}, cbi::CI, 
+        irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
+                                  CI<:OdexInternalCallInfos}
   
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
@@ -172,10 +174,11 @@ function unsafe_odexSoloutCallback{FInt<:FortranInt,
 end
 
 """
-        function unsafe_odexSoloutCallback_c{FInt,CI}(cbi::CI, 
-                fint_flag::FInt)
+       function unsafe_odexSoloutCallback_c(cbi::CI, 
+               fint_flag::FInt) where {FInt,CI}
   """
-function unsafe_odexSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
+function unsafe_odexSoloutCallback_c(cbi::CI, 
+        fint_flag::FInt) where {FInt,CI}
   return cfunction(unsafe_odexSoloutCallback, Void, (Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
@@ -184,9 +187,9 @@ function unsafe_odexSoloutCallback_c{FInt,CI}(cbi::CI, fint_flag::FInt)
 end
 
 """
-        function create_odex_eval_sol_fcn_closure{FInt<:FortranInt,
-                CI<:OdexInternalCallInfos}(
-                cbi::CI, d::FInt, method_contex::Ptr{Void})
+       function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+               method_contex::Ptr{Void}) where {FInt<:FortranInt,
+                                                CI<:OdexInternalCallInfos}
   
   generates a eval_sol_fcn for odex.
   
@@ -207,9 +210,9 @@ end
 
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function create_odex_eval_sol_fcn_closure{FInt<:FortranInt,
-        CI<:OdexInternalCallInfos}(
-        cbi::CI, d::FInt, method_contex::Ptr{Void})
+function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+        method_contex::Ptr{Void}) where {FInt<:FortranInt,
+                                         CI<:OdexInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
@@ -349,15 +352,15 @@ end
 
 
 """
-        function odex_impl{FInt<:FortranInt}(rhs::Function, 
-                t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-                args::OdexArguments{FInt})
+       function odex_impl(rhs::Function, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               args::OdexArguments{FInt}) where {FInt<:FortranInt}
   
   implementation of odex for FInt.
   """
-function odex_impl{FInt<:FortranInt}(rhs::Function, 
+function odex_impl(rhs::Function, 
         t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
-        args::OdexArguments{FInt})
+        args::OdexArguments{FInt}) where {FInt<:FortranInt}
   
   (lio,l,l_g,l_solver,lprefix) = solver_start("odex",rhs,t0,T,x0,opt)
   

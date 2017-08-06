@@ -287,7 +287,7 @@ end
   The other Bandedmatrix must have the same size and same upper and 
   lower bandwidth.
   """
-function setdiagonals!{T}(bm::BandedMatrix{T},other::BandedMatrix{T})
+function setdiagonals!(bm::BandedMatrix{T},other::BandedMatrix{T}) where T
   if bm.m ≠ other.m || bm.n ≠ other.n || 
      bm.u ≠ other.u || bm.l ≠ other.l
     throw(ArgumentErrorODE(string("bm has size ",size(bm),
@@ -336,12 +336,12 @@ function setindex!(bm::BandedMatrix,value,zra::UnitRange,sra::UnitRange)
   end
 end
 
-function getindex{T}(bm::BandedMatrix{T},i::Integer,j::Integer)
+function getindex(bm::BandedMatrix{T},i::Integer,j::Integer) where T
   ((1 ≤ i ≤ bm.m) && (1 ≤ j ≤ bm.n)) || throw(BoundsError(bm,(i,j)))
   return isinband(bm,i,j) ? bm.entries[i-j+bm.u+1,j] : zero(T)
 end
 
-function getindex{T}(bm::BandedMatrix{T},ind::Integer)
+function getindex(bm::BandedMatrix{T},ind::Integer) where T
   (j,i) = divrem(ind-1,bm.m)
   return getindex(bm,i+1,j+1)
 end
@@ -351,7 +351,7 @@ end
 
   method to check if all entries in a diagonal are zero.
   """
-function isdiagonalempty{T}(A::AbstractMatrix{T},d::Integer)
+function isdiagonalempty(A::AbstractMatrix{T},d::Integer) where T
   (m,n) = size(A)
   i = (d ≥ 0) ? 1 : 1-d
   j = (d ≥ 0) ? 1+d : 1
@@ -367,7 +367,7 @@ end
 """
   convert full matrix to BandedMatrix.
   """
-function createBandedMatrix{T}(A::AbstractMatrix{T})
+function createBandedMatrix(A::AbstractMatrix{T}) where T
   (m,n) = size(A)
   # find last upper diagonal with nonzero entry
   d = n-1
@@ -401,7 +401,7 @@ end
   
   `f` must have the right size.
   """
-function fullToArray{T}(bm::BandedMatrix{T},f::AbstractArray{T})
+function fullToArray(bm::BandedMatrix{T},f::AbstractArray{T}) where T
   if size(f) ≠ (bm.m,bm.n)
     throw(ArgumentErrorODE(string("f has wrong size ",size(f),
           "extexted ",(bm.m,bm.n)),:f))
@@ -418,7 +418,7 @@ end
 """
   For banded matrices: generate and return full/dense matrix.
   """
-function full{T}(bm::BandedMatrix{T})
+function full(bm::BandedMatrix{T}) where T
   return fullToArray(bm, Array{T}((bm.m,size(bm.entries,2),)))
 end
 
