@@ -1156,7 +1156,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   no_par = details["no_par"]
   no_left_bc = details["no_left_bc"]
   tol = NaN; method = 4; trace =  -1; error_control = 1
-  si_dim = 0; si_matrix = [];
+  si_dim = 0; si_matrix = Matrix{Float64}(0,0);
 
   OPT = nothing
   try
