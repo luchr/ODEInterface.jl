@@ -1932,3 +1932,413 @@ In `opt` the following options are used:
 </table>
 
 
+# bvpm2
+
+# Bvpm2 object for solving boundary value problems
+
+This is the Julia part of the BVP_M-2 (Fortran-)solution object.  For (nearly) all the operations the corresponding Fortran-Proxy  methods are called (call `help_bvpm2_proxy()` to get internal details).
+
+## Boundary value problem (BVP)
+
+BVPs of the following form are considered:
+
+```
+              1
+  y'(x) =  ─────── Sy + f(x, y, p)         for a ≤ x ≤ b   [ODEs]
+            x - a
+
+
+  ga(y(a), p) = 0,     gb(y(b), p) = 0                     [BCs]
+```
+
+  * y(x) ∈ ℝᵈ and `d` is also called `no_odes` (the number of ordinary differential equations).
+  * S ∈ ℝᵈˣᵈ is an optional constant matrix (also  called the singularity term) because the whole term S⋅y/(x-a) has a  singularity at x=a. If S is not given, then the ODEs are reduced to y'(x) = f(x, y, p).
+  * p ∈ ℝᵐ (with 0≤m) are unknown parameters of the problem. `m` is also called `no_par` (the number of parameters).
+  * f(x, y, p) ∈ ℝᵈ is also called the right-hand side (of the ODEs).
+  * ga(ya, p) ∈ ℝˡ describes the left boundary conditions. `l` is also called `no_left_bc` (the number of the BCs at x=a).
+  * ga(yb, p) ∈ ℝⁿ describes the right boundary conditions. It is
+
+    ```
+      n = d + m - l 
+      n = no_odes + no_par - no_left_bc
+    ```
+
+## Initial guess and solutions
+
+A Bvpm2 object can be used to represent either an initial guess (for a  BVP like above) or a solution. It is possible to use a solution of a  (different) BVP as initial guess to another BVP.
+
+Such a Bvpm2 object can be in one of the following states:
+
+  * `state==0`: object created (and connected to Fortran-object), but  not initialized, i.e. it does neither represent a guess nor an solution.
+  * `state==1`: object created, and initialized with an (initial) guess, i.e. the object represents a guess.
+  * `state==2`: object created and a solution was calculated successfully and saved in the object, i.e. the object represents a solution.
+  * `state==-1`: object is not connected to a Fortran-Proxy. Either `bvpm2_destroy` was called or at creation time, the connection to the   Fortran-Proxy couldn't be established, i.e. the object is unusable and  all associated memory was deallocated.
+
+The following table shows possible actions and the state-transitions initiated by the actions.
+
+<table>
+<tr><th><pre> Action&#47;Function
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre>state before
+</pre></th>
+<th><pre>state after
+</pre></th>
+</tr>
+<tr><td><pre> Bvpm2&#40;&#41;
+</pre></td>
+<td><pre> create object
+</pre></td>
+<td><pre>    &#45;&#45;&#45;
+</pre></td>
+<td><pre>     0
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;init
+</pre></td>
+<td><pre> initialize object with
+ initial guess&#44; etc&#46;
+</pre></td>
+<td><pre>     0
+</pre></td>
+<td><pre>     1
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;show&#95;details
+</pre></td>
+<td><pre> show some details of
+ &#40;Fortran&#45;&#41;BVP&#95;M&#45;2 sol
+ object
+</pre></td>
+<td><pre> 0&#44; 1&#44; or 2
+</pre></td>
+<td><pre> not changed
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;get&#95;details
+</pre></td>
+<td><pre> get dict with some details
+ of the Bvpm2 object&#58;
+ e&#46;g&#46; state&#44; number of pts
+ in current grid &#46;&#46;&#46;
+</pre></td>
+<td><pre> &#45;1&#44; 0&#44; 1&#44;
+   or 2
+</pre></td>
+<td><pre> not changed
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;get&#95;x
+</pre></td>
+<td><pre> return current grid of
+ the object&#46;
+</pre></td>
+<td><pre> 1&#44; or 2
+</pre></td>
+<td><pre> not changed
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;get&#95;params
+</pre></td>
+<td><pre> return current values of
+ estimated&#47;calculated
+ parameters
+</pre></td>
+<td><pre> 1&#44; or 2
+</pre></td>
+<td><pre> not changed
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;terminate
+</pre></td>
+<td><pre> throw away all data and
+ information&#46; Bring to
+ state 0&#46;
+</pre></td>
+<td><pre> 0&#44; 1&#44; or 2
+</pre></td>
+<td><pre>      0
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;destroy
+</pre></td>
+<td><pre> deallocate all &#40;Fortran&#45;&#41;
+ resources for this object&#46;
+</pre></td>
+<td><pre> &#45;1&#44; 0&#44; 1&#44;
+   or 2
+</pre></td>
+<td><pre>     &#45;1
+</pre></td>
+</tr>
+</table>
+
+There are functions that take an Bvpm2-object `obj_in` as input,  perhaps change `obj_in` and create an additonal `obj_out`.
+
+The following table shows possible actions, the change of the state of `obj_in` and which `obj_out` object is created:
+
+<table>
+<tr><th><pre> Action&#47;Function
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre>obj&#95;in state
+ from &#45;&#62; to
+</pre></th>
+<th><pre>  state of
+   obj&#95;out
+</pre></th>
+</tr>
+<tr><td><pre> bvpm2&#95;solve
+</pre></td>
+<td><pre> take obj&#95;in as guess&#46; Do
+ not change obj&#95;in&#46;
+ Produces obj&#95;out object
+ representing the solution&#46;
+</pre></td>
+<td><pre> not changed
+</pre></td>
+<td><pre> 0&#58; no
+    success
+ 2&#58; success
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;copy
+</pre></td>
+<td><pre> create deep copy of
+ obj&#95;in
+</pre></td>
+<td><pre> not changed
+</pre></td>
+<td><pre> same as
+ obj&#95;in
+</pre></td>
+</tr>
+<tr><td><pre> bvpm2&#95;extend
+</pre></td>
+<td><pre> extend solution to new
+ interval as new  guess&#46;
+ obj&#95;in will be terminated
+ and will be in state 0&#46;
+ Call bvpm2&#95;copy before&#44; if
+ you need the solution
+ later on&#46;
+</pre></td>
+<td><pre>  2 &#45;&#62; 0
+</pre></td>
+<td><pre>    1
+</pre></td>
+</tr>
+</table>
+
+
+```
+ function Bvpm2(handle::Ptr{Void})
+```
+
+create bvpm2 object from given handle.
+
+
+```
+ function Bvpm2()
+```
+
+creates bvpm2 object.
+
+
+```
+ function bvpm2_init(obj::Bvpm2,
+   no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector, 
+   parameters::Vector=[], max_num_subintervals=3000)
+```
+
+initialize Bvpm2 object with a constant intial guess.
+
+
+```
+ function bvpm2_init(obj::Bvpm2,
+   no_odes, no_left_bc, x_grid::Vector, guess::Matrix, 
+   parameters::Vector=[], max_num_subintervals=3000)
+```
+
+initialize Bvpm2 object with a guess for every state at every node in x_grid.
+
+
+```
+ function bvpm2_init(obj, no_odes, no_left_bc, x_grid, 
+                     guess<:Function, parameters, 
+                     max_num_subintervals=3000)
+```
+
+The guess function must have the form
+
+```
+ function guess(x,y)
+```
+
+where inside the function the guess for position x has to be stored in y.
+
+initialize Bvpm2 object where the function `guess` is used to get the guesses for the state at different `x` values.
+
+
+```
+ function bvpm2_solve(guess_obj::Bvpm2, rhs::Function, bc::Function, 
+   opt::AbstractOptionsODE) -> (obj_out, retcode, stats)
+```
+
+## Right-hand side for the ODEs: `rhs`
+
+The function `rhs` must have the form:
+
+```
+ function rhs(x, y, f)              [no_par == 0]
+ function rhs(x, y, p, f)           [no_par != 0]
+```
+
+where
+
+```
+  x::Float, y::Vector{Float64}(no_odes), p::Vector{Float64}(no_par)
+  f::Vector{Float64}(no_odes)
+```
+
+Inside the function, the values of the right-hand side must be saved in `f`.
+
+## Derivatives of right-hand side: `Drhs`
+
+The function `Drhs` is optional. If not given finite differences are used to approximate the derivatives. If `Drhs` is given it must have the form:
+
+```
+ function Drhs(x, y, dfdy)          [no_par == 0]
+ function Drhs(x, y, p, dfdy, dfdp) [no_par != 0]
+```
+
+where
+
+```
+  x::Float, y::Vector{Float64}(no_odes), p::Vector{Float64}(no_par)
+  dfdy::Matrix{Float64}(no_odes, no_odes)
+  dfdp::Matrix{Float64}(no_odes, no_par)
+```
+
+Inside the function, the values of the derivatives must be saved in `dfdy` and `dfdp`.
+
+## Boundary conditions: `bc`
+
+The function `bc` must have the form:
+
+```
+ function bc(ya, yb, bca, bcb)      [no_par == 0]
+ function bc(ya, yb, p, bca, bcb)   [no_par != 0]
+```
+
+where
+
+```
+  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+  p::Vector{Float64}(no_par),
+  bca::Vector{Float64}(no_left_bc),
+  bcb::Vector{Float64}(no_odes - no_left_bc)
+```
+
+Inside the function, the values of the boundary conditions must be saved in `bca` and `bcb`.
+
+## Derivatives of the boundary conditons: `Dbc`
+
+The function `Dbc` is optional. If not given finite differences are used to approximate the derivatives. If `Dbc` is given it must have the form:
+
+```
+ function Dbc(ya, yb, dya, dyb)                 [no_par == 0]
+ function Dbc(ya, yb, dya, dyb, p, dpa, dpb)    [no_par != 0]
+```
+
+where
+
+```
+  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+  p::Vector{Float64}(no_par),
+  dya::Matrix{Float64}(no_left_bc, no_odes)
+  dyb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_odes)
+  dpa::Matrix{Float64}(no_left_bc, no_par)
+  dpb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_par)
+```
+
+Inside the function, the values of the derivatives of the boundary  conditions must be saved in `dya`, `dyb`, `dpa` and `dpb`.
+
+## Options `opt`
+
+In `opt` the following options are used:
+
+<table>
+<tr><th><pre>  Option OPT&#95;&#8230;
+</pre></th>
+<th><pre> Description
+</pre></th>
+<th><pre> Default
+</pre></th>
+</tr>
+<tr><td><pre> RTOL
+</pre></td>
+<td><pre> relative accuracy for solution&#46;
+ solution&#46; Must be a scalar&#46;
+</pre></td>
+<td><pre>    1e&#45;6
+</pre></td>
+</tr>
+<tr><td><pre> METHODCHOICE
+</pre></td>
+<td><pre> Choice for IVP&#45;solvers&#58;
+ 2&#58; Runge&#45;Kutta method of order 2
+ 4&#58; Runge&#45;Kutta method of order 4
+ 6&#58; Runge&#45;Kutta method of order 6
+</pre></td>
+<td><pre>       4
+</pre></td>
+</tr>
+<tr><td><pre> DIAGNOSTICOUTPUT
+</pre></td>
+<td><pre> diagnostic output for bvpm2&#58;
+   &#45;1 &#58; no output
+    0 &#58; only output if computation fails
+    1 &#58; intermediate output
+    2 &#58; full output
+</pre></td>
+<td><pre>      &#45;1
+</pre></td>
+</tr>
+<tr><td><pre> ERRORCONTROL
+</pre></td>
+<td><pre> determines the error&#45;estimation for
+ which RTOL is used&#58;
+    1 &#58; defect
+    2 &#58; global error
+    3 &#58; defect and then global error
+    4 &#58; linear combination of defect
+        and global error
+</pre></td>
+<td><pre>       1
+</pre></td>
+</tr>
+<tr><td><pre> SINGULARTERM
+</pre></td>
+<td><pre> either nothing if the ODEs have no
+ singular terms at the left boundary or
+ a constant &#40;d&#44;d&#41; matrix for the
+ singular term&#46;
+</pre></td>
+<td><pre> nothing
+</pre></td>
+</tr>
+</table>
+
+## Return-Code `retcode`
+
+`retcode` can have to following values:
+
+```
+  <0: failure
+  ≥0: computation successful
+```
+
+
