@@ -61,7 +61,7 @@ using Base.Markdown
   
   Each solver has its own help page. Just look at the documentation of
   `dopri5`, `dop853`, `odex`, `radau5`, `radau`, `rodas`, `seulex`,
-  `bvpsol`, `ddeabm`.
+  `bvpsol`, `ddeabm` and `Bvpm2`.
   """
 function help_overview()
   return Docs.doc(help_overview)
@@ -127,11 +127,15 @@ function help_solversupport()
         catch e
           found = false
         end
+        method_name = method
+        if length(method_name) > 22
+          method_name = string(method[1:19],"...")
+        end
         write(io,"     ║ ",rpad(first[1]?solver.name:"",12),"│ ",
                  rpad(first[2]?variant.libname:"",14)      ,"│ ",
                  rpad(first[3]?(loaded?"yes":" no"):"",9)  ,"│ ",
-                 rpad(method,18),found?"  OK  ":"FAILED",
-                 "      ║\n")
+                 rpad(method_name,23),found?"  OK  ":"FAILED",
+                 " ║\n")
         first[1] = first[2] = first[3] = false
       end
       first[1] = false
