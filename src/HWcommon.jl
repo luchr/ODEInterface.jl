@@ -71,8 +71,8 @@ end
   """
 function unsafe_HW1RHSCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW1RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_HW1RHSCallback, Void, Tuple{Ptr{FInt},Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -138,8 +138,8 @@ end
   """
 function unsafe_HW2RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW2RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI})) 
+  return cfunction(unsafe_HW2RHSCallback, Void, Tuple{Ptr{FInt},Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}}) 
 end
 
 """
@@ -192,8 +192,8 @@ end
   """
 function unsafe_HW1MassCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1MassCallback, Void, (Ptr{FInt},
-    Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
+ return cfunction(unsafe_HW1MassCallback, Void, Tuple{Ptr{FInt},
+    Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -332,9 +332,9 @@ end
   """
 function unsafe_HW1JacCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1JacCallback, Void, (Ptr{FInt},
+ return cfunction(unsafe_HW1JacCallback, Void, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}))
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -380,8 +380,8 @@ end
   """
 function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return  cfunction(unsafe_HWRhsTimeDerivCallback, Void, (Ptr{FInt},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
+  return  cfunction(unsafe_HWRhsTimeDerivCallback, Void, Tuple{Ptr{FInt},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
 """

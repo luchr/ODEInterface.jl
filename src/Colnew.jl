@@ -140,7 +140,7 @@ end
 
 function unsafe_colnew_rhs_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_rhs, Void, 
-    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
+    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
 """
@@ -184,7 +184,7 @@ end
 
 function unsafe_colnew_Drhs_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_Drhs, Void,
-    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
+    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
 """
@@ -229,7 +229,7 @@ end
 
 function unsafe_colnew_bc_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_bc, Void,
-    (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
+    Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
 end
 
 """
@@ -274,7 +274,7 @@ end
 
 function unsafe_colnew_Dbc_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_Dbc, Void,
-    (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
+    Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
 end
 
 """
@@ -313,7 +313,7 @@ end
 
 function unsafe_colnew_guess_c(fint_flag::FInt) where FInt
   return cfunction(unsafe_colnew_guess, Void,
-    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
+    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
 
@@ -778,7 +778,7 @@ function colnew_impl(
       dump(lio, args)
     end
 
-    const fflag = FInt(0)
+    fflag = FInt(0)
 
     ccall( method_colnew, Void,
       (Ptr{FInt}, Ptr{FInt},                      # NCOMP, M

@@ -179,11 +179,11 @@ end
   """
 function unsafe_odexSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_odexSoloutCallback, Void, (Ptr{FInt}, 
+  return cfunction(unsafe_odexSoloutCallback, Void, Tuple{Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
     Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
-    Ref{CI}, Ptr{FInt}))
+    Ref{CI}, Ptr{FInt}})
 end
 
 """
@@ -480,7 +480,7 @@ function odex_impl(rhs,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_odexSoloutCallback_c(cbi, FInt(0)) :
-     cfunction(dummy_func, Void, () )
+     cfunction(dummy_func, Void, Tuple{} )
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&

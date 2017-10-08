@@ -3,7 +3,8 @@
   """
 module ODEInterfaceTest
 
-using Base.Test
+#using Base.Test
+using Test
 
 using ODEInterface
 @ODEInterface.import_huge

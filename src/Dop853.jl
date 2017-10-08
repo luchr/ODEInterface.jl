@@ -190,7 +190,7 @@ function dop853_impl(rhs,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
      unsafe_dopriSoloutCallback_c(cbi, FInt(0)) :
-     cfunction(dummy_func, Void, () ) 
+     cfunction(dummy_func, Void, Tuple{} ) 
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&

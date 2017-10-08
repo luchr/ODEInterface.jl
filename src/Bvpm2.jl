@@ -649,7 +649,7 @@ end
 
 function unsafe_bvpm2_guess_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_guess_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Float64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -737,7 +737,7 @@ end
 
 function unsafe_bvpm2_rhs_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_rhs_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -764,8 +764,8 @@ end
 
 function unsafe_bvpm2_rhspar_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_rhspar_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -810,7 +810,7 @@ end
 
 function unsafe_bvpm2_Drhs_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_Drhs_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -841,8 +841,8 @@ end
 
 function unsafe_bvpm2_Drhspar_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_Drhspar_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
-    Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
+    Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -890,8 +890,8 @@ end
 
 function unsafe_bvpm2_bc_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_bc_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -923,9 +923,9 @@ end
 
 function unsafe_bvpm2_bcpar_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_bcpar_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -977,8 +977,8 @@ end
 
 function unsafe_bvpm2_Dbc_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_Dbc_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -1018,10 +1018,10 @@ end
 
 function unsafe_bvpm2_Dbcpar_cb_c(cbi::CI) where CI
   return cfunction(unsafe_bvpm2_Dbcpar_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
      Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, 
-     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 

@@ -203,10 +203,10 @@ end
   """
 function unsafe_seulexSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_seulexSoloutCallback, Void, (Ptr{FInt},
+  return cfunction(unsafe_seulexSoloutCallback, Void, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{Float64}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}})
 end
 
 """
@@ -574,7 +574,7 @@ function seulex_impl(rhs,
   args.FCN = unsafe_HW2RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_seulexSoloutCallback_c(cbi, FInt(0)) :
-        cfunction(dummy_func, Void, () )
+        cfunction(dummy_func, Void, Tuple{} )
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
   args.JAC = unsafe_HW1JacCallback_c(cbi, FInt(0))
