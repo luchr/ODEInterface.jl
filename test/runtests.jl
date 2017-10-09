@@ -3,8 +3,17 @@
   """
 module ODEInterfaceTest
 
-#using Base.Test
-using Test
+found = false
+try
+  using Test
+  found = true
+catch
+  found = false
+end
+
+if !found
+  using Base.Test
+end
 
 using ODEInterface
 @ODEInterface.import_huge
