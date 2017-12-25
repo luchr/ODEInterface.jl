@@ -71,7 +71,7 @@ end
   """
 function unsafe_HW1RHSCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW1RHSCallback, Void, Tuple{Ptr{FInt},Ptr{Float64},
+  return cfunction(unsafe_HW1RHSCallback, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
@@ -138,7 +138,7 @@ end
   """
 function unsafe_HW2RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW2RHSCallback, Void, Tuple{Ptr{FInt},Ptr{Float64},
+  return cfunction(unsafe_HW2RHSCallback, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}}) 
 end
 
@@ -192,7 +192,7 @@ end
   """
 function unsafe_HW1MassCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1MassCallback, Void, Tuple{Ptr{FInt},
+ return cfunction(unsafe_HW1MassCallback, Cvoid, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
@@ -311,7 +311,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
       jac(t,x,J)
     else
       no = Int(cbi.M1/cbi.M2+1)
-      J = Vector{BandedMatrix{Float64}}(no)
+      J = Vector{BandedMatrix{Float64}}(uninitialized, no)
       for k in 1:no
         ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
         darr =  unsafe_wrap(Array, ptr, (ldfx,cbi.M2,), false)
@@ -332,7 +332,7 @@ end
   """
 function unsafe_HW1JacCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1JacCallback, Void, Tuple{Ptr{FInt},
+ return cfunction(unsafe_HW1JacCallback, Cvoid, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
@@ -380,7 +380,7 @@ end
   """
 function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return  cfunction(unsafe_HWRhsTimeDerivCallback, Void, Tuple{Ptr{FInt},
+  return  cfunction(unsafe_HWRhsTimeDerivCallback, Cvoid, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 

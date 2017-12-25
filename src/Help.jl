@@ -85,7 +85,7 @@ function help_solversupport()
            "│       method                  ║\n",
            "     ╠═════════════╪═══════════════╪══════════",
            "╪═══════════════════════════════╣\n")
-  first = Vector{Bool}(4)
+  first = Vector{Bool}(uninitialized, 4)
   first_solver = true
   for solver in solverInfo
     if !first_solver

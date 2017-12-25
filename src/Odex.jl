@@ -85,7 +85,7 @@ end
   """
 mutable struct OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
-  FCN     :: Ptr{Void}         # rhs callback
+  FCN     :: Ptr{Cvoid}        # rhs callback
   t       :: Vector{Float64}   # start time (and current)
   tEnd    :: Vector{Float64}   # end time
   x       :: Vector{Float64}   # initial value (and current state)
@@ -93,7 +93,7 @@ mutable struct OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FIn
   RTOL    :: Vector{Float64}   # relative tolerance
   ATOL    :: Vector{Float64}   # absolute tolerance
   ITOL    :: Vector{FInt}      # switch for RTOL, ATOL
-  SOLOUT  :: Ptr{Void}         # solout callback
+  SOLOUT  :: Ptr{Cvoid}        # solout callback
   IOUT    :: Vector{FInt}      # switch for SOLOUT
   WORK    :: Vector{Float64}   # double working array
   LWORK   :: Vector{FInt}      # length of WORK
@@ -179,7 +179,7 @@ end
   """
 function unsafe_odexSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_odexSoloutCallback, Void, Tuple{Ptr{FInt}, 
+  return cfunction(unsafe_odexSoloutCallback, Cvoid, Tuple{Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
     Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
@@ -188,7 +188,7 @@ end
 
 """
        function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-               method_contex::Ptr{Void}) where {FInt<:FortranInt,
+               method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                                 CI<:OdexInternalCallInfos}
   
   generates a eval_sol_fcn for odex.
@@ -211,7 +211,7 @@ end
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
 function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-        method_contex::Ptr{Void}) where {FInt<:FortranInt,
+        method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                          CI<:OdexInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
@@ -220,7 +220,7 @@ function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(d)
+    result = Vector{Float64}(uninitialized, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contex because s==tNew")
@@ -469,7 +469,7 @@ function odex_impl(rhs,
       output_mode,output_fcn,
       Dict(),out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
-      Vector{FInt}(1),Vector{Float64}(1),
+      Vector{FInt}(uninitialized, 1),Vector{Float64}(uninitialized, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
       Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 
@@ -480,7 +480,7 @@ function odex_impl(rhs,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_odexSoloutCallback_c(cbi, FInt(0)) :
-     cfunction(dummy_func, Void, Tuple{} )
+     cfunction(dummy_func, Cvoid, Tuple{} )
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&
@@ -492,12 +492,12 @@ function odex_impl(rhs,
     dump(lio,args);
   end
 
-  ccall( method_odex, Void,
-    (Ptr{FInt},  Ptr{Void},                    # N=d, Rightsidefunc
+  ccall( method_odex, Cvoid,
+    (Ptr{FInt},  Ptr{Cvoid},                   # N=d, Rightsidefunc
      Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, # t, x, tEnd
      Ptr{Float64},                             # h
      Ptr{Float64}, Ptr{Float64}, Ptr{FInt},    # RTOL, ATOL, ITOL
-     Ptr{Void}, Ptr{FInt},                     # Soloutfunc, IOUT
+     Ptr{Cvoid}, Ptr{FInt},                    # Soloutfunc, IOUT
      Ptr{Float64}, Ptr{FInt},                  # WORK, LWORK
      Ptr{FInt}, Ptr{FInt},                     # IWORK, LIWORK
      Ptr{Float64}, Ref{OdexInternalCallInfos}, # RPAR, IPAR,

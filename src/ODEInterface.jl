@@ -94,6 +94,11 @@ __precompile__(true)
   """
 module ODEInterface
 
+try
+  using Unicode
+catch e
+end
+
 include("./Error.jl")
 include("./Options.jl")
 include("./DLSolvers.jl")

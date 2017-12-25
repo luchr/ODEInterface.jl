@@ -92,9 +92,9 @@ mutable struct BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F,
 end
 
 mutable struct BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
-  FCN     :: Ptr{Void}         # rhs callback
-  BC      :: Ptr{Void}         # boundary conditions
-  IVPSOL  :: Ptr{Void}         # Initial Value Problem Solver
+  FCN     :: Ptr{Cvoid}        # rhs callback
+  BC      :: Ptr{Cvoid}        # boundary conditions
+  IVPSOL  :: Ptr{Cvoid}        # Initial Value Problem Solver
   N       :: Vector{FInt}      # Dimension
   M       :: Vector{FInt}      # Number of shooting nodes
   T       :: Vector{Float64}   # shooting nodes
@@ -138,7 +138,7 @@ end
        function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   """
 function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolrhs, Void, Tuple{Ptr{FInt},Ptr{Float64},
+  return cfunction(unsafe_bvpsolrhs, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
     Ptr{Float64},Ptr{Float64}})
 end
 
@@ -186,7 +186,7 @@ end
         function unsafe_bvpsolbc_c()
   """
 function unsafe_bvpsolbc_c()
-  return cfunction(unsafe_bvpsolbc, Void, 
+  return cfunction(unsafe_bvpsolbc, Cvoid, 
         Tuple{Ptr{Float64},Ptr{Float64},Ptr{Float64}})
 end
 
@@ -231,7 +231,7 @@ end
 
 """
        function unsafe_bvpsolivp(n_::Ptr{FInt}, 
-               fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+               fcn_::Ptr{Cvoid}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
                tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
                h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
@@ -243,7 +243,7 @@ end
   uses bvpsolivp
   """
 function unsafe_bvpsolivp(n_::Ptr{FInt}, 
-        fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+        fcn_::Ptr{Cvoid}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
         tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
         h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
@@ -260,8 +260,8 @@ function unsafe_bvpsolivp(n_::Ptr{FInt},
 end
 
 function unsafe_bvpsolivp_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolivp, Void, 
-    Tuple{Ptr{FInt},Ptr{Void},Ptr{Float64},
+  return cfunction(unsafe_bvpsolivp, Cvoid, 
+    Tuple{Ptr{FInt},Ptr{Cvoid},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
     Ptr{FInt}})
 end
@@ -419,7 +419,7 @@ function bvpsol_impl(rhs, bc,
     throw(ArgumentErrorODE("Cannot convert OPT_RTOL to Float64",:opt,e))
   end
   
-  args.IOPT = Vector{FInt}(6)
+  args.IOPT = Vector{FInt}(uninitialized, 6)
   ivpopt = nothing
   ivp_lprefix = "unsafe_bvpsolivp: "
   OPT = nothing
@@ -490,8 +490,8 @@ function bvpsol_impl(rhs, bc,
       dump(lio,args)
     end
     
-    ccall( method_bvpsol, Void,
-      (Ptr{Void}, Ptr{Void}, Ptr{Void},           # Rightsidefunc, BC, IVPSOL
+    ccall( method_bvpsol, Cvoid,
+      (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},        # Rightsidefunc, BC, IVPSOL
        Ptr{FInt}, Ptr{FInt},                      # N, M 
        Ptr{Float64}, Ptr{Float64}, Ptr{Float64},  # t, x, EPS
        Ptr{FInt}, Ptr{FInt},                      # IOPT, INFO

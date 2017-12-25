@@ -89,7 +89,7 @@ mutable struct ColnewArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{F
 end
 
 mutable struct ColnewSolution{FInt<:FortranInt} <: AbstractODESolution{FInt}
-  method_appsln :: Ptr{Void}   # Ptr to Fortran-method for solution eval
+  method_appsln :: Ptr{Cvoid}  # Ptr to Fortran-method for solution eval
   t_a     :: Float64           # a
   t_b     :: Float64           # b
   n       :: FInt              # number of ODEs
@@ -139,7 +139,7 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_rhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_rhs, Void, 
+  return cfunction(unsafe_colnew_rhs, Cvoid, 
     Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
@@ -183,7 +183,7 @@ function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_Drhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_Drhs, Void,
+  return cfunction(unsafe_colnew_Drhs, Cvoid,
     Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
@@ -228,7 +228,7 @@ function unsafe_colnew_bc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_bc_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_bc, Void,
+  return cfunction(unsafe_colnew_bc, Cvoid,
     Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
 end
 
@@ -273,7 +273,7 @@ function unsafe_colnew_Dbc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_Dbc_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_Dbc, Void,
+  return cfunction(unsafe_colnew_Dbc, Cvoid,
     Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
 end
 
@@ -312,7 +312,7 @@ function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_guess_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_guess, Void,
+  return cfunction(unsafe_colnew_guess, Cvoid,
     Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
 end
 
@@ -780,7 +780,7 @@ function colnew_impl(
 
     fflag = FInt(0)
 
-    ccall( method_colnew, Void,
+    ccall( method_colnew, Cvoid,
       (Ptr{FInt}, Ptr{FInt},                      # NCOMP, M
        Ptr{Float64}, Ptr{Float64},                # ALEFT, ARIGHT
        Ptr{Float64}, Ptr{FInt},                   # ZETA, IPAR
@@ -788,9 +788,9 @@ function colnew_impl(
        Ptr{Float64},                              # FIXPNT
        Ptr{FInt}, Ptr{Float64},                   # ISPACE, FSPACE
        Ptr{FInt},                                 # IFLAG
-       Ptr{Void}, Ptr{Void},                      # rhs, Drhs
-       Ptr{Void}, Ptr{Void},                      # bc, Dbc
-       Ptr{Void},                                 # guess
+       Ptr{Cvoid}, Ptr{Cvoid},                    # rhs, Drhs
+       Ptr{Cvoid}, Ptr{Cvoid},                    # bc, Dbc
+       Ptr{Cvoid},                                # guess
       ),
       args.NCOMP, args.M,
       args.ALEFT, args.ARIGHT,
@@ -839,7 +839,7 @@ function evalSolution(sol::ColnewSolution{FInt},
 
   @assert length(z)==sol.d
   @assert sol.t_a ≤ t ≤ sol.t_b
-  ccall( sol.method_appsln, Void,
+  ccall( sol.method_appsln, Cvoid,
     (Ptr{Float64}, Ptr{Float64},                  # t, z
      Ptr{Float64}, Ptr{FInt},                     # FSPACE, ISPACE
     ),
@@ -859,7 +859,7 @@ end
 function evalSolution(sol::ColnewSolution{FInt}, 
   t::Real) where FInt<:FortranInt
 
-  z = Vector{Float64}(sol.d)
+  z = Vector{Float64}(uninitialized, sol.d)
   evalSolution(sol, t, z)
   return z
 end
@@ -880,7 +880,7 @@ function evalSolution(sol::ColnewSolution{FInt},
   tno = length(t)
 
   Z = zeros(Float64, (tno, sol.d))
-  z = Vector{Float64}(sol.d)
+  z = Vector{Float64}(uninitialized, sol.d)
   for k=1:tno
     evalSolution(sol, t[k], z)
     Z[k,:] = z

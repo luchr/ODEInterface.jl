@@ -3,16 +3,10 @@
   """
 module ODEInterfaceTest
 
-found = false
-try
-  using Test
-  found = true
-catch
-  found = false
-end
-
-if !found
+if isdefined(Base, :Test) && !Base.isdeprecated(Base, :Test)
   using Base.Test
+else
+  using Test
 end
 
 using ODEInterface

@@ -58,14 +58,14 @@ end
   """
 mutable struct DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
-  FCN     :: Ptr{Void}         # rhs callback
+  FCN     :: Ptr{Cvoid}        # rhs callback
   t       :: Vector{Float64}   # start time (and current)
   tEnd    :: Vector{Float64}   # end time
   x       :: Vector{Float64}   # initial value (and current state)
   RTOL    :: Vector{Float64}   # relative tolerance
   ATOL    :: Vector{Float64}   # absolute tolerance
   ITOL    :: Vector{FInt}      # switch for RTOL, ATOL
-  SOLOUT  :: Ptr{Void}         # solout callback
+  SOLOUT  :: Ptr{Cvoid}        # solout callback
   IOUT    :: Vector{FInt}      # switch for SOLOUT
   WORK    :: Vector{Float64}   # double working array
   LWORK   :: Vector{FInt}      # length of WORK
@@ -82,7 +82,7 @@ end
 
 """
        function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
-               method_contd::Ptr{Void}) where {FInt<:FortranInt, 
+               method_contd::Ptr{Cvoid}) where {FInt<:FortranInt, 
                                                CI<:DopriInternalCallInfos}
   
   generates a eval_sol_fcn for dopri5 and dop853.
@@ -105,7 +105,7 @@ end
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
 function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
-        method_contd::Ptr{Void}) where {FInt<:FortranInt, 
+        method_contd::Ptr{Cvoid}) where {FInt<:FortranInt, 
                                         CI<:DopriInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
@@ -114,7 +114,7 @@ function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(d)
+    result = Vector{Float64}(uninitialized, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contd because s==tNew")
@@ -203,7 +203,7 @@ end
   """
 function unsafe_dopriSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_dopriSoloutCallback, Void, Tuple{Ptr{FInt}, 
+  return cfunction(unsafe_dopriSoloutCallback, Cvoid, Tuple{Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64},Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64},
     Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 

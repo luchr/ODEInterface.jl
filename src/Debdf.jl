@@ -82,7 +82,7 @@ end
   FInt is the Integer type used for the fortran compilation.
   """
 mutable struct DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
-  FCN     :: Ptr{Void}         # rhs callback
+  FCN     :: Ptr{Cvoid}        # rhs callback
   N       :: Vector{FInt}      # Dimension: NEQ
   t       :: Vector{Float64}   # start time (and current)
   x       :: Vector{Float64}   # initial value (and current state)
@@ -97,7 +97,7 @@ mutable struct DdebdfArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{F
   LIW     :: Vector{FInt}      # length of IWORK
   RPAR    :: Vector{Float64}   # add. double-array
   IPAR    :: Ref{DdebdfInternalCallInfos} # misuse IPAR
-  JAC     :: Ptr{Void}         # Jacobian callback
+  JAC     :: Ptr{Cvoid}        # Jacobian callback
     ## Allow uninitialized construction
   function DdebdfArguments{FInt}(dummy::FInt) where FInt
     return new{FInt}()
@@ -338,15 +338,15 @@ function ddebdf_impl(rhs,
   while (true)
     told = args.t[1]
     args.tEnd[1] = t_values[1]
-    ccall( method_ddebdf, Void,
-      (Ptr{Void}, Ptr{FInt},                        # Rightsidefunc, N=NEQ=d
+    ccall( method_ddebdf, Cvoid,
+      (Ptr{Cvoid}, Ptr{FInt},                       # Rightsidefunc, N=NEQ=d
        Ptr{Float64}, Ptr{Float64}, Ptr{Float64},    # t, x, tEnd
        Ptr{FInt}, Ptr{Float64}, Ptr{Float64},       # INFO, RTOL, ATOL,
        Ptr{FInt},                                   # IDID
        Ptr{Float64}, Ptr{FInt},                     # RWORK, LRW
        Ptr{FInt}, Ptr{FInt},                        # IWORK, LIW
        Ptr{Float64}, Ref{DdebdfInternalCallInfos},  # RPAR, IPAR=CBI
-       Ptr{Void},                                   # DJAC
+       Ptr{Cvoid},                                  # DJAC
       ),
        args.FCN, args.N,
        args.t, args.x, args.tEnd,
@@ -388,7 +388,7 @@ function ddebdf_impl(rhs,
       args.INFO[1] = 1
     elseif args.IDID[1] ∈ (2,3,)
       # => args.tEnd[1] reached
-      shift!(t_values)     # next t-value to compute
+      popfirst!(t_values)     # next t-value to compute
       maxsteps_seen = 0
       if length(t_values) == 0
         retcode = 1   # reached T
