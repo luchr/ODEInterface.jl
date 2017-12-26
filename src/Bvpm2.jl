@@ -268,14 +268,24 @@ function Bvpm2(handle::Ptr{Cvoid})
 end
 
 """
+       function bvpm2_create_handle(obj::Bvpm2)
+  
+  create Fortran Proxy.
+  """
+function bvpm2_create_handle(obj::Bvpm2)
+  obj.handle = ccall(obj.method_create, Ptr{Cvoid}, () )
+  @assert obj.handle ≠ C_NULL
+  return nothing
+end
+
+"""
        function Bvpm2()
 
   creates bvpm2 object.
   """
 function Bvpm2()
   obj = Bvpm2(C_NULL)
-  obj.handle = ccall(obj.method_create, Ptr{Cvoid}, () )
-  @assert obj.handle ≠ C_NULL
+  bvpm2_create_handle(obj)
   return obj
 end
 
@@ -421,7 +431,7 @@ end
 function show(io::IO, obj::Bvpm2)
   println(io, typeof(obj))
   details = bvpm2_get_details(obj)
-  maxLen = 2+max( 0, map(length, keys(details))... )
+  maxLen = 2+max( 0, map(length, collect(keys(details)))... )
   for key in sort(collect(keys(details)))
     print(io, lpad(key, maxLen), ": ")
     show(io, details[key]); println(io)
@@ -1159,7 +1169,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   no_par = details["no_par"]
   no_left_bc = details["no_left_bc"]
   tol = NaN; method = 4; trace =  -1; error_control = 1
-  si_dim = 0; si_matrix = Matrix{Float64}(0,0);
+  si_dim = 0; si_matrix = Matrix{Float64}(uninitialized, 0,0);
 
   OPT = nothing
   try
@@ -1481,7 +1491,7 @@ end
   stored.
   """
 function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64}, 
-  dz::Matrix{Float64}=Matrix{Float64}(0,0))
+  dz::Matrix{Float64}=Matrix{Float64}(uninitialized, 0,0))
   
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
@@ -1520,7 +1530,7 @@ function evalSolution(sol::Bvpm2, x::Vector{Float64})
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
   x_len = length(x)
-  z = Matrix{Float64}(no_odes, x_len)
+  z = Matrix{Float64}(uninitialized, no_odes, x_len)
   evalSolution(sol, x, z)
   return z
 end
