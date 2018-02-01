@@ -652,7 +652,7 @@ function unsafe_bvpm2_guess_cb(x::Float64, y_len::Int64, y_::Ptr{Float64},
      cbi::CI) where CI<:Bvpm2_guess_cbi
 
   @assert y_len == cbi.no_odes
-  y = unsafe_wrap(Array, y_, (y_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
   bvpm2_guess(x, y, cbi)
   return nothing
 end
@@ -739,8 +739,8 @@ function unsafe_bvpm2_rhs_cb(
 
   @assert y_len == f_len == cbi.no_odes
 
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  f = unsafe_wrap(Array, f_, (f_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  f = unsafe_wrap(Array, f_, (f_len,), own=false)
   bvpm2_rhs(x, y, f, cbi)
   return nothing
 end
@@ -765,9 +765,9 @@ function unsafe_bvpm2_rhspar_cb(
   @assert y_len == f_len == cbi.no_odes
   @assert p_len == cbi.no_par
 
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  f = unsafe_wrap(Array, f_, (f_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  f = unsafe_wrap(Array, f_, (f_len,), own=false)
   bvpm2_rhs(x, y, f, cbi, p)
   return nothing
 end
@@ -812,8 +812,8 @@ function unsafe_bvpm2_Drhs_cb(
   @assert y_len == cbi.no_odes
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
   
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
   bvpm2_Drhs(x, y, dfdy, cbi)
   return nothing
 end
@@ -841,10 +841,10 @@ function unsafe_bvpm2_Drhspar_cb(
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
   @assert dfdp_dim1 == cbi.no_odes && dfdp_dim2 == cbi.no_par
   
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), false)
-  dfdp = unsafe_wrap(Array, dfdp_, (dfdp_dim1, dfdp_dim2,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
+  dfdp = unsafe_wrap(Array, dfdp_, (dfdp_dim1, dfdp_dim2,), own=false)
   bvpm2_Drhs(x, y, dfdy, cbi, p, dfdp)
   return nothing
 end
@@ -890,10 +890,10 @@ function unsafe_bvpm2_bc_cb(
   @assert ya_len == yb_len == cbi.no_odes
   @assert bca_len == cbi.no_left_bc
   @assert bcb_len == cbi.no_odes+cbi.no_par-cbi.no_left_bc
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  bca = unsafe_wrap(Array, bca_, (bca_len,), false)
-  bcb = unsafe_wrap(Array, bcb_, (bcb_len,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  bca = unsafe_wrap(Array, bca_, (bca_len,), own=false)
+  bcb = unsafe_wrap(Array, bcb_, (bcb_len,), own=false)
   bvpm2_bc(ya, yb, bca, bcb, cbi)
   return nothing
 end
@@ -922,11 +922,11 @@ function unsafe_bvpm2_bcpar_cb(
    @assert bca_len == cbi.no_left_bc
    @assert bcb_len == cbi.no_odes+cbi.no_par-cbi.no_left_bc
    @assert p_len == cbi.no_par
-   ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-   yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-   p = unsafe_wrap(Array, p_, (p_len,), false)
-   bca = unsafe_wrap(Array, bca_, (bca_len,), false)
-   bcb = unsafe_wrap(Array, bcb_, (bcb_len,), false)
+   ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+   yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+   p = unsafe_wrap(Array, p_, (p_len,), own=false)
+   bca = unsafe_wrap(Array, bca_, (bca_len,), own=false)
+   bcb = unsafe_wrap(Array, bcb_, (bcb_len,), own=false)
    bvpm2_bc(ya, yb, bca, bcb, cbi, p)
    return nothing
 end
@@ -977,10 +977,10 @@ function unsafe_bvpm2_Dbc_cb(
   @assert dya_dim1 == cbi.no_left_bc
   @assert dyb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
 
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), false)
-  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), own=false)
+  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), own=false)
   bvpm2_Dbc(ya, yb, dya, dyb, cbi)
   return nothing
 end
@@ -1015,13 +1015,13 @@ function unsafe_bvpm2_Dbcpar_cb(
   @assert dya_dim1 == dpa_dim1 == cbi.no_left_bc
   @assert dyb_dim1 == dpb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
 
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), false)
-  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), false)
-  dpa = unsafe_wrap(Array, dpa_, (dpa_dim1, dpa_dim2,), false)
-  dpb = unsafe_wrap(Array, dpb_, (dpb_dim1, dpb_dim2,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), own=false)
+  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), own=false)
+  dpa = unsafe_wrap(Array, dpa_, (dpa_dim1, dpa_dim2,), own=false)
+  dpb = unsafe_wrap(Array, dpb_, (dpb_dim1, dpb_dim2,), own=false)
   bvpm2_Dbc(ya, yb, dya, dyb, cbi, p, dpa, dpb)
   return nothing
 end

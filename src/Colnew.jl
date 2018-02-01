@@ -131,8 +131,8 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
   n = cbi.n; d = cbi.d
   
   t = unsafe_load(t_)
-  z = unsafe_wrap(Array, z_, (d,), false)
-  f = unsafe_wrap(Array, f_, (n,), false)
+  z = unsafe_wrap(Array, z_, (d,), own=false)
+  f = unsafe_wrap(Array, f_, (n,), own=false)
 
   colnew_rhs(t, z, f, cbi)
   return nothing
@@ -175,8 +175,8 @@ function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
   n = cbi.n; d = cbi.d
 
   t = unsafe_load(t_)
-  z = unsafe_wrap(Array, z_, (d,), false)
-  df = unsafe_wrap(Array, df_, (n,d,), false)
+  z = unsafe_wrap(Array, z_, (d,), own=false)
+  df = unsafe_wrap(Array, df_, (n,d,), own=false)
 
   colnew_Drhs(t, z, df, cbi)
   return nothing
@@ -220,8 +220,8 @@ function unsafe_colnew_bc(i_::Ptr{FInt},
   d = cbi.d
 
   i = unsafe_load(i_)
-  z = unsafe_wrap(Array, z_, (d,), false)
-  bc = unsafe_wrap(Array, bc_, (1,), false)
+  z = unsafe_wrap(Array, z_, (d,), own=false)
+  bc = unsafe_wrap(Array, bc_, (1,), own=false)
 
   colnew_bc(i, z, bc, cbi)
   return nothing
@@ -265,8 +265,8 @@ function unsafe_colnew_Dbc(i_::Ptr{FInt},
   d = cbi.d
 
   i = unsafe_load(i_)
-  z = unsafe_wrap(Array, z_, (d,), false)
-  Dbc = unsafe_wrap(Array, Dbc_, (d,), false)
+  z = unsafe_wrap(Array, z_, (d,), own=false)
+  Dbc = unsafe_wrap(Array, Dbc_, (d,), own=false)
 
   colnew_Dbc(i, z, Dbc, cbi)
   return nothing
@@ -304,8 +304,8 @@ function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
   n = cbi.n; d = cbi.d
 
   t = unsafe_load(t_)
-  z = unsafe_wrap(Array, z_, (d,), false)
-  dmx = unsafe_wrap(Array, dmx_, (n,), false)
+  z = unsafe_wrap(Array, z_, (d,), own=false)
+  dmx = unsafe_wrap(Array, dmx_, (n,), own=false)
 
   colnew_guess(t, z, dmx, cbi)
   return nothing

@@ -127,8 +127,8 @@ function unsafe_bvpsolrhs(n_::Ptr{FInt}, t_::Ptr{Float64},
         x_::Ptr{Float64}, f_::Ptr{Float64}) where FInt<:FortranInt
   
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  f = unsafe_wrap(Array, f_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,), own=false)
+  f = unsafe_wrap(Array, f_,(n,), own=false)
   cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   hw1rhs(n,t,x,f,cbi)
   return nothing
@@ -175,9 +175,9 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
 
   cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   n = cbi.N
-  xa = unsafe_wrap(Array, xa_,(n,),false)
-  xb = unsafe_wrap(Array, xb_,(n,),false)
-  r  = unsafe_wrap(Array, r_ ,(n,),false)
+  xa = unsafe_wrap(Array, xa_,(n,), own=false)
+  xb = unsafe_wrap(Array, xb_,(n,), own=false)
+  r  = unsafe_wrap(Array, r_ ,(n,), own=false)
   bvpsolbc(xa,xb,r,cbi)
   return nothing
 end
@@ -249,12 +249,12 @@ function unsafe_bvpsolivp(n_::Ptr{FInt},
 
   cbi = bvpsol_global_cbi::BvpsolInternalCallInfos
   n = cbi.N
-  t = unsafe_wrap(Array, t_,(1,),false)
+  t = unsafe_wrap(Array, t_, (1,), own=false)
   tend = unsafe_load(tend_)
-  x = unsafe_wrap(Array, x_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
   tol = unsafe_load(tol_); hmax = unsafe_load(hmax_); 
-  h = unsafe_wrap(Array, h_,(1,),false)
-  kflag = unsafe_wrap(Array, kflag_,(1,),false)
+  h = unsafe_wrap(Array, h_, (1,), own=false)
+  kflag = unsafe_wrap(Array, kflag_, (1,), own=false)
   bvpsolivp(t,x,tend,tol,hmax,h,kflag,cbi)
   return nothing
 end

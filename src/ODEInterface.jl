@@ -94,9 +94,10 @@ __precompile__(true)
   """
 module ODEInterface
 
+using Unicode
 try
-  using Unicode
-catch e
+  using LinearAlgebra
+catch
 end
 
 include("./Error.jl")

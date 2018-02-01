@@ -167,8 +167,8 @@ function unsafe_dopriSoloutCallback(
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  irtrn = unsafe_wrap(Array, irtrn_,(1,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  irtrn = unsafe_wrap(Array, irtrn_, (1,), own=false)
   
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0

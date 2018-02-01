@@ -1,5 +1,7 @@
 # Dynamic loading of ODE-Solvers for ODEInterface
 
+using Libdl
+
 """
   macro for importing (un-)load functions.
   """

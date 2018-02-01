@@ -139,14 +139,6 @@ function getMatrixCheckSize(mat,T::DataType,m::Integer,n::Integer,docopy=true)
   return result
 end
 
-if !isdefined(Base, :unsafe_wrap)
-  """Define unsafe_wrap for old julia versions.
-    """
-  function unsafe_wrap(target, p, dims, own)
-    return pointer_to_array(p, dims, own)
-  end
-end
-
 """
   returns function view or function sub for generating views to arrays.
   """

@@ -22,7 +22,10 @@ end
 
 buf2str(buf) = String(take!(buf))
 
-using Base.Markdown
+try
+  using Markdown
+catch
+end
 
 """
   # Overview

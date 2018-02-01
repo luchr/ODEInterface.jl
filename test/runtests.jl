@@ -3,11 +3,7 @@
   """
 module ODEInterfaceTest
 
-if isdefined(Base, :Test) && !Base.isdeprecated(Base, :Test)
-  using Base.Test
-else
-  using Test
-end
+using Test
 
 using ODEInterface
 @ODEInterface.import_huge
