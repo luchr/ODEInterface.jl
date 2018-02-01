@@ -13,9 +13,8 @@ addons:
     packages:
       - gfortran
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      brew install gcc;
-    fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then  brew cask uninstall --force oclint || true ; brew install gcc; fi
+
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
