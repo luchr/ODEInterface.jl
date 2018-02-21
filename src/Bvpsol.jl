@@ -32,15 +32,18 @@ end
 
 @doc """
   The ode-solver to use for the initial value problems.
-  """ -> ODE_SOLVER_USAGE
+  """ 
+ODE_SOLVER_USAGE
 
 @doc """
   Use the DIFEX1-solver builtin in bvpsol.
-  """ -> ODE_SOLVER_INTERNAL
+  """ 
+ODE_SOLVER_INTERNAL
 
 @doc """
   Use the julia-function for solving the initial value problems.
-  """ -> ODE_SOLVER_JULIA
+  """ 
+ODE_SOLVER_JULIA
 
 
 """
