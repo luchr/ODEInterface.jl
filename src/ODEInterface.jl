@@ -94,6 +94,12 @@ __precompile__(true)
   """
 module ODEInterface
 
+using Unicode
+try
+  using LinearAlgebra
+catch
+end
+
 include("./Error.jl")
 include("./Options.jl")
 include("./DLSolvers.jl")
@@ -354,7 +360,8 @@ const OPT_SINGULARTERM     = "SingularTerm"
        funtion (t,x) -> dx
   
   `dx` is a `Vector{Float64}` with the same length as `x`.
-  """ -> RHS_CALL_RETURNS_ARRAY
+  """
+RHS_CALL_RETURNS_ARRAY
 
 @doc """
   The right-hand side has to return `nothing`. It gets an additional Array
@@ -366,7 +373,8 @@ const OPT_SINGULARTERM     = "SingularTerm"
   
   `dx` is a `Vector{Float64}` with the same length as `x`. In `dx` the
   function has to fill in the values of `x'`.
-  """ -> RHS_CALL_INSITU
+  """
+RHS_CALL_INSITU
 
 """
        function extractTOLs(d::Integer, opt::AbstractOptionsODE) 
@@ -421,7 +429,7 @@ end
   reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
 function extractLogOptions(opt::AbstractOptionsODE)
-  lio=getOption(opt,OPT_LOGIO,STDERR)
+  lio=getOption(opt, OPT_LOGIO, stderr)
   if !isa(lio,IO)
     throw(ArgumentErrorODE("option '$OPT_LOGIO' was not an Base.IO",:opt))
   end

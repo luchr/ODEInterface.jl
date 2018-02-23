@@ -71,7 +71,7 @@ end
   FInt is the Integer type used for the fortran compilation.
   """
 mutable struct DdeabmArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
-  FCN     :: Ptr{Void}         # rhs callback
+  FCN     :: Ptr{Cvoid}        # rhs callback
   N       :: Vector{FInt}      # Dimension: NEQ
   t       :: Vector{Float64}   # start time (and current)
   x       :: Vector{Float64}   # initial value (and current state)
@@ -288,8 +288,8 @@ function ddeabm_impl(rhs,
   while (true) 
     told = args.t[1]
     args.tEnd[1] = t_values[1]
-    ccall( method_ddeabm, Void,
-      (Ptr{Void}, Ptr{FInt},                        # Rightsidefunc, N=NEQ=d
+    ccall( method_ddeabm, Cvoid,
+      (Ptr{Cvoid}, Ptr{FInt},                       # Rightsidefunc, N=NEQ=d
        Ptr{Float64}, Ptr{Float64}, Ptr{Float64},    # t, x, tEnd
        Ptr{FInt}, Ptr{Float64}, Ptr{Float64},       # INFO, RTOL, ATOL
        Ptr{FInt},                                   # IDID
@@ -336,7 +336,7 @@ function ddeabm_impl(rhs,
       args.INFO[1] = 1
     elseif args.IDID[1] ∈ (2,3,)
       # => args.tEnd[1] reached
-      shift!(t_values)     # next t-value to compute
+      popfirst!(t_values)     # next t-value to compute
       maxsteps_seen = 0
       if length(t_values) == 0
         retcode = 1   # reached T

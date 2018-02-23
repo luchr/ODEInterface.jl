@@ -1,3 +1,8 @@
+try
+  using Unicode
+catch e
+end
+
 windows_flag = Sys.iswindows()
 apple_flag = Sys.isapple()
 file_extension = apple_flag ? ".dylib" : windows_flag ? ".dll" : ".so" 

@@ -32,15 +32,18 @@ end
 
 @doc """
   The ode-solver to use for the initial value problems.
-  """ -> ODE_SOLVER_USAGE
+  """ 
+ODE_SOLVER_USAGE
 
 @doc """
   Use the DIFEX1-solver builtin in bvpsol.
-  """ -> ODE_SOLVER_INTERNAL
+  """ 
+ODE_SOLVER_INTERNAL
 
 @doc """
   Use the julia-function for solving the initial value problems.
-  """ -> ODE_SOLVER_JULIA
+  """ 
+ODE_SOLVER_JULIA
 
 
 """
@@ -92,9 +95,9 @@ mutable struct BvpsolInternalCallInfos{FInt<:FortranInt, RHS_F,
 end
 
 mutable struct BvpsolArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
-  FCN     :: Ptr{Void}         # rhs callback
-  BC      :: Ptr{Void}         # boundary conditions
-  IVPSOL  :: Ptr{Void}         # Initial Value Problem Solver
+  FCN     :: Ptr{Cvoid}        # rhs callback
+  BC      :: Ptr{Cvoid}        # boundary conditions
+  IVPSOL  :: Ptr{Cvoid}        # Initial Value Problem Solver
   N       :: Vector{FInt}      # Dimension
   M       :: Vector{FInt}      # Number of shooting nodes
   T       :: Vector{Float64}   # shooting nodes
@@ -127,8 +130,8 @@ function unsafe_bvpsolrhs(n_::Ptr{FInt}, t_::Ptr{Float64},
         x_::Ptr{Float64}, f_::Ptr{Float64}) where FInt<:FortranInt
   
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  f = unsafe_wrap(Array, f_,(n,),false)
+  x = unsafe_wrap(Array, x_,(n,), own=false)
+  f = unsafe_wrap(Array, f_,(n,), own=false)
   cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   hw1rhs(n,t,x,f,cbi)
   return nothing
@@ -138,8 +141,8 @@ end
        function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   """
 function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolrhs, Void, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64},Ptr{Float64}))
+  return cfunction(unsafe_bvpsolrhs, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
+    Ptr{Float64},Ptr{Float64}})
 end
 
 """
@@ -175,9 +178,9 @@ function unsafe_bvpsolbc(xa_::Ptr{Float64}, xb_::Ptr{Float64},
 
   cbi = bvpsol_global_cbi :: BvpsolInternalCallInfos
   n = cbi.N
-  xa = unsafe_wrap(Array, xa_,(n,),false)
-  xb = unsafe_wrap(Array, xb_,(n,),false)
-  r  = unsafe_wrap(Array, r_ ,(n,),false)
+  xa = unsafe_wrap(Array, xa_,(n,), own=false)
+  xb = unsafe_wrap(Array, xb_,(n,), own=false)
+  r  = unsafe_wrap(Array, r_ ,(n,), own=false)
   bvpsolbc(xa,xb,r,cbi)
   return nothing
 end
@@ -186,8 +189,8 @@ end
         function unsafe_bvpsolbc_c()
   """
 function unsafe_bvpsolbc_c()
-  return cfunction(unsafe_bvpsolbc, Void, 
-        (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
+  return cfunction(unsafe_bvpsolbc, Cvoid, 
+        Tuple{Ptr{Float64},Ptr{Float64},Ptr{Float64}})
 end
 
 function bvpsolivp(t::Vector{Float64},
@@ -231,7 +234,7 @@ end
 
 """
        function unsafe_bvpsolivp(n_::Ptr{FInt}, 
-               fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+               fcn_::Ptr{Cvoid}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
                tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
                h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
@@ -243,27 +246,27 @@ end
   uses bvpsolivp
   """
 function unsafe_bvpsolivp(n_::Ptr{FInt}, 
-        fcn_::Ptr{Void}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
+        fcn_::Ptr{Cvoid}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
         tend_::Ptr{Float64}, tol_::Ptr{Float64}, hmax_::Ptr{Float64}, 
         h_::Ptr{Float64}, kflag_::Ptr{FInt}) where FInt<:FortranInt
 
   cbi = bvpsol_global_cbi::BvpsolInternalCallInfos
   n = cbi.N
-  t = unsafe_wrap(Array, t_,(1,),false)
+  t = unsafe_wrap(Array, t_, (1,), own=false)
   tend = unsafe_load(tend_)
-  x = unsafe_wrap(Array, x_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
   tol = unsafe_load(tol_); hmax = unsafe_load(hmax_); 
-  h = unsafe_wrap(Array, h_,(1,),false)
-  kflag = unsafe_wrap(Array, kflag_,(1,),false)
+  h = unsafe_wrap(Array, h_, (1,), own=false)
+  kflag = unsafe_wrap(Array, kflag_, (1,), own=false)
   bvpsolivp(t,x,tend,tol,hmax,h,kflag,cbi)
   return nothing
 end
 
 function unsafe_bvpsolivp_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolivp, Void, 
-    (Ptr{FInt},Ptr{Void},Ptr{Float64},
+  return cfunction(unsafe_bvpsolivp, Cvoid, 
+    Tuple{Ptr{FInt},Ptr{Cvoid},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
-    Ptr{FInt}))
+    Ptr{FInt}})
 end
 
 
@@ -419,7 +422,7 @@ function bvpsol_impl(rhs, bc,
     throw(ArgumentErrorODE("Cannot convert OPT_RTOL to Float64",:opt,e))
   end
   
-  args.IOPT = Vector{FInt}(6)
+  args.IOPT = Vector{FInt}(uninitialized, 6)
   ivpopt = nothing
   ivp_lprefix = "unsafe_bvpsolivp: "
   OPT = nothing
@@ -490,8 +493,8 @@ function bvpsol_impl(rhs, bc,
       dump(lio,args)
     end
     
-    ccall( method_bvpsol, Void,
-      (Ptr{Void}, Ptr{Void}, Ptr{Void},           # Rightsidefunc, BC, IVPSOL
+    ccall( method_bvpsol, Cvoid,
+      (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},        # Rightsidefunc, BC, IVPSOL
        Ptr{FInt}, Ptr{FInt},                      # N, M 
        Ptr{Float64}, Ptr{Float64}, Ptr{Float64},  # t, x, EPS
        Ptr{FInt}, Ptr{FInt},                      # IOPT, INFO

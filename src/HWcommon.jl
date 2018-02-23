@@ -46,8 +46,8 @@ function unsafe_HW1RHSCallback(
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  f = unsafe_wrap(Array, f_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  f = unsafe_wrap(Array, f_, (n,), own=false)
   
   hw1rhs(n,t,x,f,cbi)
   return nothing
@@ -71,8 +71,8 @@ end
   """
 function unsafe_HW1RHSCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW1RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_HW1RHSCallback, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -95,8 +95,8 @@ function unsafe_HW2RHSCallback(
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  f = unsafe_wrap(Array, f_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  f = unsafe_wrap(Array, f_, (n,), own=false)
 
   lprefix = cbi.rhs_lprefix
 
@@ -138,8 +138,8 @@ end
   """
 function unsafe_HW2RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_HW2RHSCallback, Void, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI})) 
+  return cfunction(unsafe_HW2RHSCallback, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}}) 
 end
 
 """
@@ -161,7 +161,7 @@ function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt,CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   lmas = unsafe_load(lmas_)
-  am = unsafe_wrap(Array, am_,(lmas,n,),false)
+  am = unsafe_wrap(Array, am_, (lmas,n,), own=false)
   lprefix = "unsafe_HW1MassCallback: "
 
   (lio,l)=(cbi.logio,cbi.loglevel)
@@ -192,8 +192,8 @@ end
   """
 function unsafe_HW1MassCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1MassCallback, Void, (Ptr{FInt},
-    Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
+ return cfunction(unsafe_HW1MassCallback, Cvoid, Tuple{Ptr{FInt},
+    Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -289,7 +289,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
   ldfx = unsafe_load(ldfx_)
 
   lprefix = cbi.jac_lprefix
@@ -299,7 +299,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
   l_jac && println(lio,lprefix,"called with n=",n," ldfx=",ldfx)
   jac = cbi.jacobimatrix
   jb = cbi.jacobibandstruct
-  M = unsafe_wrap(Array, dfx_,(ldfx,n,),false)::Matrix{Float64}
+  M = unsafe_wrap(Array, dfx_, (ldfx,n,), own=false)::Matrix{Float64}
   if jb == nothing
     @assert ldfx==n-cbi.M1
     J = M
@@ -311,10 +311,10 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
       jac(t,x,J)
     else
       no = Int(cbi.M1/cbi.M2+1)
-      J = Vector{BandedMatrix{Float64}}(no)
+      J = Vector{BandedMatrix{Float64}}(uninitialized, no)
       for k in 1:no
         ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
-        darr =  unsafe_wrap(Array, ptr, (ldfx,cbi.M2,), false)
+        darr =  unsafe_wrap(Array, ptr, (ldfx,cbi.M2,), own=false)
         J[k] = BandedMatrix{Float64}(cbi.M2,cbi.M2, jb[1],jb[2],darr)
       end
       jac(t,x,J...)
@@ -332,9 +332,9 @@ end
   """
 function unsafe_HW1JacCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
- return cfunction(unsafe_HW1JacCallback, Void, (Ptr{FInt},
+ return cfunction(unsafe_HW1JacCallback, Cvoid, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}))
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -359,8 +359,8 @@ function unsafe_HWRhsTimeDerivCallback(
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  dfdt = unsafe_wrap(Array, dfdt_,(n,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  dfdt = unsafe_wrap(Array, dfdt_, (n,), own=false)
 
   lprefix = cbi.rhsdt_prefix
   (lio,l)=(cbi.logio,cbi.loglevel)
@@ -380,8 +380,8 @@ end
   """
 function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return  cfunction(unsafe_HWRhsTimeDerivCallback, Void, (Ptr{FInt},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
+  return  cfunction(unsafe_HWRhsTimeDerivCallback, Cvoid, Tuple{Ptr{FInt},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
 """

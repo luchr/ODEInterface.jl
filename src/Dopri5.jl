@@ -180,7 +180,7 @@ function dopri5_impl(rhs,
       output_mode,output_fcn,
       Dict(), out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
-      Vector{FInt}(1),Vector{Float64}(1),
+      Vector{FInt}(uninitialized, 1),Vector{Float64}(uninitialized, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 
   if output_mode == OUTPUTFCN_DENSE
@@ -190,7 +190,7 @@ function dopri5_impl(rhs,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
      unsafe_dopriSoloutCallback_c(cbi, FInt(0)) :
-     cfunction(dummy_func, Void, () )
+     cfunction(dummy_func, Cvoid, Tuple{} )
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&
@@ -202,11 +202,11 @@ function dopri5_impl(rhs,
     dump(lio,args);
   end
 
-  ccall( method_dopri5, Void,
-    (Ptr{FInt},  Ptr{Void},                     # N=d, Rightsidefunc
+  ccall( method_dopri5, Cvoid,
+    (Ptr{FInt},  Ptr{Cvoid},                    # N=d, Rightsidefunc
      Ptr{Float64}, Ptr{Float64}, Ptr{Float64},  # t, x, tEnd
      Ptr{Float64}, Ptr{Float64}, Ptr{FInt},     # RTOL, ATOL, ITOL
-     Ptr{Void}, Ptr{FInt},                      # Soloutfunc, IOUT
+     Ptr{Cvoid}, Ptr{FInt},                     # Soloutfunc, IOUT
      Ptr{Float64}, Ptr{FInt},                   # WORK, LWORK
      Ptr{FInt}, Ptr{FInt},                      # IWORK, LIWORK
      Ptr{Float64}, Ref{DopriInternalCallInfos}, # RPAR, IPAR, 

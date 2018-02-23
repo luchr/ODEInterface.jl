@@ -104,7 +104,7 @@ end
   """
 mutable struct RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
   N       :: Vector{FInt}      # Dimension
-  FCN     :: Ptr{Void}         # rhs callback
+  FCN     :: Ptr{Cvoid}        # rhs callback
   IFCN    :: Vector{FInt}      # autonomous (0) or not (1)
   t       :: Vector{Float64}   # start time (and current)
   tEnd    :: Vector{Float64}   # end time
@@ -113,17 +113,17 @@ mutable struct RodasArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FI
   RTOL    :: Vector{Float64}   # relative tolerance
   ATOL    :: Vector{Float64}   # absolute tolerance
   ITOL    :: Vector{FInt}      # switch for RTOL, ATOL
-  JAC     :: Ptr{Void}         # jacobian callback
+  JAC     :: Ptr{Cvoid}        # jacobian callback
   IJAC    :: Vector{FInt}      # jacobian given as callback?
   MLJAC   :: Vector{FInt}      # lower bandwidth of jacobian
   MUJAC   :: Vector{FInt}      # upper bandwidth of jacobian
-  DFX     :: Ptr{Void}         # dFCN/dt callback
+  DFX     :: Ptr{Cvoid}        # dFCN/dt callback
   IDFX    :: Vector{FInt}      # DFX given as callback?
-  MAS     :: Ptr{Void}
+  MAS     :: Ptr{Cvoid}
   IMAS    :: Vector{FInt}      # mass matrix given as callback?
   MLMAS   :: Vector{FInt}      # lower bandwidth of mass matrix
   MUMAS   :: Vector{FInt}      # upper bandwidth of mass matrix
-  SOLOUT  :: Ptr{Void}         # solout callback
+  SOLOUT  :: Ptr{Cvoid}        # solout callback
   IOUT    :: Vector{FInt}      # switch for SOLOUT
   WORK    :: Vector{Float64}   # double working array
   LWORK   :: Vector{FInt}      # length of WORK
@@ -172,8 +172,8 @@ function unsafe_rodasSoloutCallback(
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
-  x = unsafe_wrap(Array, x_,(n,),false)
-  irtrn = unsafe_wrap(Array, irtrn_, (1,),false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  irtrn = unsafe_wrap(Array, irtrn_, (1,), own=false)
 
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
@@ -208,15 +208,15 @@ end
   """
 function unsafe_rodasSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_rodasSoloutCallback, Void, (Ptr{FInt},
+  return cfunction(unsafe_rodasSoloutCallback, Cvoid, Tuple{Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{Float64}, Ptr{FInt}, 
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}})
 end
 
 """
        function create_rodas_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-               method_contro::Ptr{Void}) where {FInt<:FortranInt, 
+               method_contro::Ptr{Cvoid}) where {FInt<:FortranInt, 
                                                 CI<:RodasInternalCallInfos}
   
   generates a eval_sol_fcn for rodas.
@@ -239,7 +239,7 @@ end
   For the typical calling sequence, see `RodasInternalCallInfos`.
   """
 function create_rodas_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-        method_contro::Ptr{Void}) where {FInt<:FortranInt, 
+        method_contro::Ptr{Cvoid}) where {FInt<:FortranInt, 
                                          CI<:RodasInternalCallInfos}
   
   function eval_sol_fcn_closure(s::Float64)
@@ -248,7 +248,7 @@ function create_rodas_eval_sol_fcn_closure(cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(d)
+    result = Vector{Float64}(uninitialized, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contro because s==tNew")
@@ -490,7 +490,8 @@ function rodas_impl(rhs,
       rhsdt==nothing ? dummy_func : rhsdt, rhsdt_prefix,
       output_mode,output_fcn,Dict(),
       out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
-      NaN,NaN,Vector{Float64}(),Vector{FInt}(1),Vector{Float64}(1),
+      NaN,NaN,Vector{Float64}(),Vector{FInt}(uninitialized, 1),
+                                Vector{Float64}(uninitialized, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
       massmatrix==nothing ? zeros(0,0) : massmatrix,
       jacobimatrix==nothing ? dummy_func : jacobimatrix,
@@ -504,7 +505,7 @@ function rodas_impl(rhs,
 
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_rodasSoloutCallback_c(cbi, FInt(0)) :
-        cfunction(dummy_func, Void, () )
+        cfunction(dummy_func, Cvoid, Tuple{} )
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
   args.JAC = unsafe_HW1JacCallback_c(cbi, FInt(0))
@@ -519,19 +520,19 @@ function rodas_impl(rhs,
     dump(lio,args);
   end
 
-  ccall( method_rodas, Void,
-    (Ptr{FInt},  Ptr{Void}, Ptr{FInt},          # N=d, Rightsidefunc, IFCN
-     Ptr{Float64}, Ptr{Float64}, Ptr{Float64},  # t, x, tEnd
-     Ptr{Float64},                              # h
-     Ptr{Float64}, Ptr{Float64}, Ptr{FInt},     # RTOL, ATOL, ITOL
-     Ptr{Void}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# JAC, IJAC, MLJAC, MUJAC
-     Ptr{Void}, Ptr{FInt},                      # DFX, IDFX
-     Ptr{Void}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# MAS, IMAS, MLMAS, MUMAS
-     Ptr{Void}, Ptr{FInt},                      # Soloutfunc, IOUT
-     Ptr{Float64}, Ptr{FInt},                   # WORK, LWORK
-     Ptr{FInt}, Ptr{FInt},                      # IWORK, LIWORK
-     Ptr{Float64}, Ref{RodasInternalCallInfos}, # RPAR, IPAR
-     Ptr{FInt},                                 # IDID
+  ccall( method_rodas, Cvoid,
+    (Ptr{FInt},  Ptr{Cvoid}, Ptr{FInt},          # N=d, Rightsidefunc, IFCN
+     Ptr{Float64}, Ptr{Float64}, Ptr{Float64},   # t, x, tEnd
+     Ptr{Float64},                               # h
+     Ptr{Float64}, Ptr{Float64}, Ptr{FInt},      # RTOL, ATOL, ITOL
+     Ptr{Cvoid}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# JAC, IJAC, MLJAC, MUJAC
+     Ptr{Cvoid}, Ptr{FInt},                      # DFX, IDFX
+     Ptr{Cvoid}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},# MAS, IMAS, MLMAS, MUMAS
+     Ptr{Cvoid}, Ptr{FInt},                      # Soloutfunc, IOUT
+     Ptr{Float64}, Ptr{FInt},                    # WORK, LWORK
+     Ptr{FInt}, Ptr{FInt},                       # IWORK, LIWORK
+     Ptr{Float64}, Ref{RodasInternalCallInfos},  # RPAR, IPAR
+     Ptr{FInt},                                  # IDID
     ),
     args.N, args.FCN, args.IFCN,
     args.t, args.x, args.tEnd,

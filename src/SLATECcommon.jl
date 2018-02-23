@@ -141,8 +141,8 @@ function unsafe_SLATEC1RHSCallback(
         rpar_::Ptr{Float64}, cbi::CI) where CI<:ODEinternalCallInfos
   n = cbi.N
   t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_, (n,), false)
-  f = unsafe_wrap(Array, f_, (n,), false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
+  f = unsafe_wrap(Array, f_, (n,), own=false)
 
   cbi.rhs_count += 1
   hw1rhs(n, t, x, f, cbi)
@@ -167,8 +167,8 @@ end
   """
 function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_SLATEC1RHSCallback, Void, (Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_SLATEC1RHSCallback, Cvoid, Tuple{Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -177,9 +177,9 @@ function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = cbi.N
   t = unsafe_load(t_)
-  x = unsafe_wrap(Array, x_, (n,), false)
+  x = unsafe_wrap(Array, x_, (n,), own=false)
   dfx_rows = unsafe_load(dfx_rows_)
-  M = unsafe_wrap(Array, dfx_, (dfx_rows,n,), false)
+  M = unsafe_wrap(Array, dfx_, (dfx_rows,n,), own=false)
 
   cbi.jac_count += 1
 
@@ -211,8 +211,8 @@ end
   """
 function unsafe_SLATEC1JacCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt, CI}
-  return cfunction(unsafe_SLATEC1JacCallback, Void, (Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_SLATEC1JacCallback, Cvoid, Tuple{Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}})
 end
 
 # vim:syn=julia:cc=79:fdm=indent:

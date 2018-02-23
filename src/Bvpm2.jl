@@ -234,31 +234,31 @@ end
 
   """
 mutable struct Bvpm2   <: AbstractODESolution{Int64}
-  handle                 :: Ptr{Void}
-  method_create          :: Ptr{Void}
-  method_copy            :: Ptr{Void}
-  method_terminate       :: Ptr{Void}
-  method_destroy         :: Ptr{Void}
-  method_show            :: Ptr{Void}
-  method_get_details     :: Ptr{Void}
-  method_get_x           :: Ptr{Void}
-  method_init_guess1     :: Ptr{Void}
-  method_init_guess2     :: Ptr{Void}
-  method_init_guess3     :: Ptr{Void}
-  method_solve           :: Ptr{Void}
-  method_eval_s          :: Ptr{Void}
-  method_eval_v          :: Ptr{Void}
-  method_get_params      :: Ptr{Void}
-  method_extend_s        :: Ptr{Void}
-  method_extend_e        :: Ptr{Void}
+  handle                 :: Ptr{Cvoid}
+  method_create          :: Ptr{Cvoid}
+  method_copy            :: Ptr{Cvoid}
+  method_terminate       :: Ptr{Cvoid}
+  method_destroy         :: Ptr{Cvoid}
+  method_show            :: Ptr{Cvoid}
+  method_get_details     :: Ptr{Cvoid}
+  method_get_x           :: Ptr{Cvoid}
+  method_init_guess1     :: Ptr{Cvoid}
+  method_init_guess2     :: Ptr{Cvoid}
+  method_init_guess3     :: Ptr{Cvoid}
+  method_solve           :: Ptr{Cvoid}
+  method_eval_s          :: Ptr{Cvoid}
+  method_eval_v          :: Ptr{Cvoid}
+  method_get_params      :: Ptr{Cvoid}
+  method_extend_s        :: Ptr{Cvoid}
+  method_extend_e        :: Ptr{Cvoid}
 end
 
 """
-       function Bvpm2(handle::Ptr{Void})
+       function Bvpm2(handle::Ptr{Cvoid})
 
   create bvpm2 object from given handle.
   """
-function Bvpm2(handle::Ptr{Void})
+function Bvpm2(handle::Ptr{Cvoid})
   obj = Bvpm2(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL,
               C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL,
               C_NULL)
@@ -268,14 +268,24 @@ function Bvpm2(handle::Ptr{Void})
 end
 
 """
+       function bvpm2_create_handle(obj::Bvpm2)
+  
+  create Fortran Proxy.
+  """
+function bvpm2_create_handle(obj::Bvpm2)
+  obj.handle = ccall(obj.method_create, Ptr{Cvoid}, () )
+  @assert obj.handle ≠ C_NULL
+  return nothing
+end
+
+"""
        function Bvpm2()
 
   creates bvpm2 object.
   """
 function Bvpm2()
   obj = Bvpm2(C_NULL)
-  obj.handle = ccall(obj.method_create, Ptr{Void}, () )
-  @assert obj.handle ≠ C_NULL
+  bvpm2_create_handle(obj)
   return obj
 end
 
@@ -345,7 +355,7 @@ end
   """
 function bvpm2_terminate(obj::Bvpm2)
   bvpm2_check_handle(obj)
-  ccall(obj.method_terminate, Void, (Ptr{Void},), obj.handle)
+  ccall(obj.method_terminate, Cvoid, (Ptr{Cvoid},), obj.handle)
   return nothing
 end
 
@@ -357,7 +367,7 @@ end
   """
 function bvpm2_destroy(obj::Bvpm2)
   if bvpm2_is_handle_valid(obj)
-    ccall(obj.method_destroy, Void, (Ptr{Void},), obj.handle)
+    ccall(obj.method_destroy, Cvoid, (Ptr{Cvoid},), obj.handle)
     obj.handle = C_NULL
   end
   return obj
@@ -370,7 +380,7 @@ end
   """
 function bvpm2_copy(obj::Bvpm2)
   bvpm2_check_state(obj, (0,1,2,))
-  new_handle = ccall(obj.method_copy, Ptr{Void}, (Ptr{Void},),
+  new_handle = ccall(obj.method_copy, Ptr{Cvoid}, (Ptr{Cvoid},),
                 obj.handle)
   return Bvpm2(new_handle)
 end
@@ -382,7 +392,7 @@ end
   """
 function bvpm2_show_details(obj::Bvpm2)
   bvpm2_check_handle(obj)
-  ccall(obj.method_show, Void, (Ptr{Void},), obj.handle)
+  ccall(obj.method_show, Cvoid, (Ptr{Cvoid},), obj.handle)
   return nothing
 end
 
@@ -397,8 +407,8 @@ function bvpm2_get_details(obj::Bvpm2)
   end
   int_slots = zeros(Int64, 16)
 
-  ccall(obj.method_get_details, Void,
-    (Ptr{Void},                      # handle
+  ccall(obj.method_get_details, Cvoid,
+    (Ptr{Cvoid},                     # handle
      Int64, Ref{Int64},              # int_slots_len, int_slots
     ),
     obj.handle,
@@ -421,7 +431,7 @@ end
 function show(io::IO, obj::Bvpm2)
   println(io, typeof(obj))
   details = bvpm2_get_details(obj)
-  maxLen = 2+max( 0, map(length, keys(details))... )
+  maxLen = 2+max( 0, map(length, collect(keys(details)))... )
   for key in sort(collect(keys(details)))
     print(io, lpad(key, maxLen), ": ")
     show(io, details[key]); println(io)
@@ -433,9 +443,9 @@ end
   """
 function bvpm2_get_x(obj::Bvpm2)
   details = bvpm2_check_state(obj, (1, 2))
-  x = Vector{Float64}(details["no_pts"])
+  x = Vector{Float64}(uninitialized, details["no_pts"])
   error = ccall(obj.method_get_x, Int64,
-    (Ptr{Void}, Int64, Ref{Float64},),   # handle, x_len, x
+    (Ptr{Cvoid}, Int64, Ref{Float64},),   # handle, x_len, x
     obj.handle, length(x), x)
   error ≠ 0 && throw(InternalErrorODE(string(
     "Sorry. Fortran-Proxy returned error ",error)))
@@ -449,10 +459,10 @@ end
   """
 function bvpm2_get_params(obj::Bvpm2)
   details = bvpm2_check_state(obj, (1, 2))
-  p = Vector{Float64}(details["no_par"])
+  p = Vector{Float64}(uninitialized, details["no_par"])
   if length(p) > 0 
     error = ccall(obj.method_get_params, Int64,
-      (Ptr{Void}, Int64, Ref{Float64},),   # handle, p_len, p
+      (Ptr{Cvoid}, Int64, Ref{Float64},),   # handle, p_len, p
       obj.handle, length(p), p)
     error ≠ 0 && throw(InternalErrorODE(string(
       "Sorry. Fortran-Proxy returned error ",error)))
@@ -551,8 +561,8 @@ function bvpm2_init(obj::Bvpm2,
       "Float64 vector of length ",no_odes), :constant_guess, e))
   end
   
-  ccall(obj.method_init_guess1, Void,
-    (Ptr{Void},                            # handle
+  ccall(obj.method_init_guess1, Cvoid,
+    (Ptr{Cvoid},                           # handle
      Int64, Int64,                         # no_odes, no_left_bc
      Int64, Ref{Float64},                  # x_len, x
      Int64, Ref{Float64},                  # y_len, y
@@ -600,8 +610,8 @@ function bvpm2_init(obj::Bvpm2,
       "Float64 (", no_odes, ", ", length(x_grid), ") matrix"), :guess, e))
   end
 
-  ccall(obj.method_init_guess2, Void,
-    (Ptr{Void},                            # handle
+  ccall(obj.method_init_guess2, Cvoid,
+    (Ptr{Cvoid},                           # handle
      Int64, Int64,                         # no_odes, no_left_bc
      Int64, Ref{Float64},                  # x_len, x
      Int64, Int64, Ref{Float64},           # y_dim1, y_dim2, y
@@ -642,14 +652,14 @@ function unsafe_bvpm2_guess_cb(x::Float64, y_len::Int64, y_::Ptr{Float64},
      cbi::CI) where CI<:Bvpm2_guess_cbi
 
   @assert y_len == cbi.no_odes
-  y = unsafe_wrap(Array, y_, (y_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
   bvpm2_guess(x, y, cbi)
   return nothing
 end
 
 function unsafe_bvpm2_guess_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_guess_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_guess_cb, Cvoid,
+    Tuple{Float64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -678,11 +688,11 @@ function bvpm2_init(obj::Bvpm2,
   # Create callback-info
   cbi = Bvpm2_guess_cbi(no_odes, guess)
 
-  ccall(obj.method_init_guess3, Void,
-    (Ptr{Void},                            # handle
+  ccall(obj.method_init_guess3, Cvoid,
+    (Ptr{Cvoid},                           # handle
      Int64, Int64,                         # no_odes, no_left_bc
      Int64, Ref{Float64},                  # x_len, x
-     Ptr{Void}, Ref{Bvpm2_guess_cbi},      # guess_fcn, guess_fcn_pthrough
+     Ptr{Cvoid}, Ref{Bvpm2_guess_cbi},     # guess_fcn, guess_fcn_pthrough
      Int64, Ref{Float64},                  # p_len, p
      Int64,                                # max_num_subintervals
     ),
@@ -729,15 +739,15 @@ function unsafe_bvpm2_rhs_cb(
 
   @assert y_len == f_len == cbi.no_odes
 
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  f = unsafe_wrap(Array, f_, (f_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  f = unsafe_wrap(Array, f_, (f_len,), own=false)
   bvpm2_rhs(x, y, f, cbi)
   return nothing
 end
 
 function unsafe_bvpm2_rhs_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_rhs_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_rhs_cb, Cvoid,
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -755,17 +765,17 @@ function unsafe_bvpm2_rhspar_cb(
   @assert y_len == f_len == cbi.no_odes
   @assert p_len == cbi.no_par
 
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  f = unsafe_wrap(Array, f_, (f_len,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  f = unsafe_wrap(Array, f_, (f_len,), own=false)
   bvpm2_rhs(x, y, f, cbi, p)
   return nothing
 end
 
 function unsafe_bvpm2_rhspar_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_rhspar_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_rhspar_cb, Cvoid,
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -802,15 +812,15 @@ function unsafe_bvpm2_Drhs_cb(
   @assert y_len == cbi.no_odes
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
   
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
   bvpm2_Drhs(x, y, dfdy, cbi)
   return nothing
 end
 
 function unsafe_bvpm2_Drhs_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_Drhs_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_Drhs_cb, Cvoid,
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -831,18 +841,18 @@ function unsafe_bvpm2_Drhspar_cb(
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
   @assert dfdp_dim1 == cbi.no_odes && dfdp_dim2 == cbi.no_par
   
-  y = unsafe_wrap(Array, y_, (y_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), false)
-  dfdp = unsafe_wrap(Array, dfdp_, (dfdp_dim1, dfdp_dim2,), false)
+  y = unsafe_wrap(Array, y_, (y_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
+  dfdp = unsafe_wrap(Array, dfdp_, (dfdp_dim1, dfdp_dim2,), own=false)
   bvpm2_Drhs(x, y, dfdy, cbi, p, dfdp)
   return nothing
 end
 
 function unsafe_bvpm2_Drhspar_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_Drhspar_cb, Void,
-    (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
-    Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_Drhspar_cb, Cvoid,
+    Tuple{Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
+    Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -880,18 +890,18 @@ function unsafe_bvpm2_bc_cb(
   @assert ya_len == yb_len == cbi.no_odes
   @assert bca_len == cbi.no_left_bc
   @assert bcb_len == cbi.no_odes+cbi.no_par-cbi.no_left_bc
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  bca = unsafe_wrap(Array, bca_, (bca_len,), false)
-  bcb = unsafe_wrap(Array, bcb_, (bcb_len,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  bca = unsafe_wrap(Array, bca_, (bca_len,), own=false)
+  bcb = unsafe_wrap(Array, bcb_, (bcb_len,), own=false)
   bvpm2_bc(ya, yb, bca, bcb, cbi)
   return nothing
 end
 
 function unsafe_bvpm2_bc_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_bc_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_bc_cb, Cvoid,
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -912,20 +922,20 @@ function unsafe_bvpm2_bcpar_cb(
    @assert bca_len == cbi.no_left_bc
    @assert bcb_len == cbi.no_odes+cbi.no_par-cbi.no_left_bc
    @assert p_len == cbi.no_par
-   ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-   yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-   p = unsafe_wrap(Array, p_, (p_len,), false)
-   bca = unsafe_wrap(Array, bca_, (bca_len,), false)
-   bcb = unsafe_wrap(Array, bcb_, (bcb_len,), false)
+   ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+   yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+   p = unsafe_wrap(Array, p_, (p_len,), own=false)
+   bca = unsafe_wrap(Array, bca_, (bca_len,), own=false)
+   bcb = unsafe_wrap(Array, bcb_, (bcb_len,), own=false)
    bvpm2_bc(ya, yb, bca, bcb, cbi, p)
    return nothing
 end
 
 function unsafe_bvpm2_bcpar_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_bcpar_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
+  return cfunction(unsafe_bvpm2_bcpar_cb, Cvoid,
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
-     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
+     Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 """
@@ -967,18 +977,18 @@ function unsafe_bvpm2_Dbc_cb(
   @assert dya_dim1 == cbi.no_left_bc
   @assert dyb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
 
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), false)
-  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), own=false)
+  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), own=false)
   bvpm2_Dbc(ya, yb, dya, dyb, cbi)
   return nothing
 end
 
 function unsafe_bvpm2_Dbc_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_Dbc_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
-     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+  return cfunction(unsafe_bvpm2_Dbc_cb, Cvoid,
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
+     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -1005,23 +1015,23 @@ function unsafe_bvpm2_Dbcpar_cb(
   @assert dya_dim1 == dpa_dim1 == cbi.no_left_bc
   @assert dyb_dim1 == dpb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
 
-  ya = unsafe_wrap(Array, ya_, (ya_len,), false)
-  yb = unsafe_wrap(Array, yb_, (yb_len,), false)
-  p = unsafe_wrap(Array, p_, (p_len,), false)
-  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), false)
-  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), false)
-  dpa = unsafe_wrap(Array, dpa_, (dpa_dim1, dpa_dim2,), false)
-  dpb = unsafe_wrap(Array, dpb_, (dpb_dim1, dpb_dim2,), false)
+  ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
+  yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
+  p = unsafe_wrap(Array, p_, (p_len,), own=false)
+  dya = unsafe_wrap(Array, dya_, (dya_dim1, dya_dim2,), own=false)
+  dyb = unsafe_wrap(Array, dyb_, (dyb_dim1, dyb_dim2,), own=false)
+  dpa = unsafe_wrap(Array, dpa_, (dpa_dim1, dpa_dim2,), own=false)
+  dpb = unsafe_wrap(Array, dpb_, (dpb_dim1, dpb_dim2,), own=false)
   bvpm2_Dbc(ya, yb, dya, dyb, cbi, p, dpa, dpb)
   return nothing
 end
 
 function unsafe_bvpm2_Dbcpar_cb_c(cbi::CI) where CI
-  return cfunction(unsafe_bvpm2_Dbcpar_cb, Void,
-    (Int64, Ptr{Float64}, Int64, Ptr{Float64},
+  return cfunction(unsafe_bvpm2_Dbcpar_cb, Cvoid,
+    Tuple{Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
      Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, 
-     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
+     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}})
 end
 
 
@@ -1159,7 +1169,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   no_par = details["no_par"]
   no_left_bc = details["no_left_bc"]
   tol = NaN; method = 4; trace =  -1; error_control = 1
-  si_dim = 0; si_matrix = Matrix{Float64}(0,0);
+  si_dim = 0; si_matrix = Matrix{Float64}(uninitialized, 0,0);
 
   OPT = nothing
   try
@@ -1191,7 +1201,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
   
-  error_ret = Vector{Float64}(5)
+  error_ret = Vector{Float64}(uninitialized, 5)
   handle_out = [ C_NULL ]
 
   if bvpm2_global_cbi ≠ nothing
@@ -1228,11 +1238,11 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
                          ) : C_NULL
 
     error = ccall(guess_obj.method_solve, Int64,
-      (Ptr{Void}, Ref{Ptr{Void}},            # handle_guess, handle_out
-       Ptr{Void}, Ptr{Void},                 # rhs_fcn_ptr, bc_fcn_ptr
+      (Ptr{Cvoid}, Ref{Ptr{Cvoid}},          # handle_guess, handle_out
+       Ptr{Cvoid}, Ptr{Cvoid},               # rhs_fcn_ptr, bc_fcn_ptr
        Int64, Ptr{Float64},                  # si_dim, si_matrix
        Int64, Float64,                       # method, tol
-       Ptr{Void}, Ptr{Void},                 # dfdy_fcn_ptr, dbcdy_fcn_ptr
+       Ptr{Cvoid}, Ptr{Cvoid},               # dfdy_fcn_ptr, dbcdy_fcn_ptr
        Int64, Int64,                         # trace, error_control
        Int64, Ptr{Float64},                  # error_ret_len, error_ret
        Ref{Bvpm2_solve_cbi},                 # calls_pthrough
@@ -1334,7 +1344,7 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew,
   end
   result = [ C_NULL ]
   error = ccall(sol_obj.method_extend_s, Int64, 
-    (Ptr{Void}, Ref{Ptr{Void}},       # handle_in, handle_out
+    (Ptr{Cvoid}, Ref{Ptr{Cvoid}},     # handle_in, handle_out
      Float64, Float64,                # anew, bnew
      Int64, Ptr{Float64},             # yanew_len, yanew
      Int64, Ptr{Float64},             # ybnew_len, ybnew
@@ -1399,7 +1409,7 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order;
   end
   result = [ C_NULL ]
   error = ccall(sol_obj.method_extend_e, Int64,
-    (Ptr{Void}, Ref{Ptr{Void}},       # handle_in, handle_out
+    (Ptr{Cvoid}, Ref{Ptr{Cvoid}},     # handle_in, handle_out
      Float64, Float64,                # anew, bnew
      Int64,                           # order
      Int64, Ptr{Float64},             # p_len, p
@@ -1429,7 +1439,7 @@ end
   stored.
   """
 function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64}, 
-  dz::Vector{Float64}=Vector{Float64}(0))
+  dz::Vector{Float64}=Vector{Float64}(uninitialized, 0))
   
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
@@ -1442,7 +1452,7 @@ function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64},
        "a vector with length ",length(dz)), :dz))
   end
   error = ccall(sol.method_eval_s, Int64,
-    (Ptr{Void}, Float64,                   # handles, x
+    (Ptr{Cvoid}, Float64,                  # handles, x
      Int64, Ptr{Float64},                  # z_len, z
      Int64, Ptr{Float64},                  # dz_len, dz
     ),
@@ -1481,7 +1491,7 @@ end
   stored.
   """
 function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64}, 
-  dz::Matrix{Float64}=Matrix{Float64}(0,0))
+  dz::Matrix{Float64}=Matrix{Float64}(uninitialized, 0,0))
   
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
@@ -1495,7 +1505,7 @@ function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64},
     "matrix, but found a (", size(dz,1), ", ", size(dz,2), ") matrix "), :dz))
   end
   error = ccall(sol.method_eval_v, Int64,
-    (Ptr{Void},                            # handle 
+    (Ptr{Cvoid},                            # handle 
      Int64, Ptr{Float64},                  # x_len, x
      Int64, Int64, Ptr{Float64},           # z_dim1, z_dim2
      Int64, Int64, Ptr{Float64},           # dz_dim1, dz_dim2
@@ -1520,7 +1530,7 @@ function evalSolution(sol::Bvpm2, x::Vector{Float64})
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
   x_len = length(x)
-  z = Matrix{Float64}(no_odes, x_len)
+  z = Matrix{Float64}(uninitialized, no_odes, x_len)
   evalSolution(sol, x, z)
   return z
 end

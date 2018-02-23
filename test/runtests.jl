@@ -3,7 +3,7 @@
   """
 module ODEInterfaceTest
 
-using Base.Test
+using Test
 
 using ODEInterface
 @ODEInterface.import_huge
@@ -64,6 +64,10 @@ end
 
 function (ct::Callable_Type)(t,x)
   return ct.param*x
+end
+
+function mylinspace(a, b, length::Integer)
+  return collect(range(a, stop=b, length=length))
 end
 
 function test_ode1(solver::Function)
@@ -428,7 +432,7 @@ function test_odecall1(solver::Function)
   opt = OptionsODE("odecall1",
         OPT_RTOL => 1e-8,
         OPT_ATOL => 1e-8)
-  t = [linspace(0,1,10)...]
+  t = mylinspace(0,1,10)
   x0=[1,2]; rhs = (t,x) -> x
   (tVec,xVec,retcode,stats) = odecall(solver,rhs,t,x0,opt)
   @assert 1 == retcode
@@ -540,7 +544,7 @@ function test_bvp3(solver::Function)
                  OPT_SOLMETHOD    => 1,
                  OPT_IVPOPT       => ivpopt)
 
-  tNodes = collect(linspace(0,5,11))
+  tNodes = mylinspace(0,5,11)
   xInit = [ones(1,length(tNodes)-1) 0 ; ones(1,length(tNodes)) ]
   odesolver = dop853
 
@@ -664,11 +668,11 @@ function test_bvpm2_1()
           OPT_RTOL => 1e-6,
           OPT_METHODCHOICE => 4,)
   guess_obj = Bvpm2()
-  bvpm2_init(guess_obj, 1, 1, collect(linspace(a, b, 20)), [0.5,], [1.0,])
-  retcode = Vector{Int64}(4)
-  sol = Vector{ODEInterface.Bvpm2}(4)
-  stat = Vector{Dict}(4)
-  z = Vector{Matrix}(4)
+  bvpm2_init(guess_obj, 1, 1, mylinspace(a, b, 20), [0.5,], [1.0,])
+  retcode = Vector{Int64}(uninitialized, 4)
+  sol = Vector{ODEInterface.Bvpm2}(uninitialized, 4)
+  stat = Vector{Dict}(uninitialized, 4)
+  z = Vector{Matrix}(uninitialized, 4)
 
   (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
   (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
@@ -681,7 +685,7 @@ function test_bvpm2_1()
     @assert retcode[k] == 0
     @assert stat[k]["no_rhs_calls"] > 0
     @assert stat[k]["no_bc_calls"] > 0
-    z[k] = evalSolution(sol[k], collect(linspace(a, b, 5)))
+    z[k] = evalSolution(sol[k], mylinspace(a, b, 5))
   end
   @assert stat[1]["no_jac_calls"] == stat[3]["no_jac_calls"] == 0
   @assert stat[1]["no_Dbc_calls"] == stat[2]["no_Dbc_calls"] == 0
@@ -743,11 +747,11 @@ function test_bvpm2_2()
           )
 
   guess_obj = Bvpm2()
-  bvpm2_init(guess_obj, 2, 1, collect(linspace(a, b, 10)), [sqrt(0.75), 1e-4])
-  retcode = Vector{Int64}(4)
-  sol = Vector{ODEInterface.Bvpm2}(4)
-  stat = Vector{Dict}(4)
-  z = Vector{Matrix}(4)
+  bvpm2_init(guess_obj, 2, 1, mylinspace(a, b, 10), [sqrt(0.75), 1e-4])
+  retcode = Vector{Int64}(uninitialized, 4)
+  sol = Vector{ODEInterface.Bvpm2}(uninitialized, 4)
+  stat = Vector{Dict}(uninitialized, 4)
+  z = Vector{Matrix}(uninitialized, 4)
 
   (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
   (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
@@ -756,7 +760,7 @@ function test_bvpm2_2()
                                               Dbc=Dbc)
   (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
                                                Drhs=Drhs, Dbc=Dbc)
-  xx = collect(linspace(a, b, 5))
+  xx = mylinspace(a, b, 5)
   for k=1:length(retcode)
     @assert retcode[k] == 0
     @assert stat[k]["no_rhs_calls"] > 0
@@ -828,11 +832,11 @@ function test_bvpm2_3()
           OPT_RTOL => 1e-6 )
 
   guess_obj = Bvpm2()
-  bvpm2_init(guess_obj, 2, 1, collect(linspace(a, b, 3)), guess)
-  retcode = Vector{Int64}(4)
-  sol = Vector{ODEInterface.Bvpm2}(4)
-  stat = Vector{Dict}(4)
-  z = Vector{Matrix}(4)
+  bvpm2_init(guess_obj, 2, 1, mylinspace(a, b, 3), guess)
+  retcode = Vector{Int64}(uninitialized, 4)
+  sol = Vector{ODEInterface.Bvpm2}(uninitialized, 4)
+  stat = Vector{Dict}(uninitialized, 4)
+  z = Vector{Matrix}(uninitialized, 4)
 
   (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
   (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
@@ -841,7 +845,7 @@ function test_bvpm2_3()
                                               Dbc=Dbc)
   (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
                                                Drhs=Drhs, Dbc=Dbc)
-  xx = collect(linspace(a, b, 5))
+  xx = mylinspace(a, b, 5)
   for k=1:length(retcode)
     @assert retcode[k] == 0
     @assert stat[k]["no_rhs_calls"] > 0
@@ -926,11 +930,11 @@ function test_bvpm2_4()
           OPT_RTOL => 1e-6 )
 
   guess_obj = Bvpm2()
-  bvpm2_init(guess_obj, 2, 2, collect(linspace(a, b, 3)), guess, [0.9,])
-  retcode = Vector{Int64}(4)
-  sol = Vector{ODEInterface.Bvpm2}(4)
-  stat = Vector{Dict}(4)
-  z = Vector{Matrix}(4)
+  bvpm2_init(guess_obj, 2, 2, mylinspace(a, b, 3), guess, [0.9,])
+  retcode = Vector{Int64}(uninitialized, 4)
+  sol = Vector{ODEInterface.Bvpm2}(uninitialized, 4)
+  stat = Vector{Dict}(uninitialized, 4)
+  z = Vector{Matrix}(uninitialized, 4)
 
   (sol[1], retcode[1], stat[1]) = bvpm2_solve(guess_obj, rhs, bc, opt)
   (sol[2], retcode[2], stat[2]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
@@ -939,7 +943,7 @@ function test_bvpm2_4()
                                               Dbc=Dbc)
   (sol[4], retcode[4], stat[4]) = bvpm2_solve(guess_obj, rhs, bc, opt, 
                                                Drhs=Drhs, Dbc=Dbc)
-  xx = collect(linspace(a, b, 5))
+  xx = mylinspace(a, b, 5)
   for k=1:length(retcode)
     @assert retcode[k] == 0
     @assert stat[k]["no_rhs_calls"] > 0

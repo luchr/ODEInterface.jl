@@ -18,31 +18,43 @@ end
 
 @doc """
   Possible reasons for calling the `OPT_OUTPUTFCN`
-  """ -> OUTPUTFCN_CALL_REASON
+  """ 
+OUTPUTFCN_CALL_REASON
 
-@doc """`OPT_OUTPUTFCN` is called for 1st time.""" -> OUTPUTFCN_CALL_INIT
+@doc """`OPT_OUTPUTFCN` is called for 1st time.""" 
+OUTPUTFCN_CALL_INIT
+
 @doc """
   `OPT_OUTPUTFCN` is called after a successfull 
   integration step
-  """ -> OUTPUTFCN_CALL_STEP
-@doc """`OPT_OUTPUTFCN` is called for the last time.""" -> OUTPUTFCN_CALL_DONE
+  """ 
+OUTPUTFCN_CALL_STEP
+
+@doc """`OPT_OUTPUTFCN` is called for the last time.""" 
+OUTPUTFCN_CALL_DONE
 
 @enum(OUTPUTFCN_MODE,
       OUTPUTFCN_NEVER, OUTPUTFCN_WODENSE, OUTPUTFCN_DENSE)
 
 @doc """Possible mode for calling the `OPT_OUTPUTFCN`.
 
-see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" -> OUTPUTFCN_MODE
+see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" 
+OUTPUTFCN_MODE
 
-@doc """`OPT_OUTPUTFCN` is never called."""  -> OUTPUTFCN_NEVER
+@doc """`OPT_OUTPUTFCN` is never called."""  
+OUTPUTFCN_NEVER
+
 @doc """
   `OPT_OUTPUTFCN` is called after every successfull step, 
   but no support for dense output.
-  """ -> OUTPUTFCN_WODENSE
+  """
+OUTPUTFCN_WODENSE
+
 @doc """
   `OPT_OUTPUTFCN` is called after every successfull step 
   and dense output is supported.
-  """ -> OUTPUTFCN_DENSE
+  """ 
+OUTPUTFCN_DENSE
 
 @enum(OUTPUTFCN_RETURN_VALUE,
       OUTPUTFCN_RET_STOP,
@@ -50,14 +62,20 @@ see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" -> OUTPUTFCN_MODE
 
 @doc """Possible return values of an `OPT_OUTPUTFCN`.
 
-see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" -> OUTPUTFCN_RETURN_VALUE
+see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`"""
+OUTPUTFCN_RETURN_VALUE
 
-@doc """tell ODE solver to stop.""" -> OUTPUTFCN_RET_STOP
-@doc """tell ODE solver to continue.""" -> OUTPUTFCN_RET_CONTINUE
+@doc """tell ODE solver to stop."""
+OUTPUTFCN_RET_STOP
+
+@doc """tell ODE solver to continue."""
+OUTPUTFCN_RET_CONTINUE
+
 @doc """
   tell ODE solver to continue and inform the solver, that the
   `OUTPUTFCN` has altered the numerical solution.
-  """ -> OUTPUTFCN_RET_CONTINUE_XCHANGED
+  """
+OUTPUTFCN_RET_CONTINUE_XCHANGED
 
 """
   Output function that does nothing and returns `OUTPUTFCN_RET_CONTINUE`.

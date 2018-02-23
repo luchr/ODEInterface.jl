@@ -140,7 +140,7 @@ function odecall(solver, rhs, t::Vector, x0::Vector,
   
   (tout,xout,retcode,stats) = solver( rhs, t0, T, x0, locopt)
   
-  return (tVec,reshape(xVec,d,length(xVec)÷d).',retcode,stats)
+  return (tVec, transpose(reshape(xVec,d,length(xVec)÷d)), retcode, stats)
 
 end
 

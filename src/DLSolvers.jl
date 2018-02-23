@@ -1,5 +1,7 @@
 # Dynamic loading of ODE-Solvers for ODEInterface
 
+using Libdl
+
 """
   macro for importing (un-)load functions.
   """
@@ -15,7 +17,7 @@ end
 struct MethodDLinfo
   generic_name     :: AbstractString     # input for trytoloadmethod
   methodname_found :: AbstractString     # variant of generic_name found
-  method_ptr       :: Ptr{Void}          # pointer to method/code
+  method_ptr       :: Ptr{Cvoid}         # pointer to method/code
   error                                  # error if there was one
 end
 
@@ -25,7 +27,7 @@ end
 struct SolverDLinfo
   libname          :: AbstractString     # the name of the dynamic library
   libfilepath      :: AbstractString     # path to lib, result of find_library
-  libhandle        :: Ptr{Void}          # handle of lib, result of dlopen
+  libhandle        :: Ptr{Cvoid}         # handle of lib, result of dlopen
                                          # an immutable Dict is missing ...
   methods          :: Tuple              #   ... Tuple of MethodDLinfo
   error                                  # error if there was one
@@ -60,7 +62,7 @@ function trytoloadlib(name::AbstractString,extrapaths::Vector)
 end
 
 """
-       function trytoloadmethod(libhandle::Ptr{Void},
+       function trytoloadmethod(libhandle::Ptr{Cvoid},
              method_name::AbstractString) -> (ptr,namefound)
 
   tries to find the given method by name in a dynamically loaded library.
@@ -71,7 +73,7 @@ end
   `"_name"`, `"_NAME"`, `"_Name"`,
   `"_name_"`, `"_NAME_"`, `"_Name_"`
   """
-function trytoloadmethod(libhandle::Ptr{Void},method_name::AbstractString)
+function trytoloadmethod(libhandle::Ptr{Cvoid},method_name::AbstractString)
   namefound = ""
   name_vars = ( method_name, uppercase(method_name), ucfirst(method_name) )
   trylist = tuple( 
@@ -98,13 +100,6 @@ end
   """
 function guess_path_of_module()
   path_to_module = nothing
-  try
-    if isdefined(Base, Symbol("@__DIR__"))
-      eval(:( path_to_module = @__DIR__ ))
-    end
-  catch e
-    path_to_module = nothing
-  end
   if path_to_module == nothing
     path_sep = ""
     if isdefined(Base, :path_separator)
@@ -114,7 +109,7 @@ function guess_path_of_module()
           isdefined(Base.Filesystem, :path_separator)
       path_sep = Base.Filesystem.path_separator
     end
-    path_to_module = Base.find_in_path("ODEInterface")
+    path_to_module = Base.find_package("ODEInterface")
     if path_to_module ≠ nothing
       if endswith(path_to_module, ".jl")
         path_to_module = path_to_module[1:end-3]
@@ -237,7 +232,7 @@ end
   """
 function getAllMethodPtrs(dlname::AbstractString)
   load_tried = false
-  ret = Vector{Ptr{Void}}()
+  ret = Vector{Ptr{Cvoid}}()
   while true
     try
       empty!(ret)
