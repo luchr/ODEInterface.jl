@@ -35,7 +35,7 @@ abstract type AbstractOptionsODE end
   
        opt=OptionsODE("test",
                       "loglevel" => ODEInterface.LOG_ALL,
-                      "logio"    => STDERR)
+                      "logio"    => stderr)
   
   or later. For changing single options 
   

@@ -429,7 +429,7 @@ end
   reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
 function extractLogOptions(opt::AbstractOptionsODE)
-  lio=getOption(opt,OPT_LOGIO,STDERR)
+  lio=getOption(opt, OPT_LOGIO, stderr)
   if !isa(lio,IO)
     throw(ArgumentErrorODE("option '$OPT_LOGIO' was not an Base.IO",:opt))
   end
