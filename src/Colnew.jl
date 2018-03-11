@@ -859,7 +859,7 @@ end
 function evalSolution(sol::ColnewSolution{FInt}, 
   t::Real) where FInt<:FortranInt
 
-  z = Vector{Float64}(uninitialized, sol.d)
+  z = Vector{Float64}(undef, sol.d)
   evalSolution(sol, t, z)
   return z
 end
@@ -880,7 +880,7 @@ function evalSolution(sol::ColnewSolution{FInt},
   tno = length(t)
 
   Z = zeros(Float64, (tno, sol.d))
-  z = Vector{Float64}(uninitialized, sol.d)
+  z = Vector{Float64}(undef, sol.d)
   for k=1:tno
     evalSolution(sol, t[k], z)
     Z[k,:] = z

@@ -443,7 +443,7 @@ end
   """
 function bvpm2_get_x(obj::Bvpm2)
   details = bvpm2_check_state(obj, (1, 2))
-  x = Vector{Float64}(uninitialized, details["no_pts"])
+  x = Vector{Float64}(undef, details["no_pts"])
   error = ccall(obj.method_get_x, Int64,
     (Ptr{Cvoid}, Int64, Ref{Float64},),   # handle, x_len, x
     obj.handle, length(x), x)
@@ -459,7 +459,7 @@ end
   """
 function bvpm2_get_params(obj::Bvpm2)
   details = bvpm2_check_state(obj, (1, 2))
-  p = Vector{Float64}(uninitialized, details["no_par"])
+  p = Vector{Float64}(undef, details["no_par"])
   if length(p) > 0 
     error = ccall(obj.method_get_params, Int64,
       (Ptr{Cvoid}, Int64, Ref{Float64},),   # handle, p_len, p
@@ -1169,7 +1169,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   no_par = details["no_par"]
   no_left_bc = details["no_left_bc"]
   tol = NaN; method = 4; trace =  -1; error_control = 1
-  si_dim = 0; si_matrix = Matrix{Float64}(uninitialized, 0,0);
+  si_dim = 0; si_matrix = Matrix{Float64}(undef, 0,0);
 
   OPT = nothing
   try
@@ -1201,7 +1201,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
   
-  error_ret = Vector{Float64}(uninitialized, 5)
+  error_ret = Vector{Float64}(undef, 5)
   handle_out = [ C_NULL ]
 
   if bvpm2_global_cbi ≠ nothing
@@ -1439,7 +1439,7 @@ end
   stored.
   """
 function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64}, 
-  dz::Vector{Float64}=Vector{Float64}(uninitialized, 0))
+  dz::Vector{Float64}=Vector{Float64}(undef, 0))
   
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
@@ -1491,7 +1491,7 @@ end
   stored.
   """
 function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64}, 
-  dz::Matrix{Float64}=Matrix{Float64}(uninitialized, 0,0))
+  dz::Matrix{Float64}=Matrix{Float64}(undef, 0,0))
   
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
@@ -1530,7 +1530,7 @@ function evalSolution(sol::Bvpm2, x::Vector{Float64})
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
   x_len = length(x)
-  z = Matrix{Float64}(uninitialized, no_odes, x_len)
+  z = Matrix{Float64}(undef, no_odes, x_len)
   evalSolution(sol, x, z)
   return z
 end

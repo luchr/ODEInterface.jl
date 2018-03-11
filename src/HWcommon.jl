@@ -311,7 +311,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
       jac(t,x,J)
     else
       no = Int(cbi.M1/cbi.M2+1)
-      J = Vector{BandedMatrix{Float64}}(uninitialized, no)
+      J = Vector{BandedMatrix{Float64}}(undef, no)
       for k in 1:no
         ptr = dfx_+(k-1)*ldfx*cbi.M2*sizeof(Float64)
         darr =  unsafe_wrap(Array, ptr, (ldfx,cbi.M2,), own=false)

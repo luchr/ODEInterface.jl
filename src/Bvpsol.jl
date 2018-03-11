@@ -422,7 +422,7 @@ function bvpsol_impl(rhs, bc,
     throw(ArgumentErrorODE("Cannot convert OPT_RTOL to Float64",:opt,e))
   end
   
-  args.IOPT = Vector{FInt}(uninitialized, 6)
+  args.IOPT = Vector{FInt}(undef, 6)
   ivpopt = nothing
   ivp_lprefix = "unsafe_bvpsolivp: "
   OPT = nothing

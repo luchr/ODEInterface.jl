@@ -220,7 +220,7 @@ function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(uninitialized, d)
+    result = Vector{Float64}(undef, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contex because s==tNew")
@@ -469,7 +469,7 @@ function odex_impl(rhs,
       output_mode,output_fcn,
       Dict(),out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
-      Vector{FInt}(uninitialized, 1),Vector{Float64}(uninitialized, 1),
+      Vector{FInt}(undef, 1),Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
       Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 

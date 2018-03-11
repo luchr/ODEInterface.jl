@@ -180,7 +180,7 @@ function dop853_impl(rhs,
       output_mode,output_fcn,
       Dict(), out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
-      Vector{FInt}(uninitialized, 1),Vector{Float64}(uninitialized, 1),
+      Vector{FInt}(undef, 1),Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 
   if output_mode == OUTPUTFCN_DENSE

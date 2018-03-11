@@ -114,7 +114,7 @@ function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(uninitialized, d)
+    result = Vector{Float64}(undef, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contd because s==tNew")
