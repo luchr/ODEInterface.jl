@@ -51,7 +51,7 @@ global const dlSolversInfo = Dict{AbstractString,SolverDLinfo}()
 function trytoloadlib(name::AbstractString,extrapaths::Vector)
   ptr = C_NULL
 
-  trylist =  [name, uppercase(name), ucfirst(name)]
+  trylist =  [name, uppercase(name), uppercasefirst(name)]
   filepath = Libdl.find_library(trylist, extrapaths)
   if isempty(filepath) 
     throw(ErrorException(
@@ -75,7 +75,8 @@ end
   """
 function trytoloadmethod(libhandle::Ptr{Cvoid},method_name::AbstractString)
   namefound = ""
-  name_vars = ( method_name, uppercase(method_name), ucfirst(method_name) )
+  name_vars = ( method_name, uppercase(method_name), 
+                uppercasefirst(method_name) )
   trylist = tuple( 
     name_vars...,
     map(x->string(x,"_"),name_vars)...,
