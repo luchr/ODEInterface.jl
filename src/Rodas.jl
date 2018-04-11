@@ -208,10 +208,10 @@ end
   """
 function unsafe_rodasSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_rodasSoloutCallback, Cvoid, Tuple{Ptr{FInt},
+  return @cfunction(unsafe_rodasSoloutCallback, Cvoid, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{Float64}, Ptr{FInt}, 
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}})
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
 end
 
 """
@@ -505,7 +505,7 @@ function rodas_impl(rhs,
 
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_rodasSoloutCallback_c(cbi, FInt(0)) :
-        cfunction(dummy_func, Cvoid, Tuple{} )
+        @cfunction(dummy_func, Cvoid, ())
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
   args.JAC = unsafe_HW1JacCallback_c(cbi, FInt(0))

@@ -141,8 +141,8 @@ end
        function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   """
 function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolrhs, Cvoid, Tuple{Ptr{FInt},Ptr{Float64},
-    Ptr{Float64},Ptr{Float64}})
+  return @cfunction(unsafe_bvpsolrhs, Cvoid, (Ptr{FInt},Ptr{Float64},
+    Ptr{Float64},Ptr{Float64}))
 end
 
 """
@@ -189,8 +189,8 @@ end
         function unsafe_bvpsolbc_c()
   """
 function unsafe_bvpsolbc_c()
-  return cfunction(unsafe_bvpsolbc, Cvoid, 
-        Tuple{Ptr{Float64},Ptr{Float64},Ptr{Float64}})
+  return @cfunction(unsafe_bvpsolbc, Cvoid, 
+        (Ptr{Float64},Ptr{Float64},Ptr{Float64}))
 end
 
 function bvpsolivp(t::Vector{Float64},
@@ -263,10 +263,10 @@ function unsafe_bvpsolivp(n_::Ptr{FInt},
 end
 
 function unsafe_bvpsolivp_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_bvpsolivp, Cvoid, 
-    Tuple{Ptr{FInt},Ptr{Cvoid},Ptr{Float64},
+  return @cfunction(unsafe_bvpsolivp, Cvoid, 
+    (Ptr{FInt},Ptr{Cvoid},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
-    Ptr{FInt}})
+    Ptr{FInt}))
 end
 
 

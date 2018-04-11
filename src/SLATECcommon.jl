@@ -167,8 +167,8 @@ end
   """
 function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_SLATEC1RHSCallback, Cvoid, Tuple{Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}})
+  return @cfunction(unsafe_SLATEC1RHSCallback, Cvoid, (Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 
@@ -211,8 +211,8 @@ end
   """
 function unsafe_SLATEC1JacCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt, CI}
-  return cfunction(unsafe_SLATEC1JacCallback, Cvoid, Tuple{Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}})
+  return @cfunction(unsafe_SLATEC1JacCallback, Cvoid, (Ptr{Float64},
+    Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
 end
 
 # vim:syn=julia:cc=79:fdm=indent:

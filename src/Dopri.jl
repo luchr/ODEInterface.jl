@@ -203,11 +203,11 @@ end
   """
 function unsafe_dopriSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_dopriSoloutCallback, Cvoid, Tuple{Ptr{FInt}, 
+  return @cfunction(unsafe_dopriSoloutCallback, Cvoid, (Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64},Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64},
     Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
-    Ref{CI}, Ptr{FInt}})
+    Ref{CI}, Ptr{FInt}))
 end
 
 """
