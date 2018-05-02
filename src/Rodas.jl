@@ -208,10 +208,10 @@ end
   """
 function unsafe_rodasSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_rodasSoloutCallback, Cvoid, Tuple{Ptr{FInt},
+  return @cfunction(unsafe_rodasSoloutCallback, Cvoid, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{Float64}, Ptr{FInt}, 
-    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}})
+    Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
 end
 
 """
@@ -248,7 +248,7 @@ function create_rodas_eval_sol_fcn_closure(cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(uninitialized, d)
+    result = Vector{Float64}(undef, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contro because s==tNew")
@@ -490,8 +490,8 @@ function rodas_impl(rhs,
       rhsdt==nothing ? dummy_func : rhsdt, rhsdt_prefix,
       output_mode,output_fcn,Dict(),
       out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
-      NaN,NaN,Vector{Float64}(),Vector{FInt}(uninitialized, 1),
-                                Vector{Float64}(uninitialized, 1),
+      NaN,NaN,Vector{Float64}(),Vector{FInt}(undef, 1),
+                                Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
       massmatrix==nothing ? zeros(0,0) : massmatrix,
       jacobimatrix==nothing ? dummy_func : jacobimatrix,
@@ -505,7 +505,7 @@ function rodas_impl(rhs,
 
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_rodasSoloutCallback_c(cbi, FInt(0)) :
-        cfunction(dummy_func, Cvoid, Tuple{} )
+        @cfunction(dummy_func, Cvoid, ())
   args.IPAR = cbi
   args.MAS = unsafe_HW1MassCallback_c(cbi, FInt(0))
   args.JAC = unsafe_HW1JacCallback_c(cbi, FInt(0))

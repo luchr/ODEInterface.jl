@@ -183,7 +183,7 @@ function BandedMatrix(m::Integer,n::Integer,l::Integer,u::Integer, initval::Numb
   me = max(0,1+l+u)
   ne = max(0,n)
   bm =  BandedMatrix{typeof(initval)}(m,n,l,u,
-          Matrix{typeof(initval)}(uninitialized, me, ne))
+          Matrix{typeof(initval)}(undef, me, ne))
   fill!(bm,initval)
   return bm
 end
@@ -420,7 +420,7 @@ end
   For banded matrices: generate and return full/dense matrix.
   """
 function full(bm::BandedMatrix{T}) where T
-  return fullToArray(bm, Array{T}(uninitialized, (bm.m,size(bm.entries,2),)))
+  return fullToArray(bm, Array{T}(undef, (bm.m,size(bm.entries,2),)))
 end
 
 function dump(io::IO, bm::BandedMatrix, n::Integer, indent)

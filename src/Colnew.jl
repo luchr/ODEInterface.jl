@@ -139,8 +139,8 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_rhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_rhs, Cvoid, 
-    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
+  return @cfunction(unsafe_colnew_rhs, Cvoid, 
+    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
 
 """
@@ -183,8 +183,8 @@ function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_Drhs_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_Drhs, Cvoid,
-    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
+  return @cfunction(unsafe_colnew_Drhs, Cvoid,
+    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
 
 """
@@ -228,8 +228,8 @@ function unsafe_colnew_bc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_bc_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_bc, Cvoid,
-    Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
+  return @cfunction(unsafe_colnew_bc, Cvoid,
+    (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
 end
 
 """
@@ -273,8 +273,8 @@ function unsafe_colnew_Dbc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_Dbc_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_Dbc, Cvoid,
-    Tuple{Ptr{FInt}, Ptr{Float64}, Ptr{Float64}})
+  return @cfunction(unsafe_colnew_Dbc, Cvoid,
+    (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
 end
 
 """
@@ -312,8 +312,8 @@ function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_guess_c(fint_flag::FInt) where FInt
-  return cfunction(unsafe_colnew_guess, Cvoid,
-    Tuple{Ptr{Float64}, Ptr{Float64}, Ptr{Float64}})
+  return @cfunction(unsafe_colnew_guess, Cvoid,
+    (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
 
 
@@ -859,7 +859,7 @@ end
 function evalSolution(sol::ColnewSolution{FInt}, 
   t::Real) where FInt<:FortranInt
 
-  z = Vector{Float64}(uninitialized, sol.d)
+  z = Vector{Float64}(undef, sol.d)
   evalSolution(sol, t, z)
   return z
 end
@@ -880,7 +880,7 @@ function evalSolution(sol::ColnewSolution{FInt},
   tno = length(t)
 
   Z = zeros(Float64, (tno, sol.d))
-  z = Vector{Float64}(uninitialized, sol.d)
+  z = Vector{Float64}(undef, sol.d)
   for k=1:tno
     evalSolution(sol, t[k], z)
     Z[k,:] = z

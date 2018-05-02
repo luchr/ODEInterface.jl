@@ -179,11 +179,11 @@ end
   """
 function unsafe_odexSoloutCallback_c(cbi::CI, 
         fint_flag::FInt) where {FInt,CI}
-  return cfunction(unsafe_odexSoloutCallback, Cvoid, Tuple{Ptr{FInt}, 
+  return @cfunction(unsafe_odexSoloutCallback, Cvoid, (Ptr{FInt}, 
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
     Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
     Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
-    Ref{CI}, Ptr{FInt}})
+    Ref{CI}, Ptr{FInt}))
 end
 
 """
@@ -220,7 +220,7 @@ function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
 
     l_eval && println(lio,lprefix,"called with s=",s)
     cbi.cont_s[1] = s
-    result = Vector{Float64}(uninitialized, d)
+    result = Vector{Float64}(undef, d)
     if s == cbi.tNew
       result[:] = cbi.xNew
       l_eval && println(lio,lprefix,"not calling contex because s==tNew")
@@ -469,7 +469,7 @@ function odex_impl(rhs,
       output_mode,output_fcn,
       Dict(),out_lprefix,eval_sol_fcn_noeval,eval_lprefix,
       NaN,NaN,Vector{Float64}(),
-      Vector{FInt}(uninitialized, 1),Vector{Float64}(uninitialized, 1),
+      Vector{FInt}(undef, 1),Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
       Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL))
 
@@ -480,7 +480,7 @@ function odex_impl(rhs,
   args.FCN = unsafe_HW1RHSCallback_c(cbi, FInt(0))
   args.SOLOUT = output_mode ≠ OUTPUTFCN_NEVER ?
         unsafe_odexSoloutCallback_c(cbi, FInt(0)) :
-     cfunction(dummy_func, Cvoid, Tuple{} )
+     @cfunction(dummy_func, Cvoid, ())
   args.IPAR = cbi
 
   output_mode ≠ OUTPUTFCN_NEVER &&
