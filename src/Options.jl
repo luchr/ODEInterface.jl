@@ -146,7 +146,7 @@ function show(io::IO, opt::AbstractOptionsODE)
   len=length(opt.options)
   print(io,"with ",len," option",len!=1 ? "s" : "", len>0 ? ":" : "."); println(io)
   if len>0
-    maxLen=2+max( 0,map(length,keys(opt.options))... )
+    maxLen = 2 + max(0, Set(length(k) for k = keys(opt.options))...)
     for key in sort(collect(keys(opt.options)))
       print(io,lpad(key,maxLen),": ")
       show(io,opt.options[key]); println(io)
