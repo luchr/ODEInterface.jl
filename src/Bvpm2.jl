@@ -658,6 +658,10 @@ function unsafe_bvpm2_guess_cb(x::Float64, y_len::Int64, y_::Ptr{Float64},
 end
 
 function unsafe_bvpm2_guess_cb_c(cbi::CI) where CI
+  if cbi.guess == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_guess_cb, Cvoid,
     (Float64, Int64, Ptr{Float64}, Ref{CI}))
 end
@@ -746,6 +750,10 @@ function unsafe_bvpm2_rhs_cb(
 end
 
 function unsafe_bvpm2_rhs_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_rhs_cb, Cvoid,
     (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
 end
@@ -773,6 +781,10 @@ function unsafe_bvpm2_rhspar_cb(
 end
 
 function unsafe_bvpm2_rhspar_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_rhspar_cb, Cvoid,
     (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64}, Ref{CI}))
@@ -819,6 +831,10 @@ function unsafe_bvpm2_Drhs_cb(
 end
 
 function unsafe_bvpm2_Drhs_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_Drhs_cb, Cvoid,
     (Float64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
 end
@@ -850,6 +866,10 @@ function unsafe_bvpm2_Drhspar_cb(
 end
 
 function unsafe_bvpm2_Drhspar_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_Drhspar_cb, Cvoid,
     (Float64, Int64, Ptr{Float64}, Int64, Ptr{Float64},
     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
@@ -899,6 +919,10 @@ function unsafe_bvpm2_bc_cb(
 end
 
 function unsafe_bvpm2_bc_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_bc_cb, Cvoid,
     (Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64}, Int64, Ptr{Float64}, Ref{CI}))
@@ -932,6 +956,10 @@ function unsafe_bvpm2_bcpar_cb(
 end
 
 function unsafe_bvpm2_bcpar_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_bcpar_cb, Cvoid,
     (Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
@@ -986,6 +1014,10 @@ function unsafe_bvpm2_Dbc_cb(
 end
 
 function unsafe_bvpm2_Dbc_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_Dbc_cb, Cvoid,
     (Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
@@ -1027,6 +1059,10 @@ function unsafe_bvpm2_Dbcpar_cb(
 end
 
 function unsafe_bvpm2_Dbcpar_cb_c(cbi::CI) where CI
+  if cbi.rhs == println
+    println(stderr, 
+      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
+  end
   return @cfunction(unsafe_bvpm2_Dbcpar_cb, Cvoid,
     (Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
