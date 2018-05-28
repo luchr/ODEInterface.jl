@@ -139,10 +139,6 @@ function unsafe_colnew_rhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_rhs_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_colnew_rhs, Cvoid, 
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -187,10 +183,6 @@ function unsafe_colnew_Drhs(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_Drhs_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_colnew_Drhs, Cvoid,
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -236,13 +228,8 @@ function unsafe_colnew_bc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_bc_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_colnew_bc, Cvoid,
     (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
-  # println(stderr, "unsafe_colnew_bc_c result was: ", result)
 end
 
 """
@@ -286,10 +273,6 @@ function unsafe_colnew_Dbc(i_::Ptr{FInt},
 end
 
 function unsafe_colnew_Dbc_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_colnew_Dbc, Cvoid,
     (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}))
 end
@@ -329,10 +312,6 @@ function unsafe_colnew_guess(t_::Ptr{Float64}, z_::Ptr{Float64},
 end
 
 function unsafe_colnew_guess_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_colnew_guess, Cvoid,
     (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}))
 end

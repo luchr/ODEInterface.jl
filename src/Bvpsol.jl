@@ -141,10 +141,6 @@ end
        function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
   """
 function unsafe_bvpsolrhs_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_bvpsolrhs, Cvoid, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64},Ptr{Float64}))
 end
@@ -267,10 +263,6 @@ function unsafe_bvpsolivp(n_::Ptr{FInt},
 end
 
 function unsafe_bvpsolivp_c(fint_flag::FInt) where FInt
-  if rand() + fint_flag == Inf
-    println(stderr, 
-      "Cannot happen. This is an ugly workaround for Issue 27178. Sorry.")
-  end
   return @cfunction(unsafe_bvpsolivp, Cvoid, 
     (Ptr{FInt},Ptr{Cvoid},Ptr{Float64},
     Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},Ptr{Float64},
