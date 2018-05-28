@@ -1,6 +1,6 @@
 # This is a "hack" to automatically produce some doc files for github 
 # using julia's doc-strings.
-using Base.Markdown
+using Markdown
 
 using ODEInterface
 @ODEInterface.import_huge
@@ -18,7 +18,7 @@ end
   escapes characters with "&#...;" HTML-notation.
   """
 function escapeChars(s::AbstractString,toreplace=r"([^a-zA-Z0-9 \n])")
-  return replace(s,toreplace, c -> string("&#",Int(c[1]),";"))
+  return replace(s,toreplace => c -> string("&#",Int(c[1]),";"))
 end
 
 formatTable_new_row_for_nl = false
@@ -35,7 +35,7 @@ function formatTable(io,s::AbstractString)
   write(io,"<table>",NL)
 
   lines = split(s,"\n")
-  columns = Vector{IOBuffer}(length(split(lines[1],"╤")))
+  columns = Vector{IOBuffer}(undef, length(split(lines[1],"╤")))
   for k in 1:length(columns)
     columns[k] = IOBuffer()
   end
@@ -79,7 +79,7 @@ function formatTable(io,s::AbstractString)
   return nothing
 end
 
-function formatMDelement(io,e::Base.Markdown.MD)
+function formatMDelement(io,e::Markdown.MD)
   for element in e.content
     formatMDelement(io,element)
     write(io,"\n")
@@ -87,18 +87,18 @@ function formatMDelement(io,e::Base.Markdown.MD)
   return nothing
 end
 
-function formatMDelement(io,code::Base.Markdown.Code)
+function formatMDelement(io,code::Markdown.Code)
   table_check = r"^\s*[╔══╤╗]+\s*$"m
-  if ismatch(table_check,code.code)
+  if occursin(table_check,code.code)
     formatTable(io,code.code)
   else
-    Base.Markdown.plain(io,code)
+    Markdown.plain(io,code)
   end
   return nothing
 end
 
 function formatMDelement(io,rest::Any)
-  Base.Markdown.plain(io,rest)
+  Markdown.plain(io,rest)
   return nothing
 end
 
@@ -149,7 +149,7 @@ function docstringToFile(filename,docobjs)
   io = open(filename,"w")
   introHeader(io)
   for docobj in docobjs
-    md_elem = isa(docobj,Base.Markdown.MD) ? docobj : Base.Docs.doc(docobj)
+    md_elem = isa(docobj,Markdown.MD) ? docobj : Base.Docs.doc(docobj)
     formatMDelement(io,md_elem)
     write(io,NL)
   end

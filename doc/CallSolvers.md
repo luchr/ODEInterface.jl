@@ -58,8 +58,9 @@ There is a simplified calling convention (using the methods above) to provide a 
 
 
 
+
 ```
-function odecall(solver::Function, rhs::Function, t::Vector, x0::Vector,
+function odecall(solver, rhs, t::Vector, x0::Vector,
                 opt::AbstractOptionsODE)
     -> (tVec,xVec,retcode,stats)
 ```
@@ -74,6 +75,7 @@ If `2==length(t)`, then in the output `tVec` consists of the time points the (ad
 If `2<length(t)`, then the values in `t` must be strictly ascending or strictly descending. Then a special output function is used to get the numerical solution at the given `t`-values. In this case `tVec` is a `Vector{Float64}(length(t))` and `xVec` is a `Array{Float64}(length(t),length(x0))`.
 
 If in `opt` a output function is given, then this output function is also called/used.
+
 
 
 
