@@ -235,8 +235,8 @@ end
 
 function build_colnew(path::AbstractString)
   options = Dict(
-    "add_flags_i64" => ["-w", ],
-    "add_flags_i32" => ["-w", ],
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
   )
   compile_gfortran(path, "colnew", options)
   link_gfortran(path, ["colnew",])
