@@ -243,7 +243,7 @@ end
 
 function fill!(bm::BandedMatrix,x)
   for d = 1:1+bm.u+bm.l
-    bm.entries[d, rangeofdiag(bm,d) ]=x
+    bm.entries[d, rangeofdiag(bm,d) ] .= x
   end
   return bm
 end
@@ -262,7 +262,7 @@ function setdiagonal!(bm::BandedMatrix,d::Integer,value)
       "for d=$d expected length ",length(ra),"; but found ",length(value)),
       :value))
   end
-  bm.entries[dIndex,ra] = value
+  bm.entries[dIndex,ra] .= value
   return value
 end
 

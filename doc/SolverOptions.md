@@ -3,7 +3,7 @@
 # dopri5
 
 ```
-function dopri5(rhs::Function, t0::Real, T::Real,
+function dopri5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -139,10 +139,11 @@ main call for using Fortran-dopri5 solver. In `opt` the following options are us
 </table>
 
 
+
 # dop853
 
 ```
-function dop853(rhs::Function, t0::Real, T::Real,
+function dop853(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -278,10 +279,11 @@ main call for using Fortran-dopri5 solver. In `opt` the following options are us
 </table>
 
 
+
 # odex
 
 ```
- function odex(rhs::Function, t0::Real, T::Real, 
+ function odex(rhs, t0::Real, T::Real, 
                x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -482,10 +484,11 @@ main call for using Fortran-odex solver. In `opt` the following options are used
 </table>
 
 
+
 # seulex
 
 ```
- function seulex(rhs::Function, t0::Real, T::Real,
+ function seulex(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -747,10 +750,11 @@ In `opt` the following options are used:
 </table>
 
 
+
 # rodas
 
 ```
-  function rodas(rhs::Function, t0::Real, T::Real,
+  function rodas(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -964,10 +968,11 @@ In `opt` the following options are used:
 </table>
 
 
+
 # ddeabm
 
 ```
- function ddeabm(rhs::Function, t0::Real, T::Real,
+ function ddeabm(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1071,10 +1076,11 @@ main call for using Fortran-ddeabm solver. In `opt` the following options are us
 </table>
 
 
+
 # ddebdf
 
 ```
- function ddebdf(rhs::Function, t0::Real, T::Real,
+ function ddebdf(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1208,14 +1214,15 @@ main call for using Fortran-ddebdf solver. In `opt` the following options are us
 </table>
 
 
+
 # radau and radau5
 
 ```
- function radau(rhs::Function, t0::Real, T::Real,
+ function radau(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
  
- function radau5(rhs::Function, t0::Real, T::Real,
+ function radau5(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1235,7 +1242,7 @@ main call for using Fortran radau or radau5 solver.
 
 This solver support problems with special structure, see `help_specialstructure`.
 
-Remark: Because radau and radau5 are collocation methods, there is no difference  in the computational costs for OUTPUTFCN_WODENSE and OUTPUTFCN_DENSE.
+Remark: Because radau and radau5 are collocation methods, there is no difference  in the computational costs for OUTPUTFCN*WODENSE and OUTPUTFCN*DENSE.
 
 In `opt` the following options are used:
 
@@ -1550,10 +1557,11 @@ In `opt` the following options are used:
 </table>
 
 
+
 # bvpsol
 
 ```
- function bvpsol(rhs::Function, bc::Function,
+ function bvpsol(rhs, bc,
    t::Vector, x::Matrix, odesolver, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1664,12 +1672,13 @@ In `opt` the following options are used:
 </table>
 
 
+
 # colnew
 
 ```
   function colnew(interval::Vector, orders::Vector, ζ::Vector,
-    rhs::Function, Drhs::Function,
-    bc::Function, Dbc::Function, guess, opt::AbstractOptionsODE)
+    rhs, Drhs,
+    bc, Dbc, guess, opt::AbstractOptionsODE)
       -> (sol, retcode, stats)
 ```
 
@@ -1932,11 +1941,12 @@ In `opt` the following options are used:
 </table>
 
 
+
 # bvpm2
 
 # Bvpm2 object for solving boundary value problems
 
-This is the Julia part of the BVP_M-2 (Fortran-)solution object.  For (nearly) all the operations the corresponding Fortran-Proxy  methods are called (call `help_bvpm2_proxy()` to get internal details).
+This is the Julia part of the BVP*M-2 (Fortran-)solution object.  For (nearly) all the operations the corresponding Fortran-Proxy  methods are called (call `help*bvpm2_proxy()` to get internal details).
 
 ## Boundary value problem (BVP)
 
@@ -2133,11 +2143,13 @@ The following table shows possible actions, the change of the state of `obj_in` 
 </table>
 
 
+
 ```
- function Bvpm2(handle::Ptr{Void})
+ function Bvpm2(handle::Ptr{Cvoid})
 ```
 
 create bvpm2 object from given handle.
+
 
 
 ```
@@ -2145,6 +2157,7 @@ create bvpm2 object from given handle.
 ```
 
 creates bvpm2 object.
+
 
 
 ```
@@ -2156,6 +2169,7 @@ creates bvpm2 object.
 initialize Bvpm2 object with a constant intial guess.
 
 
+
 ```
  function bvpm2_init(obj::Bvpm2,
    no_odes, no_left_bc, x_grid::Vector, guess::Matrix, 
@@ -2163,6 +2177,7 @@ initialize Bvpm2 object with a constant intial guess.
 ```
 
 initialize Bvpm2 object with a guess for every state at every node in x_grid.
+
 
 
 ```
@@ -2180,6 +2195,7 @@ The guess function must have the form
 where inside the function the guess for position x has to be stored in y.
 
 initialize Bvpm2 object where the function `guess` is used to get the guesses for the state at different `x` values.
+
 
 
 ```
@@ -2340,5 +2356,6 @@ In `opt` the following options are used:
   <0: failure
   ≥0: computation successful
 ```
+
 
 

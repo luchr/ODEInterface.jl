@@ -585,7 +585,7 @@ function test_colnew1(solver::Function)
   end
   
   function Drhs(x, z, df)
-      df[:]=0.0
+      df[:] .= 0.0
       s⁴ = sin(x)^4
       df[1,1] = z[2]*s⁴/(z[1]^2)
       df[1,2] = -s⁴/z[1]
@@ -718,7 +718,7 @@ function test_bvpm2_2()
   function Drhs(x, y, dfdy)
     @assert length(y) == 2
     @assert size(dfdy) == (2,2)
-    dfdy[:] = 0
+    dfdy[:] .= 0
     dfdy[1,2] = 1.0
     dfdy[2,1] = -5*y[1]^4
   end
@@ -734,9 +734,9 @@ function test_bvpm2_2()
     @assert length(ya) == length(yb) == 2
     @assert size(dya) == (1,2)
     @assert size(dyb) == (1,2)
-    dya[:] = 0
+    dya[:] .= 0
     dya[1,2] = 1.0
-    dyb[:] = 0
+    dyb[:] .= 0
     dyb[1,1] = 1.0
   end
 
@@ -800,7 +800,7 @@ function test_bvpm2_3()
   function Drhs(x, y, dfdy)
     @assert length(y) == 2
     @assert size(dfdy) == (2,2)
-    dfdy[:] = 0
+    dfdy[:] .= 0
     dfdy[1,2] = 1.0
     dfdy[2,1] = 1.0
   end
@@ -816,9 +816,9 @@ function test_bvpm2_3()
     @assert length(ya) == length(yb) == 2
     @assert size(dya) == (1,2)
     @assert size(dyb) == (1,2)
-    dya[:] = 0
+    dya[:] .= 0
     dya[1,1] = 1.0
-    dyb[:] = 0
+    dyb[:] .= 0
     dyb[1,1] = 1.0
   end
   
@@ -888,11 +888,11 @@ function test_bvpm2_4()
     @assert length(p) == 1
     @assert size(dfdy) == (2,2)
     @assert size(dfdp) == (2,1)
-    dfdy[:] = 0
+    dfdy[:] .= 0
     dfdy[1,2] = 1.0
     dfdy[2,1] = p[1]
   
-    dfdp[:] = 0
+    dfdp[:] .= 0
     dfdp[2,1] = y[1]
   end
   
@@ -913,12 +913,12 @@ function test_bvpm2_4()
     @assert size(dyb) == (1,2)
     @assert size(dpa) == (2,1)
     @assert size(dpb) == (1,1)
-    dya[:] = 0
+    dya[:] .= 0
     dya[1,1] = 1.0
     dya[2,2] = 1.0
-    dyb[:] = 0
+    dyb[:] .= 0
     dyb[1,1] = 1.0
-    dpa[:] = 0
+    dpa[:] .= 0
   end
   
   function guess(x, y)
@@ -1009,7 +1009,7 @@ function test_Banded()
     @test full(bm) == [1 4 2 0; 5 2 3 1; 0 4 3 0; 0 0 3 4; 0 0 0 2]
 
     bm = BandedMatrix(5,4, 1,2, NaN)
-    diagonals = Any[ [2 1], [4 3 0], [1,2,3,4], [5 4 3 2]  ]
+    diagonals = Any[ [2, 1], [4, 3, 0], [1, 2, 3, 4], [5, 4, 3, 2]  ]
     @test setdiagonals!(bm,diagonals) == diagonals
     @test full(bm) == [1 4 2 0; 5 2 3 1; 0 4 3 0; 0 0 3 4; 0 0 0 2]
     
