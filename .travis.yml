@@ -1,7 +1,7 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
+# No Travis for Julia v0.5 on Linux because of travis-ci/travis-ci/issues/9264
 language: julia
 os:
-  - linux
   - osx
 julia:
   - 0.5
