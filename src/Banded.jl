@@ -261,8 +261,10 @@ function setdiagonal!(bm::BandedMatrix,d::Integer,value)
     length(ra) == length(value) || throw(ArgumentErrorODE(string(
       "for d=$d expected length ",length(ra),"; but found ",length(value)),
       :value))
+    bm.entries[dIndex,ra] = value
+  else
+    bm.entries[dIndex,ra] .= value
   end
-  bm.entries[dIndex,ra] .= value
   return value
 end
 

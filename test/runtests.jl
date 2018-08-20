@@ -611,7 +611,8 @@ function test_colnew1(solver::Function)
         OPT_RTOL => [1e-4, 1e-4], OPT_MAXSUBINTERVALS => 200)
 
   sol = nothing
-  for ε = [1.0, 0.5, 0.2, 0.1]
+  for ε_new = [1.0, 0.5, 0.2, 0.1]
+    ε = ε_new
     guess = (sol_old≠nothing) ? sol_old : initial_guess    
     sol, retcode, stats = colnew([a,b], orders, ζ, rhs, Drhs, bc, Dbc, 
        guess ,opt);
@@ -1009,7 +1010,7 @@ function test_Banded()
     @test full(bm) == [1 4 2 0; 5 2 3 1; 0 4 3 0; 0 0 3 4; 0 0 0 2]
 
     bm = BandedMatrix(5,4, 1,2, NaN)
-    diagonals = Any[ [2, 1], [4, 3, 0], [1, 2, 3, 4], [5, 4, 3, 2]  ]
+    diagonals = Any[ [2 1], [4 3 0], [1,2,3,4], [5 4 3 2]  ]
     @test setdiagonals!(bm,diagonals) == diagonals
     @test full(bm) == [1 4 2 0; 5 2 3 1; 0 4 3 0; 0 0 3 4; 0 0 0 2]
     
