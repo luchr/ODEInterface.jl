@@ -259,7 +259,7 @@ function ddebdf_impl(rhs,
 
   # RWORK
   args.LRW = [ FInt( 
-    jacobibandstruct == nothing ? 
+    jacobibandstruct === nothing ? 
       250+10*d+d*d : 250+10*d+(2*jacobibandstruct[1]+jacobibandstruct[2]+1)*d
     ) ]
   args.RWORK = zeros(Float64, args.LRW[1])
@@ -290,8 +290,8 @@ function ddebdf_impl(rhs,
     args.RWORK[1] = tstop
   end
 
-  args.INFO[5] = jacobimatrix == nothing ? 0 : 1
-  if jacobibandstruct ≠ nothing
+  args.INFO[5] = jacobimatrix === nothing ? 0 : 1
+  if jacobibandstruct !== nothing
     args.INFO[6] = 1
     args.IWORK[1] = jacobibandstruct[1]
     args.IWORK[2] = jacobibandstruct[2]
@@ -315,7 +315,7 @@ function ddebdf_impl(rhs,
 
   cbi = DdebdfInternalCallInfos(lio, l, d, rhs, rhs_mode, rhs_lprefix,
         0, output_mode, output_fcn, Dict(), 
-        jacobimatrix == nothing ? dummy_func : jacobimatrix,
+        jacobimatrix === nothing ? dummy_func : jacobimatrix,
         jacobibandstruct, jac_lprefix, 0, get_view_function())
 
   args.IPAR = cbi

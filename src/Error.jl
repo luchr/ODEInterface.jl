@@ -22,7 +22,7 @@ abstract type WrappedODEException <: Base.WrappedException end
 
 function showerror(io::IO,e::WrappedODEException)
   println(io,e.msg)
-  if e.error!=nothing
+  if e.error !== nothing
     println(io,"Wrapped exception:")
     showerror(io,e.error)
   end
@@ -47,8 +47,8 @@ end
 
 function showerror(io::IO,e::ArgumentErrorODE)
   println(io,e.msg)
-  e.argname!=nothing && println(io,string("in argument ",e.argname)) 
-  if e.error!=nothing
+  e.argname !== nothing && println(io,string("in argument ",e.argname)) 
+  if e.error !== nothing
     println(io,"Wrapped exception:")
     showerror(io,e.error)
   end
@@ -69,8 +69,8 @@ end
 
 function showerror(io::IO,e::OutputErrorODE)
   println(io,e.msg)
-  e.func!=nothing && println(io,string("function ",e.func)) 
-  if e.error!=nothing
+  e.func !== nothing && println(io,string("function ",e.func)) 
+  if e.error !== nothing
     println(io,"Wrapped exception:")
     showerror(io,e.error)
   end

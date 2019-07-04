@@ -242,7 +242,7 @@ function extractMassMatrix(M1::FInt, M2::FInt,
   try
     OPT = OPT_MASSMATRIX
     massmatrix = getOption(opt,OPT,nothing)
-    if massmatrix == nothing
+    if massmatrix === nothing
       args.IMAS = [0]; args.MLMAS = [0]; args.MUMAS=[0]
     else
       @assert 2==ndims(massmatrix)
@@ -300,7 +300,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
   jac = cbi.jacobimatrix
   jb = cbi.jacobibandstruct
   M = unsafe_wrap(Array, dfx_, (ldfx,n,), own=false)::Matrix{Float64}
-  if jb == nothing
+  if jb === nothing
     @assert ldfx==n-cbi.M1
     J = M
     jac(t,x,J)
@@ -405,19 +405,19 @@ function extractJacobiOpt(d::FInt,
   try
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt,OPT,nothing)
-    # @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    # @assert (jacobimatrix === nothing) || isa(jacobimatrix,Function)
     
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)
     
-    if bs ≠ nothing
+    if bs !== nothing
       jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
       if jacobibandstruct[1] == NM1 
         # A BandedMatrix with lower bandwidth == NM1 is treated as full!
         jacobibandstruct = nothing
       end
     end
-    if jacobibandstruct ≠ nothing
+    if jacobibandstruct !== nothing
       @assert (M1==0) || (M1+M2==d)
       @assert 0 ≤ jacobibandstruct[1] < NM1
       @assert  (M1==0 && 0 ≤ jacobibandstruct[2] ≤ d)  ||
@@ -427,9 +427,9 @@ function extractJacobiOpt(d::FInt,
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
 
-  args.IJAC = [ jacobimatrix==nothing ? 0 : 1] 
-  args.MLJAC = [ jacobibandstruct==nothing ? d : jacobibandstruct[1]  ];
-  args.MUJAC=[ jacobibandstruct==nothing ? d : jacobibandstruct[2] ]
+  args.IJAC = [ jacobimatrix === nothing ? 0 : 1] 
+  args.MLJAC = [ jacobibandstruct === nothing ? d : jacobibandstruct[1]  ];
+  args.MUJAC=[ jacobibandstruct === nothing ? d : jacobibandstruct[2] ]
   jac_lprefix = "unsafe_HW1JacCallback: "
   return (jacobimatrix,jacobibandstruct,jac_lprefix)
 end
@@ -450,12 +450,12 @@ function extractRhsTimeDerivOpt(
   rhstimederiv = nothing
   try
     rhstimederiv = getOption(opt,OPT,nothing)
-    # @assert (rhstimederiv == nothing) || isa(rhstimederiv,Function)
+    # @assert (rhstimederiv === nothing) || isa(rhstimederiv,Function)
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
 
-  args.IDFX = [rhstimederiv==nothing ? 0 : 1]
+  args.IDFX = [rhstimederiv === nothing ? 0 : 1]
   rhsdt_prefix = "unsafe_HWRhsTimeDerivCallback: "
   return (rhstimederiv,rhsdt_prefix)
 end

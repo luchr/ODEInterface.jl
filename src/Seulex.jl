@@ -563,8 +563,8 @@ function seulex_impl(rhs,
                                 Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),
       Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL),Ptr{FInt}(C_NULL),
-      massmatrix==nothing ? zeros(0,0) : massmatrix,
-      jacobimatrix==nothing ? dummy_func : jacobimatrix,
+      massmatrix === nothing ? zeros(0,0) : massmatrix,
+      jacobimatrix === nothing ? dummy_func : jacobimatrix,
       jacobibandstruct,jac_lprefix)
 
   if output_mode == OUTPUTFCN_DENSE
