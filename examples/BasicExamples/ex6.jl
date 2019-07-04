@@ -63,12 +63,12 @@ xx = collect(linspace(a,b, 400));
 
 sol = nothing
 for ε = [1.0, 0.5, 0.2, 0.1]
-  guess = (sol_old≠nothing) ? sol_old : initial_guess    
+  guess = sol_old !== nothing ? sol_old : initial_guess    
   sol, retcode, stats = colnew([a,b], orders, ζ, rhs, Drhs, bc, Dbc, guess ,opt);
   @printf("ε=%g, retcode=%i\n", ε, retcode)
   @assert retcode>0
   zz_new = evalSolution(sol, xx)
-  if sol_old == nothing
+  if sol_old === nothing
       zz_old = copy(zz_new); zz_old[:,1] = 0.5; zz_old[:,2] = NaN
   else
       zz_old = evalSolution(sol_old, xx)

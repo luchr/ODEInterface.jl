@@ -68,12 +68,12 @@ function extractSlatecJacobiOpt(d::FInt,
   try
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt, OPT, nothing)
-    # @assert (jacobimatrix == nothing) || isa(jacobimatrix,Function)
+    # @assert jacobimatrix === nothing || isa(jacobimatrix,Function)
 
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)
 
-    if bs ≠ nothing
+    if bs !== nothing
       jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
       @assert 0 ≤ jacobibandstruct[1] ≤ d
       @assert 0 ≤ jacobibandstruct[2] ≤ d
@@ -93,7 +93,7 @@ end
   """
 function extractSlatecOutputAtTimes(t0, T, opt::AbstractOptionsODE)
   t_values = getOption(opt, OPT_OUTPUTATTIMES, nothing)
-  if t_values == nothing 
+  if t_values === nothing 
         t_values = zeros(Float64, 0)
   end
   output_attimes_given = length(t_values)>0
@@ -190,7 +190,7 @@ function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64},
   l_jac && println(lio,lprefix,"called with dfx_rows=",dfx_rows," t=",t)
   jac = cbi.jacobimatrix
   jb = cbi.jacobibandstruct
-  if jb == nothing
+  if jb === nothing
     @assert dfx_rows == n
     J = M
     jac(t, x, J)

@@ -101,7 +101,7 @@ end
   """
 function guess_path_of_module()
   path_to_module = nothing
-  if path_to_module == nothing
+  if path_to_module === nothing
     path_sep = ""
     if isdefined(Base, :path_separator)
       path_sep = Base.path_separator
@@ -111,7 +111,7 @@ function guess_path_of_module()
       path_sep = Base.Filesystem.path_separator
     end
     path_to_module = Base.find_package("ODEInterface")
-    if path_to_module ≠ nothing
+    if path_to_module !== nothing
       if endswith(path_to_module, ".jl")
         path_to_module = path_to_module[1:end-3]
       end
@@ -163,7 +163,7 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
   if isempty(extrapaths)
     try
       path_to_module = guess_path_of_module()
-      if path_to_module ≠ nothing
+      if path_to_module !== nothing
         extrapaths = [ path_to_module ]
       end
     catch e
@@ -237,7 +237,7 @@ function getAllMethodPtrs(dlname::AbstractString)
   while true
     try
       empty!(ret)
-      @assert dlSolversInfo[dlname].error == nothing
+      @assert dlSolversInfo[dlname].error === nothing
       for method in dlSolversInfo[dlname].methods
         @assert method.method_ptr ≠ C_NULL
         push!(ret,method.method_ptr)

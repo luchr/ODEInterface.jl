@@ -728,7 +728,7 @@ function colnew_impl(
     end
   end
 
-  if guess == nothing
+  if guess === nothing
     args.IPAR[9] = FInt(0)
     guess = dummy_func
   elseif isa(guess, Function)
@@ -761,7 +761,7 @@ function colnew_impl(
 
   args.IFLAG = zeros(FInt, 1)
 
-  if colnew_global_cbi ≠ nothing
+  if colnew_global_cbi !== nothing
     throw(ArgumentErrorODE(string("The Fortran solver colnew does not ",
       "support 'pass-through' arguments. Hence this julia module does not ",
       "support concurrent/nested colnew calls. Sorry."), :opt))

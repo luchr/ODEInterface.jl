@@ -717,7 +717,7 @@ function bvpm2_rhs(x, y, f, cbi::CI, p=nothing) where CI
   cbi.rhs_count += 1
 
   l_rhs && println(lio, lprefix, "called with x=", x, " y=", y, " p=", p)
-  if p == nothing
+  if p === nothing
     cbi.rhs(x, y, f)
   else
     cbi.rhs(x, y, p, f)
@@ -788,7 +788,7 @@ function bvpm2_Drhs(x, y, dfdy, cbi::CI, p=nothing, dfdp=nothing) where CI
 
   cbi.Drhs_count += 1
   l_Drhs && println(lio, lprefix, "called with x=", x, " y=", y, " p=", p)
-  if p == nothing
+  if p === nothing
     cbi.Drhs(x, y, dfdy)
   else
     cbi.Drhs(x, y, p, dfdy, dfdp)
@@ -865,7 +865,7 @@ function bvpm2_bc(ya, yb, bca, bcb, cbi::CI, p=nothing) where CI
 
   cbi.bc_count += 1
   l_bc && println(lio, lprefix, "called with ya=", ya, " yb=", yb, " p=", p)
-  if p == nothing
+  if p === nothing
     cbi.bc_fcn(ya, yb, bca, bcb)
   else
     cbi.bc_fcn(ya, yb, p, bca, bcb)
@@ -949,7 +949,7 @@ function bvpm2_Dbc(ya, yb, dya, dyb, cbi::CI,
 
   cbi.Dbc_count += 1
   l_Dbc && println(lio, lprefix, "called with ya=", ya, " yb=", yb, " p=", p)
-  if p == nothing
+  if p === nothing
     cbi.Dbc(ya, yb, dya, dyb)
   else
     cbi.Dbc(ya, yb, dya, dyb, p, dpa, dpb)
@@ -1191,7 +1191,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
 
     OPT = OPT_SINGULARTERM
     singular_term = getOption(opt, OPT, nothing)
-    if singular_term ≠ nothing
+    if singular_term !== nothing
       singular_term = convert(Matrix{Float64}, singular_term)
       @assert no_odes == size(singular_term, 1) == size(singular_term, 2)
       si_dim = no_odes
@@ -1204,7 +1204,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   error_ret = Vector{Float64}(undef, 5)
   handle_out = [ C_NULL ]
 
-  if bvpm2_global_cbi ≠ nothing
+  if bvpm2_global_cbi !== nothing
     throw(ArgumentErrorODE(string("The Fortran solver BVP_M-2 uses ",
       "global variables during the solution process. Hence this julia ",
       "module does not support concurrent/nested bvpm2_solve calls. Sorry."),
@@ -1215,9 +1215,9 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
     global bvpm2_global_cbi = cbi = Bvpm2_solve_cbi(lio, l, 
       no_odes, no_par, no_left_bc,
       rhs, "unsafe_bvpm2_rhs: ", 0, 
-      (Drhs ≠ nothing) ? Drhs : dummy_func, "unsafe_bvpm2_Drhs: ", 0,
+      Drhs !== nothing ? Drhs : dummy_func, "unsafe_bvpm2_Drhs: ", 0,
       bc, "unsafe_bvpm2_b: ", 0,
-      (Dbc ≠ nothing) ? Dbc : dummy_func, "unsafe_bvpm2_Dbc: ", 0)
+      Dbc !== nothing ? Dbc : dummy_func, "unsafe_bvpm2_Dbc: ", 0)
 
     if l_solver
       println(lio, lprefix, "call Fortran bvpm2_solver ", 
@@ -1226,13 +1226,13 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
 
     rhs_fcn_ptr = (no_par > 0) ? unsafe_bvpm2_rhspar_cb_c(cbi) :
                                  unsafe_bvpm2_rhs_cb_c(cbi)
-    Drhs_fcn_ptr = (Drhs ≠ nothing) ? (
+    Drhs_fcn_ptr = Drhs !== nothing ? (
                      (no_par > 0) ? unsafe_bvpm2_Drhspar_cb_c(cbi) :
                                     unsafe_bvpm2_Drhs_cb_c(cbi)
                          ) : C_NULL
     bc_fcn_ptr =  (no_par > 0) ? unsafe_bvpm2_bcpar_cb_c(cbi) :
                                  unsafe_bvpm2_bc_cb_c(cbi)
-    Dbc_fcn_ptr = (Dbc ≠ nothing) ? (
+    Dbc_fcn_ptr = Dbc !== nothing ? (
                      (no_par > 0) ? unsafe_bvpm2_Dbcpar_cb_c(cbi) :
                                     unsafe_bvpm2_Dbc_cb_c(cbi)
                          ) : C_NULL

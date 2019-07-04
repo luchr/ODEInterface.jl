@@ -76,7 +76,7 @@ function odecall(solver, rhs, t::Vector, x0::Vector,
       if reason == OUTPUTFCN_CALL_STEP
         push!(tVec,tnew); append!(xVec,x)
       end
-      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn == nothing
+      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn === nothing
         return OUTPUTFCN_RET_CONTINUE
       else
         return orig_outputfcn(reason,told,tnew,x,eval_sol_fcn,extra_data)
@@ -103,7 +103,7 @@ function odecall(solver, rhs, t::Vector, x0::Vector,
         xVec[1+(tPos-1)*d : tPos*d] = x
         tPos += 1
       end
-      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn == nothing
+      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn === nothing
         return OUTPUTFCN_RET_CONTINUE
       else
         return orig_outputfcn(reason, told, tnew, x, eval_sol_fcn, extra_data)
@@ -122,7 +122,7 @@ function odecall(solver, rhs, t::Vector, x0::Vector,
           tPos += 1
         end
       end
-      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn == nothing
+      if orig_outputmode == OUTPUTFCN_NEVER || orig_outputfcn === nothing
         return OUTPUTFCN_RET_CONTINUE
       else
         return orig_outputfcn(reason, told, tnew, x, eval_sol_fcn, extra_data)

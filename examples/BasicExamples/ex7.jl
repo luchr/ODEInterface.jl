@@ -56,12 +56,12 @@ bvpm2_init(initial_guess, 1, 1, collect(linspace(a, b, 20)), [0.5,], [1.0,])
 
 sol = nothing
 for ε = [0.1, 0.05, 0.02, 0.01]
-  guess = (sol_old≠nothing) ? sol_old : initial_guess
+  guess = sol_old !== nothing ? sol_old : initial_guess
   sol, retcode, stats = bvpm2_solve(guess, rhs, bc, opt, Drhs=Drhs, Dbc=Dbc)
   @printf("ε=%g, retcode=%i\n", ε, retcode)
   @assert retcode ≥ 0
   zz_new = evalSolution(sol, xx)
-  if sol_old == nothing
+  if sol_old === nothing
       zz_old = copy(zz_new); zz_old[1,:] = 0.5;
   else
       zz_old = evalSolution(sol_old, xx)
