@@ -106,7 +106,7 @@ function help_solversupport()
       loaded = true
       try
         v = dlSolversInfo[variant.libname]
-        @assert v.error == nothing
+        @assert v.error === nothing
         @assert v.libhandle ≠ C_NULL
       catch 
         loaded = false
@@ -119,7 +119,7 @@ function help_solversupport()
           index = findfirst( x -> x.generic_name == method, 
                              dlSolversInfo[variant.libname].methods )
           m = dlSolversInfo[variant.libname].methods[index]
-          @assert m.error == nothing
+          @assert m.error === nothing
           @assert m.method_ptr ≠ C_NULL
         catch e
           found = false

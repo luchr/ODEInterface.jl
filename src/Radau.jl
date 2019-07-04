@@ -388,8 +388,8 @@ function doRadauSolverCall(
       NaN,NaN,Vector{Float64}(),
       Vector{FInt}(undef, 1),Vector{Float64}(undef, 1),
       Ptr{Float64}(C_NULL),Ptr{FInt}(C_NULL),
-      massmatrix==nothing ? zeros(0,0) : massmatrix,
-      jacobimatrix==nothing ? dummy_func : jacobimatrix,
+      massmatrix === nothing ? zeros(0,0) : massmatrix,
+      jacobimatrix === nothing ? dummy_func : jacobimatrix,
       jacobibandstruct,jac_lprefix
       )
 

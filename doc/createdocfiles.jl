@@ -42,7 +42,7 @@ function formatTable(io,s::AbstractString)
   write_row = false
   for line in lines[2:end]
     mo = match(std_line_content,line)
-    if mo ≠ nothing
+    if mo !== nothing
       contents = split(mo[1],"│")
       @assert length(contents)==length(columns)
       for (col,content) in zip(columns,contents)
@@ -53,12 +53,12 @@ function formatTable(io,s::AbstractString)
       end
     end
     mo = match(head_stop,line)
-    if mo ≠ nothing
+    if mo !== nothing
       @assert table_head
       write_row = true
     end
     mo = match(row_stop,line)
-    if mo ≠ nothing
+    if mo !== nothing
       write_row = true
     end
     if !table_head && formatTable_new_row_for_nl
@@ -117,7 +117,7 @@ function docSolverOptions(filename)
   for solver in (dopri5,dop853,odex,seulex,rodas,ddeabm,ddebdf,)
     solvername = string(solver)
     mo = match(namewomodule,solvername)
-    if mo ≠ nothing
+    if mo !== nothing
       solvername = mo[1]
     end
     write(io,"# ",solvername,NL,NL)

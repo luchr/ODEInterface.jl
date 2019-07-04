@@ -11,6 +11,7 @@ matrix:
 branches:
   only:
     - master
+    - julia_v0.4-v0.6
     - /release-.*/
 
 notifications:

@@ -613,7 +613,7 @@ function test_colnew1(solver::Function)
   sol = nothing
   for ε_new = [1.0, 0.5, 0.2, 0.1]
     ε = ε_new
-    guess = (sol_old≠nothing) ? sol_old : initial_guess    
+    guess = sol_old !== nothing ? sol_old : initial_guess    
     sol, retcode, stats = colnew([a,b], orders, ζ, rhs, Drhs, bc, Dbc, 
        guess ,opt);
     @assert retcode>0
@@ -1026,10 +1026,10 @@ function test_Options()
     opt1 = OptionsODE("test1");
     @test isa(opt1, OptionsODE)
     @test isa(opt1, ODEInterface.AbstractOptionsODE)
-    @test setOption!(opt1,"test_key",56) == nothing
+    @test setOption!(opt1,"test_key",56) === nothing
     @test setOption!(opt1,"test_key",82) == 56
     @test getOption(opt1,"test_key",0) == 82
-    @test getOption(opt1,"nokey",nothing) == nothing
+    @test getOption(opt1,"nokey",nothing) === nothing
     @test getOption(opt1,"nokey","none") == "none"
     @test setOptions!(opt1, "test_key" => 100, "new_key" => "bla") ==
           [82,nothing]
@@ -1043,13 +1043,13 @@ function test_DLSolvers()
   @testset "DLSolvers" begin
     result = loadODESolvers()
     @testset for dl in dl_solvers
-      @test result[dl].error == nothing
+      @test result[dl].error === nothing
       @test result[dl].libhandle ≠ C_NULL
     end
     
     @testset for dl in dl_solvers 
       @testset for method in result[dl].methods
-        @test method.error == nothing
+        @test method.error === nothing
         @test method.method_ptr ≠ C_NULL
         @test method.generic_name ≠ ""
         @test method.methodname_found ≠ ""
