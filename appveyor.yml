@@ -28,7 +28,7 @@ notifications:
     on_build_status_changed: false
 
 install:
-  - cmd: dir /s C:\mingw-w64
+  - cmd: dir /s C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
   - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
 
 build_script:
