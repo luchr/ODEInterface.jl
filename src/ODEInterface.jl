@@ -1,5 +1,3 @@
-__precompile__(true)
-
 """
   # ODEInterface
   
@@ -94,11 +92,8 @@ __precompile__(true)
   """
 module ODEInterface
 
+using LinearAlgebra
 using Unicode
-try
-  using LinearAlgebra
-catch
-end
 
 include("./Error.jl")
 include("./Options.jl")

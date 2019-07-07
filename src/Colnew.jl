@@ -583,13 +583,13 @@ function colnew_impl(
   args.ARIGHT = [ t_ab[2] ]
 
   # n = NCOMP
-  n = length(orders)
+  n = FInt(length(orders))
   n ≤ 0 && throw(ArgumentErrorODE(
     "orders must be a vector with length ≥ 1", :orders))
   n > 20 && throw(ArgumentErrorODE(
     string("restriction: number of ODEs must be ≤ 20, but ",
       "orders vector had length ",n), :orders))
-  args.NCOMP = [ FInt(n) ]
+  args.NCOMP = [ n ]
 
   # orders = M
   try
@@ -603,7 +603,7 @@ function colnew_impl(
   any(orders.>5) && throw(ArgumentErrorODE(
     "all components of the orders vector must be ≤ 4", :orders))
   order_max = maximum(orders)
-  d = sum(orders)
+  d = FInt(sum(orders))
   d > 40 && throw(ArgumentErrorODE(
     "the dimension=sum(orders) must be ≤ 40", :orders))
   args.M = orders
