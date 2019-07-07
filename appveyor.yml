@@ -19,6 +19,7 @@ matrix:
 branches:
   only:
     - master
+    - devel
     - /release-.*/
 
 notifications:
@@ -28,6 +29,11 @@ notifications:
     on_build_status_changed: false
 
 install:
+  - echo "%platform%"
+  - dir C:\mingw-w64\
+  - if %platform%==x86 set PATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;%PATH%
+  - if %platform%==x64 set PATH=C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin;%PATH%
+  - echo "%path%"
   - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
 
 build_script:
