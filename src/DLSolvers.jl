@@ -40,12 +40,12 @@ global const dlSolversInfo = Dict{AbstractString,SolverDLinfo}()
 
 """
        function trytoloadlib(name::AbstractString,extrapaths::Vector)
-  
+
   tries to (dynamically) load the given shared library given by name.
-  
+
   if `ame="name"` then all the following variants will be tried:
   `"name"`, `"NAME"`, `"Name"`
-  
+
   returns `(ptr,filepath)`
   """
 function trytoloadlib(name::AbstractString,extrapaths::Vector)
@@ -53,7 +53,7 @@ function trytoloadlib(name::AbstractString,extrapaths::Vector)
 
   trylist =  [name, uppercase(name), uppercasefirst(name)]
   filepath = Libdl.find_library(trylist, extrapaths)
-  if isempty(filepath) 
+  if isempty(filepath)
     throw(ErrorException(
       "Cannot find one of $trylist in libpaths or in $extrapaths"))
   end
@@ -66,7 +66,7 @@ end
              method_name::AbstractString) -> (ptr,namefound)
 
   tries to find the given method by name in a dynamically loaded library.
-  
+
   if `method_name="name"` then the following variants will be tried:
   `"name"`, `"NAME"`, `"Name"`,
   `"name_"`, `"NAME_"`, `"Name_"`,
@@ -75,16 +75,16 @@ end
   """
 function trytoloadmethod(libhandle::Ptr{Cvoid},method_name::AbstractString)
   namefound = ""
-  name_vars = ( method_name, uppercase(method_name), 
+  name_vars = ( method_name, uppercase(method_name),
                 uppercasefirst(method_name) )
-  trylist = tuple( 
+  trylist = tuple(
     name_vars...,
     map(x->string(x,"_"),name_vars)...,
     map(x->string("_",x),name_vars)...)
   ptr = C_NULL
   for name in trylist
     ptr = Libdl.dlsym_e(libhandle,name)
-    if (ptr != C_NULL) 
+    if (ptr != C_NULL)
       namefound = name
       break
     end
@@ -97,32 +97,32 @@ end
 """
        function loadODESolvers(extrapaths::Vector=AbstractString[],
                  loadlibnames::Tuple=() )
-                
+
   tries to (dynamically) load the solvers.
-  
+
   additional locations/paths to look at can be given as argument.
-  
+
   If the 1st argument is an empty Vector, then the method tries to
   find the path of the ODEInterface module and (if successfull)
   uses this path as `extrapaths`.
-  
-  The 2nd argument is a `Tuple` with libnames of solvers to load. 
+
+  The 2nd argument is a `Tuple` with libnames of solvers to load.
   If it is an empty tuple, then all known solvers will be tried.
-  
+
   If an solver is already successfully loaded, then it will *not* be
   loaded again.
-  
+
   returns `Dict` with informations about the loaded solvers (and errors).
-  
+
   If a solver cannot be found (or needed methods inside a dynmic library
   cannot be found) then the errors are not propagated to the caller. The
   errors and expections are saved in the returned `Dict`. Why? Using this
   way, it is possible to see with one call (and try to load all solvers)
   which solvers are found.
-  
+
   You can simply `dump` the values of the output dict to get a human-readable
   form of the result or call `help_solversupport()`.
-  
+
        for k in keys(res); dump(res[k]); end
        ODEInterface.help_solversupport()
   """
@@ -135,9 +135,9 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
     for variant in solver.variants
       libname = variant.libname
       if isempty(loadlibnames) || libname ∈ loadlibnames
-        if !haskey(dlSolversInfo,libname) || 
-           nothing ≠ dlSolversInfo[libname].error 
-           
+        if !haskey(dlSolversInfo,libname) ||
+           nothing ≠ dlSolversInfo[libname].error
+
            libhandle = C_NULL; filepath =""; err = nothing
            mArray = Vector{MethodDLinfo}()
            try
@@ -145,7 +145,7 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
              for generic_name in variant.methods
                methodsname_found = ""; method_ptr = C_NULL; merr = nothing
                try
-                 (method_ptr, methodsname_found) = 
+                 (method_ptr, methodsname_found) =
                    trytoloadmethod(libhandle, generic_name)
                catch e
                  merr = e
@@ -162,7 +162,7 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
       end
     end
   end
-  
+
   return copy(dlSolversInfo)
 end
 
@@ -183,13 +183,13 @@ end
 
 """
   return all method-pointers for a solver.
-  
+
   tries to return all `method_ptr`s for all methods of a solver.
   This method checks if the `method_ptr`s are existent and different
-  from `C_NULL`. If not then this method tries to load the 
-  `dlname` ODE-Solver with the `loadODESolvers` method and checks again. 
+  from `C_NULL`. If not then this method tries to load the
+  `dlname` ODE-Solver with the `loadODESolvers` method and checks again.
   If even after this the `method_ptr`s are not found a exception is thrown.
-  
+
   see `loadODESolvers`.
   """
 function getAllMethodPtrs(dlname::AbstractString)

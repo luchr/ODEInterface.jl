@@ -29,10 +29,10 @@ end
 
 """
   Type encapsulating all required data for Seulex-Solver-Callbacks.
-  
+
   We have the typical calling stack:
 
-       seulex       
+       seulex
            call_julia_output_fcn(  ... INIT ... )
                output_fcn ( ... INIT ...)
            ccall( SEULEX_  ... )
@@ -62,7 +62,7 @@ mutable struct SeulexInternalCallInfos{FInt<:FortranInt, RHS_F,
   M1           :: FInt
   M2           :: FInt
   # RHS:
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # SOLOUT & output function
@@ -70,7 +70,7 @@ mutable struct SeulexInternalCallInfos{FInt<:FortranInt, RHS_F,
   output_fcn   :: OUT_F                 # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
   out_lprefix  :: AbstractString        # saved log-prefix for solout
-  eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_sol_fcn :: Function              # eval_sol_fcn
   eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
@@ -90,11 +90,11 @@ mutable struct SeulexInternalCallInfos{FInt<:FortranInt, RHS_F,
 end
 
 """
-       mutable struct SeulexArguments{FInt<:FortranInt} <: 
+       mutable struct SeulexArguments{FInt<:FortranInt} <:
                 AbstractArgumentsODESolver{FInt}
-  
+
   Stores Arguments for Seulex solver.
-  
+
   FInt is the Integer type used for the fortran compilation.
   """
 mutable struct SeulexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
@@ -133,35 +133,35 @@ end
 
 """
        function unsafe_seulexSoloutCallback(
-               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-               x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-               ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
-               rpar_::Ptr{Float64}, cbi::CI, 
-               irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+               x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt},
+               ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt},
+               rpar_::Ptr{Float64}, cbi::CI,
+               irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                          CI<:SeulexInternalCallInfos}
-  
+
   This is the solout given as callback to Fortran-seulex.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
   `SeulexInternalCallInfos`, where they can be found by
   the `eval_sol_fcn`, see `create_seulex_eval_sol_fcn_closure`.
-  
+
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
-  
+
   The return value of the `output_fcn` is propagated to `SEULEX_`.
-  
+
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
 function unsafe_seulexSoloutCallback(
-        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-        x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt}, 
-        ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, cbi::CI, 
-        irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+        x_::Ptr{Float64}, rc_::Ptr{Float64}, lrc_::Ptr{FInt},
+        ic_::Ptr{FInt}, lic_::Ptr{FInt}, n_::Ptr{FInt},
+        rpar_::Ptr{Float64}, cbi::CI,
+        irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                   CI<:SeulexInternalCallInfos}
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
@@ -174,9 +174,9 @@ function unsafe_seulexSoloutCallback(
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
                                " t=",t," x=",x)
-  
+
   cbi.tOld = told; cbi.tNew = t; cbi.xNew = x;
-  cbi.cont_rc = rc_; cbi.cont_lrc = lrc_; 
+  cbi.cont_rc = rc_; cbi.cont_lrc = lrc_;
   cbi.cont_ic = ic_; cbi.cont_lic = lic_;
   cbi.output_data["nr"] = nr
 
@@ -193,29 +193,29 @@ function unsafe_seulexSoloutCallback(
   else
     throw(InternalErrorODE(string("Unkown ret=",ret," of output function")))
   end
-  
+
   return nothing
 end
 
 """
-       function unsafe_seulexSoloutCallback_c(cbi::CI, 
+       function unsafe_seulexSoloutCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
   """
-function unsafe_seulexSoloutCallback_c(cbi::CI, 
+function unsafe_seulexSoloutCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
   return @cfunction(unsafe_seulexSoloutCallback, Cvoid, (Ptr{FInt},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
     Ptr{Float64}, Ptr{FInt}, Ptr{FInt}, Ptr{FInt},
     Ptr{FInt}, Ptr{Float64}, Ref{CI}, Ptr{FInt}))
 end
 
 """
-       function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-               method_contex::Ptr{Cvoid}) where {FInt<:FortranInt, 
+       function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt,
+               method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                                 CI<:SeulexInternalCallInfos}
-  
+
   generates a eval_sol_fcn for seulex.
-  
+
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTEX_` (with `ccall`).
   But `CONTEX_` needs the informations for the current state. This
@@ -223,7 +223,7 @@ end
   `SeulexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   Here comes `create_seulex_eval_sol_fcn_closure` into play: this function
   takes the call informations and generates a `eval_sol_fcn` with this data.
-  
+
   Why doesn't `unsafe_seulexSoloutCallback` generate a closure (then
   the current state needs not to be saved in `SeulexInternalCallInfos`)?
   Because then every call to `unsafe_seulexSoloutCallback` would have
@@ -233,10 +233,10 @@ end
 
   For the typical calling sequence, see `SeulexInternalCallInfos`.
   """
-function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
-        method_contex::Ptr{Cvoid}) where {FInt<:FortranInt, 
+function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt,
+        method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                          CI<:SeulexInternalCallInfos}
-  
+
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -251,13 +251,13 @@ function create_seulex_eval_sol_fcn_closure(cbi::CI, d::FInt,
       for k = 1:d
         cbi.cont_i[1] = k
         result[k] = ccall(method_contex,Float64,
-          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, 
+          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt},
            Ptr{FInt}, Ptr{FInt},),
           cbi.cont_i,cbi.cont_s, cbi.cont_rc, cbi.cont_lrc,
           cbi.cont_ic, cbi.cont_lic)
       end
     end
-    
+
     l_eval && println(lio,lprefix,"contex returned ",result)
     return result
   end
@@ -268,7 +268,7 @@ end
        function seulex(rhs, t0::Real, T::Real,
                        x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
-  
+
 
   `retcode` can have the following values:
 
@@ -278,12 +278,12 @@ end
 
 
   main call for using Fortran seulex solver.
-  
+
   This solver support problems with special structure, see
   `help_specialstructure`.
-  
+
   In `opt` the following options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -411,18 +411,18 @@ function seulex_i32(rhs, t0::Real, T::Real,
   return seulex_impl(rhs,t0,T,x0,opt,SeulexArguments{Int32}(Int32(0)))
 end
 
-function seulex_impl(rhs, 
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+function seulex_impl(rhs,
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::SeulexArguments{FInt}) where FInt<:FortranInt
-  
+
   (lio,l,l_g,l_solver,lprefix) = solver_start("seulex",rhs,t0,T,x0,opt)
-  
+
   (method_seulex, method_contex) = getAllMethodPtrs(
      (FInt == Int64) ? DL_SEULEX : DL_SEULEX_I32 )
 
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
-  
+
   args.ITOL = [ scalarFlag ? 0 : 1 ]
   args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
                      (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
@@ -443,30 +443,30 @@ function seulex_impl(rhs,
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
-  
+
   # WORK memory
   ljac = flag_jband ? 1+args.MLJAC[1]+args.MUJAC[1] : NM1
   lmas = (!flag_implct) ? 0 :
          (args.MLMAS[1] == NM1) ? NM1 : 1+args.MLMAS[1]+args.MUMAS[1]
   le   = flag_jband ? 1+2*args.MLJAC[1]+args.MUJAC[1] : NM1
   KM2  = 2+KM*ceil(FInt,(KM+3)/2)
-  
+
   args.LWORK = [ (M1==0) ? d*(ljac+lmas+le+KM+8)+4*KM+20+KM2*nrdense :
                            d*(ljac+KM+8)+NM1*(lmas+le)+4*KM+20+KM2*nrdense ]
   args.WORK = zeros(Float64,args.LWORK[1])
-  
+
   # IWORK memory
   args.LIWORK = [ 2*d+KM+20+nrdense ]
   args.IWORK = zeros(FInt,args.LIWORK[1])
-  
+
   try
     OPT=OPT_RHSAUTONOMOUS;
     rhsautonomous = convert(Bool,getOption(opt,OPT,false))
     args.IFCN = [ rhsautonomous ? 0 : 1 ]
 
-    OPT=OPT_TRANSJTOH; 
+    OPT=OPT_TRANSJTOH;
     transjtoh  = convert(Bool,getOption(opt,OPT,false))
-    @assert (!transjtoh) || 
+    @assert (!transjtoh) ||
             ( (!flag_jband) && (!flag_implct ))  string(
             "Does not work, if the jacobian is banded or if the system ",
             " has a mass matrix (≠Id).")
@@ -474,24 +474,24 @@ function seulex_impl(rhs,
 
     OPT=OPT_MAXSTEPS; args.IWORK[2] = convert(FInt,getOption(opt,OPT,100000))
     @assert 0 < args.IWORK[2]
-    
+
     args.IWORK[3] = KM
 
     OPT = OPT_STEPSIZESEQUENCE
     args.IWORK[4] = convert(FInt,getOption(opt,OPT,2))
     @assert 1 ≤ args.IWORK[4] ≤ 4
-    
+
     OPT = OPT_LAMBDADENSE
     args.IWORK[5] = convert(FInt,getOption(opt,OPT,0))
     @assert args.IWORK[5] ∈ (0,1)
-    
+
     args.IWORK[6] = nrdense
 
     for k in 1:nrdense
       args.IWORK[20+k] = k
     end
 
-    args.IWORK[9] = M1 
+    args.IWORK[9] = M1
     args.IWORK[10] = M2
 
     OPT=OPT_EPS; args.WORK[1]=convert(Float64,getOption(opt,OPT,1e-16))
@@ -504,7 +504,7 @@ function seulex_impl(rhs,
     args.WORK[3] = convert(Float64,getOption(opt,OPT,min(1e-4,args.RTOL[1])))
     @assert !(args.WORK[3]==0)
 
-    OPT = OPT_SSSELECTPAR1; 
+    OPT = OPT_SSSELECTPAR1;
     args.WORK[4] = convert(Float64,getOption(opt,OPT,0.1))
     @assert 0 < args.WORK[4]
 
@@ -523,11 +523,11 @@ function seulex_impl(rhs,
     OPT = OPT_RHO2
     args.WORK[8] = convert(Float64,getOption(opt,OPT,0.8))
     @assert 0 < args.WORK[8]
-    
+
     OPT = OPT_RHO
     args.WORK[9] = convert(Float64,getOption(opt,OPT,0.93))
     @assert 0 < args.WORK[9]
-    
+
     OPT = OPT_WORKFORRHS
     args.WORK[10] = convert(Float64,getOption(opt,OPT,1.0))
     @assert 0 < args.WORK[10]
@@ -599,13 +599,13 @@ function seulex_impl(rhs,
      Ptr{Cvoid}, Ptr{FInt},                      # Soloutfunc, IOUT
      Ptr{Float64}, Ptr{FInt},                    # WORK, LWORK
      Ptr{FInt}, Ptr{FInt},                       # IWORK, LIWORK
-     Ptr{Float64}, Ref{SeulexInternalCallInfos}, # RPAR, IPAR 
+     Ptr{Float64}, Ref{SeulexInternalCallInfos}, # RPAR, IPAR
      Ptr{FInt},                                  # IDID
     ),
     args.N, args.FCN, args.IFCN,
     args.t, args.x, args.tEnd,
     args.H,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.JAC, args.IJAC, args.MLJAC, args.MUJAC,
     args.MAS, args.IMAS, args.MLMAS, args.MUMAS,
     args.SOLOUT, args.IOUT,
@@ -637,8 +637,8 @@ function seulex_impl(rhs,
   return ( args.t[1], args.x, args.IDID[1], stats)
 end
 
-"""  
-  ## Compile SEULEX 
+"""
+  ## Compile SEULEX
 
   The julia ODEInterface tries to compile and link the solvers
   automatically at the build-time of this module. The following
@@ -646,101 +646,101 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_seulex_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile SEULEX with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o seulex.o seulex.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o seulex.so 
+       gfortran -shared -fPIC -o seulex.so
                 seulex.o dc_lapack.o lapack.o lapackc.o
        gfortran -shared -fPIC -o seulex.dylib
                 seulex.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile SEULEX with `Float64` reals and
   `Int64` integers with `gfortran`:
-  
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack.o dc_lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapack.o lapack.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o lapackc.o lapackc.f
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o seulex.o seulex.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
-       gfortran -shared -o seulex.so 
+
+       gfortran -shared -o seulex.so
                 seulex.o dc_lapack.o lapack.o lapackc.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile SEULEX with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8
                 -o seulex_i32.o seulex.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
-       gfortran -shared -fPIC -o seulex_i32.so 
+
+       gfortran -shared -fPIC -o seulex_i32.so
                  seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
        gfortran -shared -fPIC -o seulex_i32.dylib
                  seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile SEULEX with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o dc_lapack_i32.o dc_lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o lapack_i32.o lapack.f
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
-                -o lapackc_i32.o lapackc.f 
-       gfortran -c -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-real-8 -fdefault-double-8
+                -o lapackc_i32.o lapackc.f
+       gfortran -c -fdefault-real-8 -fdefault-double-8
                 -o seulex_i32.o seulex.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o seulex_i32.dll
                  seulex_i32.o dc_lapack_i32.o lapack_i32.o lapackc_i32.o
-  
+
   """
 function help_seulex_compile()
   return Docs.doc(help_seulex_compile)
@@ -756,8 +756,8 @@ end
 push!(solverInfo,
   SolverInfo("seulex",
     "Extrapolation method based on the linearly implicit Eueler method",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_M1, :OPT_M2,
           :OPT_RHSAUTONOMOUS,
           :OPT_MASSMATRIX,

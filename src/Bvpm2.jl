@@ -63,7 +63,7 @@ bvpm2_global_cbi = nothing
   │ │ │ │  the guess_pthrough info is available.]
   │ │ │ │ [convert Fortran Arrays to C-Pointer-Array]
   │ │ │ │ call guess_fcn_ptr/unsafe_bvpm2_guess_cb_c(x_point, ...,
-  │ │ │ │ │                  ───────────────────────   guess_vector 
+  │ │ │ │ │                  ───────────────────────   guess_vector
   │ │ │ │ │                                            guess_pthrough)
   │ │ │ │ │   [ use guess_pthrough to recover cbi ]
   │ │ │ │ │   call cbi.guess_fcn(x, guess_vector)
@@ -71,7 +71,7 @@ bvpm2_global_cbi = nothing
   └ └ └ └ └   └
 
   Legend:
-     ─────────  julia code 
+     ─────────  julia code
      ━━━━━━━━━  Fortran2003 code in BVP_M_Proxy with ISO_C_BINDING
      ═════════  Fortran2003 code in BVP_M-2 (without ISO_C_BINDING)
   ```
@@ -115,8 +115,8 @@ end
 """
   # Bvpm2 object for solving boundary value problems
 
-  This is the Julia part of the BVP_M-2 (Fortran-)solution object. 
-  For (nearly) all the operations the corresponding Fortran-Proxy 
+  This is the Julia part of the BVP_M-2 (Fortran-)solution object.
+  For (nearly) all the operations the corresponding Fortran-Proxy
   methods are called (call `help_bvpm2_proxy()` to get internal details).
 
   ## Boundary value problem (BVP)
@@ -131,9 +131,9 @@ end
         ga(y(a), p) = 0,     gb(y(b), p) = 0                     [BCs]
 
   * y(x) ∈ ℝᵈ and `d` is also called `no_odes` (the number of ordinary
-    differential equations). 
-  * S ∈ ℝᵈˣᵈ is an optional constant matrix (also 
-    called the singularity term) because the whole term S⋅y/(x-a) has a 
+    differential equations).
+  * S ∈ ℝᵈˣᵈ is an optional constant matrix (also
+    called the singularity term) because the whole term S⋅y/(x-a) has a
     singularity at x=a. If S is not given, then the ODEs are reduced to
     y'(x) = f(x, y, p).
   * p ∈ ℝᵐ (with 0≤m) are unknown parameters of the problem. `m` is also
@@ -143,25 +143,25 @@ end
     also called `no_left_bc` (the number of the BCs at x=a).
   * ga(yb, p) ∈ ℝⁿ describes the right boundary conditions. It is
 
-          n = d + m - l 
+          n = d + m - l
           n = no_odes + no_par - no_left_bc
 
   ## Initial guess and solutions
 
-  A Bvpm2 object can be used to represent either an initial guess (for a 
-  BVP like above) or a solution. It is possible to use a solution of a 
+  A Bvpm2 object can be used to represent either an initial guess (for a
+  BVP like above) or a solution. It is possible to use a solution of a
   (different) BVP as initial guess to another BVP.
 
   Such a Bvpm2 object can be in one of the following states:
-  
-  * `state==0`: object created (and connected to Fortran-object), but 
+
+  * `state==0`: object created (and connected to Fortran-object), but
     not initialized, i.e. it does neither represent a guess nor an solution.
   * `state==1`: object created, and initialized with an (initial) guess, i.e.
     the object represents a guess.
   * `state==2`: object created and a solution was calculated successfully and
     saved in the object, i.e. the object represents a solution.
   * `state==-1`: object is not connected to a Fortran-Proxy. Either
-    `bvpm2_destroy` was called or at creation time, the connection to the 
+    `bvpm2_destroy` was called or at creation time, the connection to the
      Fortran-Proxy couldn't be established, i.e. the object is unusable and
      all associated memory was deallocated.
 
@@ -200,10 +200,10 @@ end
   ║ bvpm2_destroy     │ deallocate all (Fortran-) │ -1, 0, 1,  │     -1     ║
   ║                   │ resources for this object.│   or 2     │            ║
   ║                   │                           │            │            ║
-  ╚═══════════════════╧═══════════════════════════╧════════════╧════════════╝ 
+  ╚═══════════════════╧═══════════════════════════╧════════════╧════════════╝
   ```
 
-  There are functions that take an Bvpm2-object `obj_in` as input, 
+  There are functions that take an Bvpm2-object `obj_in` as input,
   perhaps change `obj_in` and create an additonal `obj_out`.
 
   The following table shows possible actions, the change of the state
@@ -229,7 +229,7 @@ end
   ║                   │ Call bvpm2_copy before, if│            │            ║
   ║                   │ you need the solution     │            │            ║
   ║                   │ later on.                 │            │            ║
-  ╚═══════════════════╧═══════════════════════════╧════════════╧════════════╝ 
+  ╚═══════════════════╧═══════════════════════════╧════════════╧════════════╝
   ```
 
   """
@@ -269,7 +269,7 @@ end
 
 """
        function bvpm2_create_handle(obj::Bvpm2)
-  
+
   create Fortran Proxy.
   """
 function bvpm2_create_handle(obj::Bvpm2)
@@ -303,7 +303,7 @@ function get_proxy_methods(obj::Bvpm2)
    obj.method_init_guess1,
    obj.method_init_guess2,
    obj.method_init_guess3,
-   obj.method_solve, 
+   obj.method_solve,
    obj.method_eval_s,
    obj.method_eval_v,
    obj.method_get_params,
@@ -460,7 +460,7 @@ end
 function bvpm2_get_params(obj::Bvpm2)
   details = bvpm2_check_state(obj, (1, 2))
   p = Vector{Float64}(undef, details["no_par"])
-  if length(p) > 0 
+  if length(p) > 0
     error = ccall(obj.method_get_params, Int64,
       (Ptr{Cvoid}, Int64, Ref{Float64},),   # handle, p_len, p
       obj.handle, length(p), p)
@@ -478,12 +478,12 @@ function getSolutionGrid(sol::Bvpm2)
 end
 
 """
-       function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc, 
+       function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc,
            x_grid::Vector, parameters::Vector, max_num_subintervals)
 
   init tests for common parameters.
   """
-function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc, 
+function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc,
     x_grid::Vector, parameters::Vector, max_num_subintervals)
 
   details = bvpm2_check_state(obj, (0,))
@@ -500,14 +500,14 @@ function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc,
     no_left_bc = convert(Int64, no_left_bc)
     @assert no_left_bc ≥ 0
   catch e
-    throw(ArgumentErrorODE("no_left_bc must be non-negative integer", 
+    throw(ArgumentErrorODE("no_left_bc must be non-negative integer",
       :no_left_bc, e))
   end
 
   len_x_grid = length(x_grid)
   if len_x_grid <= 2
     throw(ArgumentErrorODE(string(
-      "x_grid must have length > 2. You must specify an initial grid."), 
+      "x_grid must have length > 2. You must specify an initial grid."),
       :x_grid))
   end
   try
@@ -517,7 +517,7 @@ function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc,
     throw(ArgumentErrorODE("cannot convert x_grid to Float64 vector",
       :x_grid, e))
   end
-  
+
   try
     parameters = getVectorCheckLength(parameters, Float64,
       length(parameters))
@@ -525,13 +525,13 @@ function bvpm2_init_tests(obj::Bvpm2, no_odes, no_left_bc,
     throw(ArgumentErrorODE("cannot convert parameters to a Float64 vector",
       :parameters, e))
   end
-  
+
   try
     max_num_subintervals = convert(Int64, max_num_subintervals)
     @assert max_num_subintervals > 0
     @assert max_num_subintervals ≥ length(x_grid)-1
   catch e
-    throw(ArgumentErrorODE("max_num_subintervals must be positive integer", 
+    throw(ArgumentErrorODE("max_num_subintervals must be positive integer",
       :max_num_subintervals, e))
   end
 
@@ -540,27 +540,27 @@ end
 
 """
        function bvpm2_init(obj::Bvpm2,
-         no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector, 
+         no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector,
          parameters::Vector=[], max_num_subintervals=3000)
 
   initialize Bvpm2 object with a constant intial guess.
   """
 function bvpm2_init(obj::Bvpm2,
-  no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector, 
+  no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector,
   parameters::Vector=[], max_num_subintervals=3000)
-  
+
   details, no_odes, no_left_bc, x_grid, parameters, max_num_subintervals =
-    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters, 
+    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters,
                      max_num_subintervals)
 
   try
-    constant_guess = getVectorCheckLength(constant_guess, 
+    constant_guess = getVectorCheckLength(constant_guess,
       Float64, no_odes)
   catch e
     throw(ArgumentErrorODE(string("cannot convert constant_guess to a ",
       "Float64 vector of length ",no_odes), :constant_guess, e))
   end
-  
+
   ccall(obj.method_init_guess1, Cvoid,
     (Ptr{Cvoid},                           # handle
      Int64, Int64,                         # no_odes, no_left_bc
@@ -575,24 +575,24 @@ function bvpm2_init(obj::Bvpm2,
     length(constant_guess), constant_guess,
     length(parameters), parameters,
     max_num_subintervals)
-  
+
   return obj
 end
 
 """
        function bvpm2_init(obj::Bvpm2,
-         no_odes, no_left_bc, x_grid::Vector, guess::Matrix, 
+         no_odes, no_left_bc, x_grid::Vector, guess::Matrix,
          parameters::Vector=[], max_num_subintervals=3000)
 
   initialize Bvpm2 object with a guess for every state at
   every node in x_grid.
   """
 function bvpm2_init(obj::Bvpm2,
-  no_odes, no_left_bc, x_grid::Vector, guess::Matrix, 
+  no_odes, no_left_bc, x_grid::Vector, guess::Matrix,
   parameters::Vector=[], max_num_subintervals=3000)
-  
+
   details, no_odes, no_left_bc, x_grid, parameters, max_num_subintervals =
-    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters, 
+    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters,
                      max_num_subintervals)
   try
     m,n = size(guess)
@@ -645,10 +645,10 @@ end
 """
   This is the guess function given as callback to bvpm2.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
-function unsafe_bvpm2_guess_cb(x::Float64, y_len::Int64, y_::Ptr{Float64}, 
+function unsafe_bvpm2_guess_cb(x::Float64, y_len::Int64, y_::Ptr{Float64},
      cbi::CI) where CI<:Bvpm2_guess_cbi
 
   @assert y_len == cbi.no_odes
@@ -663,8 +663,8 @@ function unsafe_bvpm2_guess_cb_c(cbi::CI) where CI
 end
 
 """
-       function bvpm2_init(obj, no_odes, no_left_bc, x_grid, 
-                           guess<:Function, parameters, 
+       function bvpm2_init(obj, no_odes, no_left_bc, x_grid,
+                           guess<:Function, parameters,
                            max_num_subintervals=3000)
 
   The guess function must have the form
@@ -678,11 +678,11 @@ end
   to get the guesses for the state at different `x` values.
   """
 function bvpm2_init(obj::Bvpm2,
-  no_odes, no_left_bc, x_grid::Vector, guess::GUESS_FCN, 
+  no_odes, no_left_bc, x_grid::Vector, guess::GUESS_FCN,
   parameters::Vector=[], max_num_subintervals=3000) where GUESS_FCN<:Function
 
   details, no_odes, no_left_bc, x_grid, parameters, max_num_subintervals =
-    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters, 
+    bvpm2_init_tests(obj, no_odes, no_left_bc, x_grid, parameters,
                      max_num_subintervals)
 
   # Create callback-info
@@ -730,11 +730,11 @@ end
   This is the right-hand side given as callback to bvpm2 in the
   case where the problem has no unkown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_rhs_cb(
-    x::Float64, y_len::Int64, y_::Ptr{Float64}, 
+    x::Float64, y_len::Int64, y_::Ptr{Float64},
     f_len::Int64, f_::Ptr{Float64}, cbi::CI) where CI<:Bvpm2_solve_cbi
 
   @assert y_len == f_len == cbi.no_odes
@@ -754,11 +754,11 @@ end
   This is the right-hand side given as callback to bvpm2 in the
   case where the problem has unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_rhspar_cb(
-    x::Float64, y_len::Int64, y_::Ptr{Float64}, 
+    x::Float64, y_len::Int64, y_::Ptr{Float64},
     p_len::Int64, p_::Ptr{Float64},
     f_len::Int64, f_::Ptr{Float64}, cbi::CI) where CI<:Bvpm2_solve_cbi
 
@@ -801,17 +801,17 @@ end
   This is the derivative of the right-hand side given as callback to
   bvpm2 in the case where the problem has no unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_Drhs_cb(
   x::Float64, y_len::Int64, y_::Ptr{Float64},
-  dfdy_dim1::Int64, dfdy_dim2::Int64, dfdy_::Ptr{Float64}, 
+  dfdy_dim1::Int64, dfdy_dim2::Int64, dfdy_::Ptr{Float64},
   cbi::CI) where CI<:Bvpm2_solve_cbi
 
   @assert y_len == cbi.no_odes
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
-  
+
   y = unsafe_wrap(Array, y_, (y_len,), own=false)
   dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
   bvpm2_Drhs(x, y, dfdy, cbi)
@@ -827,20 +827,20 @@ end
   This is the derivative of the right-hand side given as callback to
   bvpm2 in the case where the problem has unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_Drhspar_cb(
   x::Float64, y_len::Int64, y_::Ptr{Float64},
   p_len::Int64, p_::Ptr{Float64},
-  dfdy_dim1::Int64, dfdy_dim2::Int64, dfdy_::Ptr{Float64}, 
+  dfdy_dim1::Int64, dfdy_dim2::Int64, dfdy_::Ptr{Float64},
   dfdp_dim1::Int64, dfdp_dim2::Int64, dfdp_::Ptr{Float64},
   cbi::CI) where CI<:Bvpm2_solve_cbi
 
   @assert y_len == cbi.no_odes
   @assert dfdy_dim1 == dfdy_dim2 == cbi.no_odes
   @assert dfdp_dim1 == cbi.no_odes && dfdp_dim2 == cbi.no_par
-  
+
   y = unsafe_wrap(Array, y_, (y_len,), own=false)
   p = unsafe_wrap(Array, p_, (p_len,), own=false)
   dfdy = unsafe_wrap(Array, dfdy_, (dfdy_dim1, dfdy_dim2,), own=false)
@@ -878,11 +878,11 @@ end
   This is the boundary-conditions function given as callback
   to bvpm2 in the case with no unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_bc_cb(
-     ya_len::Int64, ya_::Ptr{Float64}, 
+     ya_len::Int64, ya_::Ptr{Float64},
      yb_len::Int64, yb_::Ptr{Float64},
      bca_len::Int64, bca_::Ptr{Float64},
      bcb_len::Int64, bcb_::Ptr{Float64}, cbi::CI) where CI<:Bvpm2_solve_cbi
@@ -908,11 +908,11 @@ end
   This is the boundary-conditions function given as callback
   to bvpm2 in the case with unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_bcpar_cb(
-     ya_len::Int64, ya_::Ptr{Float64}, 
+     ya_len::Int64, ya_::Ptr{Float64},
      yb_len::Int64, yb_::Ptr{Float64},
      p_len::Int64, p_::Ptr{Float64},
      bca_len::Int64, bca_::Ptr{Float64},
@@ -941,7 +941,7 @@ end
 """
   This function calls `Dbc` saved in Bvpm2_solve_cbi.
   """
-function bvpm2_Dbc(ya, yb, dya, dyb, cbi::CI, 
+function bvpm2_Dbc(ya, yb, dya, dyb, cbi::CI,
       p=nothing, dpa=nothing, dpb=nothing) where CI
   lprefix = cbi.bc_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
@@ -954,7 +954,7 @@ function bvpm2_Dbc(ya, yb, dya, dyb, cbi::CI,
   else
     cbi.Dbc(ya, yb, dya, dyb, p, dpa, dpb)
   end
-  l_Dbc && println(lio, lprefix, "bc result: dya", dya, " dyb=", dyb, 
+  l_Dbc && println(lio, lprefix, "bc result: dya", dya, " dyb=", dyb,
     " dpa=", dpa, " dpb=", dpb)
   return nothing
 end
@@ -963,19 +963,19 @@ end
   This is the derivative of the boundary-conditions given as callback
   to bvpm2 in the case with no unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_Dbc_cb(
   ya_len::Int64, ya_::Ptr{Float64}, yb_len::Int64, yb_::Ptr{Float64},
   dya_dim1::Int64, dya_dim2::Int64, dya_::Ptr{Float64},
-  dyb_dim1::Int64, dyb_dim2::Int64, dyb_::Ptr{Float64}, 
+  dyb_dim1::Int64, dyb_dim2::Int64, dyb_::Ptr{Float64},
   cbi::CI) where CI<:Bvpm2_solve_cbi
 
   @assert ya_len == yb_len == cbi.no_odes
   @assert dya_dim2 == dyb_dim2 == cbi.no_odes
   @assert dya_dim1 == cbi.no_left_bc
-  @assert dyb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
+  @assert dyb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc
 
   ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
   yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
@@ -996,16 +996,16 @@ end
   This is the derivative of the boundary-conditions given as callback
   to bvpm2 in the case with unknown parameters.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_bvpm2_Dbcpar_cb(
   ya_len::Int64, ya_::Ptr{Float64}, yb_len::Int64, yb_::Ptr{Float64},
   p_len::Int64, p_::Ptr{Float64},
   dya_dim1::Int64, dya_dim2::Int64, dya_::Ptr{Float64},
-  dyb_dim1::Int64, dyb_dim2::Int64, dyb_::Ptr{Float64}, 
+  dyb_dim1::Int64, dyb_dim2::Int64, dyb_::Ptr{Float64},
   dpa_dim1::Int64, dpa_dim2::Int64, dpa_::Ptr{Float64},
-  dpb_dim1::Int64, dpb_dim2::Int64, dpb_::Ptr{Float64}, 
+  dpb_dim1::Int64, dpb_dim2::Int64, dpb_::Ptr{Float64},
   cbi::CI) where CI<:Bvpm2_solve_cbi
 
   @assert ya_len == yb_len == cbi.no_odes
@@ -1013,7 +1013,7 @@ function unsafe_bvpm2_Dbcpar_cb(
   @assert dya_dim2 == dyb_dim2 == cbi.no_odes
   @assert dpa_dim2 == dpb_dim2 == cbi.no_par
   @assert dya_dim1 == dpa_dim1 == cbi.no_left_bc
-  @assert dyb_dim1 == dpb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc 
+  @assert dyb_dim1 == dpb_dim1 == cbi.no_odes+cbi.no_par-cbi.no_left_bc
 
   ya = unsafe_wrap(Array, ya_, (ya_len,), own=false)
   yb = unsafe_wrap(Array, yb_, (yb_len,), own=false)
@@ -1030,13 +1030,13 @@ function unsafe_bvpm2_Dbcpar_cb_c(cbi::CI) where CI
   return @cfunction(unsafe_bvpm2_Dbcpar_cb, Cvoid,
     (Int64, Ptr{Float64}, Int64, Ptr{Float64},
      Int64, Ptr{Float64},
-     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, 
+     Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64},
      Int64, Int64, Ptr{Float64}, Int64, Int64, Ptr{Float64}, Ref{CI}))
 end
 
 
 """
-       function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
+       function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
          opt::AbstractOptionsODE) -> (obj_out, retcode, stats)
 
   ## Right-hand side for the ODEs: `rhs`
@@ -1081,7 +1081,7 @@ end
 
   where
 
-        ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+        ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes),
         p::Vector{Float64}(no_par),
         bca::Vector{Float64}(no_left_bc),
         bcb::Vector{Float64}(no_odes - no_left_bc)
@@ -1100,20 +1100,20 @@ end
 
   where
 
-        ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+        ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes),
         p::Vector{Float64}(no_par),
         dya::Matrix{Float64}(no_left_bc, no_odes)
         dyb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_odes)
         dpa::Matrix{Float64}(no_left_bc, no_par)
         dpb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_par)
 
-  Inside the function, the values of the derivatives of the boundary 
+  Inside the function, the values of the derivatives of the boundary
   conditions must be saved in `dya`, `dyb`, `dpa` and `dpb`.
 
   ## Options `opt`
 
   In `opt` the following options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -1152,7 +1152,7 @@ end
         <0: failure
         ≥0: computation successful
   """
-function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
+function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   opt::AbstractOptionsODE; Drhs=nothing, Dbc=nothing)
 
   (lio,l,l_g,l_solver,lprefix) = solver_init("bvpm2", opt)
@@ -1200,7 +1200,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
-  
+
   error_ret = Vector{Float64}(undef, 5)
   handle_out = [ C_NULL ]
 
@@ -1212,15 +1212,15 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
   end
   cbi = nothing; error = 0
   try
-    global bvpm2_global_cbi = cbi = Bvpm2_solve_cbi(lio, l, 
+    global bvpm2_global_cbi = cbi = Bvpm2_solve_cbi(lio, l,
       no_odes, no_par, no_left_bc,
-      rhs, "unsafe_bvpm2_rhs: ", 0, 
+      rhs, "unsafe_bvpm2_rhs: ", 0,
       Drhs !== nothing ? Drhs : dummy_func, "unsafe_bvpm2_Drhs: ", 0,
       bc, "unsafe_bvpm2_b: ", 0,
       Dbc !== nothing ? Dbc : dummy_func, "unsafe_bvpm2_Dbc: ", 0)
 
     if l_solver
-      println(lio, lprefix, "call Fortran bvpm2_solver ", 
+      println(lio, lprefix, "call Fortran bvpm2_solver ",
         guess_obj.method_solve)
     end
 
@@ -1246,7 +1246,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
        Int64, Int64,                         # trace, error_control
        Int64, Ptr{Float64},                  # error_ret_len, error_ret
        Ref{Bvpm2_solve_cbi},                 # calls_pthrough
-      ), 
+      ),
       guess_obj.handle, handle_out,
       rhs_fcn_ptr, bc_fcn_ptr,
       si_dim, si_matrix,
@@ -1257,7 +1257,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
       cbi)
 
     if l_solver
-      println(lio, lprefix, "call Fortran bvpm2_solver ", 
+      println(lio, lprefix, "call Fortran bvpm2_solver ",
         guess_obj.method_solve, " returned ",error)
     end
   finally
@@ -1266,7 +1266,7 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
 
   error ≠ 0 && throw(InternalErrorODE(string(
     "Internal error during solve call: error = ",error)))
-  
+
   @assert handle_out[1] ≠ C_NULL
   obj_out = Bvpm2(handle_out[1])
   out_details = bvpm2_get_details(obj_out)
@@ -1285,8 +1285,8 @@ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
 end
 
 """
-       function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, 
-                yanew::Vector, ybnew::Vector; 
+       function bvpm2_extend(sol_obj::Bvpm2, anew, bnew,
+                yanew::Vector, ybnew::Vector;
                 p_new=[], max_num_subintervals=0)
 
   extends a solution (`state == 2`) to a new interval. Take the
@@ -1302,10 +1302,10 @@ end
 
   A new Bvpm2-object `guess_obj` will be created an returned.
   """
-function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, 
-         yanew::Vector, ybnew::Vector; 
+function bvpm2_extend(sol_obj::Bvpm2, anew, bnew,
+         yanew::Vector, ybnew::Vector;
          p_new::Vector=[], max_num_subintervals=0)
-  
+
   details = bvpm2_check_state(sol_obj, (2,))
   try
     anew = convert(Float64, anew)
@@ -1343,14 +1343,14 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew,
       :max_num_subintervals, e))
   end
   result = [ C_NULL ]
-  error = ccall(sol_obj.method_extend_s, Int64, 
+  error = ccall(sol_obj.method_extend_s, Int64,
     (Ptr{Cvoid}, Ref{Ptr{Cvoid}},     # handle_in, handle_out
      Float64, Float64,                # anew, bnew
      Int64, Ptr{Float64},             # yanew_len, yanew
      Int64, Ptr{Float64},             # ybnew_len, ybnew
      Int64, Ptr{Float64},             # p_len, p
      Int64,),                         # max_num_subintervals
-    sol_obj.handle, result, 
+    sol_obj.handle, result,
     anew, bnew,
     length(yanew), yanew,
     length(ybnew), ybnew,
@@ -1364,10 +1364,10 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew,
 end
 
 """
-       function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order; 
+       function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order;
                 p_new::Vector=[], max_num_subintervals=0)
 
-  extends a solution (`state == 2`) to a new interval using 
+  extends a solution (`state == 2`) to a new interval using
   constant (`order==0`) or linear (`order==1`) extrapolation.
 
   You can change the parameter guess also, by using `p_new` and you
@@ -1378,7 +1378,7 @@ end
 
   A new Bvpm2-object `guess_obj` will be created an returned.
   """
-function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order; 
+function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order;
          p_new::Vector=[], max_num_subintervals=0)
   details = bvpm2_check_state(sol_obj, (2,))
   try
@@ -1395,7 +1395,7 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order;
     order = convert(Int64, order)
     @assert order ∈ (0, 1,)
   catch e
-    throw(ArgumentErrorODE("Cannot convert order to Int64: 0 or 1", 
+    throw(ArgumentErrorODE("Cannot convert order to Int64: 0 or 1",
       :order, e))
   end
   no_odes = details["no_odes"]
@@ -1427,20 +1427,20 @@ function bvpm2_extend(sol_obj::Bvpm2, anew, bnew, order;
 end
 
 """
-       function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64}, 
+       function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64},
          dz::Vector{Float64})
 
   Evaluates an already obtained solution `sol` at scalar point `x`.
-  The values of the solution are saved in `z` which must be a 
+  The values of the solution are saved in `z` which must be a
   vector (of length d).
   For the vector `dz` there are two cases: If `dz` is a empty vector (of
   length 0) then the derivates of z are not calculated, otherwise
   `dz` has to be a vector (of length d) where the derivates are
   stored.
   """
-function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64}, 
+function evalSolution(sol::Bvpm2, x::Real, z::Vector{Float64},
   dz::Vector{Float64}=Vector{Float64}(undef, 0))
-  
+
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
   length(z) ≠ no_odes && throw(ArgumentErrorODE(string(
@@ -1467,7 +1467,7 @@ end
 
 """
        function evalSolution(sol::Bvpm2, x::Real)  -> z
-  
+
   Allocates vector `z` and calls `evalSolution(sol, x, z)`.
   """
 function evalSolution(sol::Bvpm2, x::Real)
@@ -1479,40 +1479,40 @@ function evalSolution(sol::Bvpm2, x::Real)
 end
 
 """
-       function evalSolution(sol::Bvpm2, x::Vector{Float64}, 
+       function evalSolution(sol::Bvpm2, x::Vector{Float64},
          z::Matrix{Float64}, dz::Matrix{Float64})
 
   Evaluates an already obtained solution `sol` at scalar point `x`.
-  The values of the solution are saved in `z` which must be a 
+  The values of the solution are saved in `z` which must be a
   vector (of length d).
   For the vector `dz` there are two cases: If `dz` is a empty vector (of
   length 0) then the derivates of z are not calculated, otherwise
   `dz` has to be a vector (of length d) where the derivates are
   stored.
   """
-function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64}, 
+function evalSolution(sol::Bvpm2, x::Vector{Float64}, z::Matrix{Float64},
   dz::Matrix{Float64}=Matrix{Float64}(undef, 0,0))
-  
+
   details = bvpm2_check_state(sol, (2,))
   no_odes = details["no_odes"]
   x_len = length(x)
   size(z) ≠ (no_odes, x_len) && throw(ArgumentErrorODE(string(
     "Expected for z a (", no_odes, ", ", x_len, ") matrix, but found a (",
     size(z,1), ", ", size(z,2), ") matrix "), :z))
-  if size(dz) ≠ (0,0) && size(dz) ≠ (no_odes, x_len) 
+  if size(dz) ≠ (0,0) && size(dz) ≠ (no_odes, x_len)
     throw(ArgumentErrorODE(string(
     "Expected for dz an empty matrix or a (", no_odes, ", ", x_len, ") ",
     "matrix, but found a (", size(dz,1), ", ", size(dz,2), ") matrix "), :dz))
   end
   error = ccall(sol.method_eval_v, Int64,
-    (Ptr{Cvoid},                            # handle 
+    (Ptr{Cvoid},                            # handle
      Int64, Ptr{Float64},                  # x_len, x
      Int64, Int64, Ptr{Float64},           # z_dim1, z_dim2
      Int64, Int64, Ptr{Float64},           # dz_dim1, dz_dim2
     ),
     sol.handle,
     length(x), x,
-    size(z, 1), size(z, 2), z, 
+    size(z, 1), size(z, 2), z,
     size(dz, 1), size(dz, 2), dz
     )
 
@@ -1535,7 +1535,7 @@ function evalSolution(sol::Bvpm2, x::Vector{Float64})
   return z
 end
 
-"""  
+"""
   ## Compile BVP_M-2
 
   The julia ODEInterface tries to compile and link the solvers
@@ -1544,33 +1544,33 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
+
        http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml
-  
+
   See `help_bvpm3_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile BVP_M-2 with `Float64` reals (and
   `Int64` integers with `gfortran`):
 
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o bvp_la-2.o bvp_la-2.f
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o bvp_m-2.o bvp_m-2.f90
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o bvp_m_proxy.o bvp_m_proxy.f90
 
   The last file `bvp_m_proxy.f90` is a Julia/C-Proxy and is part of this
   `ODEInterface` package.
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
-       gfortran -shared -fPIC -o bvp_m_proxy.so 
+       gfortran -shared -fPIC -o bvp_m_proxy.so
                 bvp_m_proxy.o bvp_m-2.o bvp_la-2.o
   """
 function help_bvpm2_compile()
@@ -1588,7 +1588,7 @@ function help_bvpm2_proxy()
     while !eof(fh)
       line = readline(fh)
       if length(line) > 0 && line[1] == '!'
-        markdown *= line[ 
+        markdown *= line[
           ((length(line) > 1 && line[2] == ' ') ? 3 : 2):end ] * "\n"
       else
         break
@@ -1606,7 +1606,7 @@ end
   Jason Boisvert, Ray Spiteri, Department of Computer Science, University of Saskatchewan.
   Paul Muir, Mathematics and Computing Science, Saint Mary's University.
   All rights reserved.
- 
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
       * Redistributions of source code must retain the above copyright
@@ -1614,10 +1614,10 @@ end
       * Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
-      * Neither Saint Mary's University nor Southern Methodist University nor 
+      * Neither Saint Mary's University nor Southern Methodist University nor
         the names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
- 
+
   THIS SOFTWARE IS PROVIDED BY Jason Boisvert, Paul Muir, and Ray Spiteri ''AS IS'' AND ANY
   EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -1628,15 +1628,15 @@ end
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
   See documentation below for FUNCTION BVP_SOLVER for a description of the changes
-  to the argument list for BVP_SOLVER. 
- 
+  to the argument list for BVP_SOLVER.
+
   Copyright (c) 2006, Paul Muir and Larry Shampine.
   Paul Muir, Mathematics and Computing Science, Saint Mary's University.
   Larry Shampine, Mathematics, Southern Methodist University.
   All rights reserved.
- 
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
       * Redistributions of source code must retain the above copyright
@@ -1644,10 +1644,10 @@ end
       * Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
-      * Neither Saint Mary's University nor Southern Methodist University nor 
+      * Neither Saint Mary's University nor Southern Methodist University nor
         the names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
- 
+
   THIS SOFTWARE IS PROVIDED BY Paul Muir and Larry Shampine ''AS IS'' AND ANY
   EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -1658,8 +1658,8 @@ end
   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
-  L.F. Shampine, P.H. Muir, H. Xu, A user-friendly Fortran BVP solver, 
+
+  L.F. Shampine, P.H. Muir, H. Xu, A user-friendly Fortran BVP solver,
   J. Numer. Anal. Indust. Appl. Math., 1, 2006, 201--217.
   """
 function help_bvpm2_license()
@@ -1677,15 +1677,15 @@ push!(solverInfo,
       SolverVariant("bvpm2_i64",
         "Bvpm2 with 64bit integers",
         DL_BVPM2,
-        tuple("create_sol_wrapper_c", 
+        tuple("create_sol_wrapper_c",
               "copy_sol_wrapper_c",
               "terminate_sol_wrapper_c",
-              "destroy_sol_wrapper_c", 
-              "show_sol_wrapper_c", 
-              "get_sol_wrapper_details_c", 
+              "destroy_sol_wrapper_c",
+              "show_sol_wrapper_c",
+              "get_sol_wrapper_details_c",
               "get_sol_wrapper_x_c",
-              "init_guess1_c", 
-              "init_guess2_c", 
+              "init_guess1_c",
+              "init_guess2_c",
               "init_guess3_c",
               "solve_c",
               "eval_s_sol_c",

@@ -2,7 +2,7 @@
 
 """
   Type encapsulating all required data for Dopri-Solver-Callbacks.
-  
+
   We have the typical calling stack:
 
        dopri5/dop853
@@ -23,12 +23,12 @@
            call_julia_output_fcn(  ... DONE ... )
                output_fcn ( ... DONE ...)
   """
-mutable struct DopriInternalCallInfos{FInt<:FortranInt, 
+mutable struct DopriInternalCallInfos{FInt<:FortranInt,
         RHS_F, OUT_F} <: ODEinternalCallInfos
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # SOLOUT & output function
@@ -49,11 +49,11 @@ mutable struct DopriInternalCallInfos{FInt<:FortranInt,
 end
 
 """
-       mutable struct DopriArguments{FInt<:FortranInt} <: 
+       mutable struct DopriArguments{FInt<:FortranInt} <:
                 AbstractArgumentsODESolver{FInt}
-  
+
   Stores Arguments for Dopri solver.
-  
+
   FInt is the Integer type used for the fortran compilation.
   """
 mutable struct DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
@@ -81,12 +81,12 @@ mutable struct DopriArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FI
 end
 
 """
-       function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
-               method_contd::Ptr{Cvoid}) where {FInt<:FortranInt, 
+       function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt,
+               method_contd::Ptr{Cvoid}) where {FInt<:FortranInt,
                                                CI<:DopriInternalCallInfos}
-  
+
   generates a eval_sol_fcn for dopri5 and dop853.
-  
+
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTD5_` or `CONTD8_` (with `ccall`).
   But `CONTD?_` needs the informations for the current state. This
@@ -94,7 +94,7 @@ end
   `DopriInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   Here comes `create_dopri_eval_sol_fcn_closure` into play: this function
   takes the call-informations and generates a `eval_sol_fcn` with this data.
-  
+
   Why doesn't `unsafe_dopriSoloutCallback` generate a closure (then
   the current state needs not to be saved in `DopriInternalCallInfos`)?
   Because then every call to `unsafe_dopriSoloutCallback` would have
@@ -104,10 +104,10 @@ end
 
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
-function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt, 
-        method_contd::Ptr{Cvoid}) where {FInt<:FortranInt, 
+function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt,
+        method_contd::Ptr{Cvoid}) where {FInt<:FortranInt,
                                         CI<:DopriInternalCallInfos}
-  
+
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -126,7 +126,7 @@ function create_dopri_eval_sol_fcn_closure( cbi::CI, d::FInt,
           cbi.cont_i,cbi.cont_s, cbi.cont_con, cbi.cont_icomp, cbi.cont_nd)
       end
     end
-    
+
     l_eval && println(lio,lprefix,"contd returned ",result)
     return result
   end
@@ -135,47 +135,47 @@ end
 
 """
        function unsafe_dopriSoloutCallback(
-               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
                x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
-               icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-               cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+               icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64},
+               cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                                   CI<:DopriInternalCallInfos}
-  
+
   This is the solout given as callback to Fortran-dopri.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
   `DopriInternalCallInfos`, where they can be found by
   the `eval_sol_fcn`, see `create_dopri_eval_sol_fcn_closure`.
-  
+
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
-  
-  The return value of the `output_fcn` is propagated to 
+
+  The return value of the `output_fcn` is propagated to
   `DOPRI5_` or `DOP853_`.
-  
+
   For the typical calling sequence, see `DopriInternalCallInfos`.
   """
 function unsafe_dopriSoloutCallback(
-        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
         x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
-        icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64}, 
-        cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt, 
+        icomp_::Ptr{FInt}, nd_::Ptr{FInt}, rpar_::Ptr{Float64},
+        cbi::CI, irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                            CI<:DopriInternalCallInfos}
 
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_, (n,), own=false)
   irtrn = unsafe_wrap(Array, irtrn_, (1,), own=false)
-  
+
   (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.out_lprefix)
   l_sol = l & LOG_SOLOUT>0
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
                                " t=",t," x=",x)
-  
+
   cbi.tOld = told; cbi.tNew = t; cbi.xNew = x;
   cbi.cont_con = con_; cbi.cont_icomp = icomp_; cbi.cont_nd = nd_;
   cbi.output_data["nr"] = nr
@@ -197,38 +197,38 @@ function unsafe_dopriSoloutCallback(
 end
 
 """
-       function unsafe_dopriSoloutCallback_c(cbi::CI, 
+       function unsafe_dopriSoloutCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_dopriSoloutCallback_c(cbi::CI, 
+function unsafe_dopriSoloutCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
-  return @cfunction(unsafe_dopriSoloutCallback, Cvoid, (Ptr{FInt}, 
-    Ptr{Float64}, Ptr{Float64},Ptr{Float64}, 
+  return @cfunction(unsafe_dopriSoloutCallback, Cvoid, (Ptr{FInt},
+    Ptr{Float64}, Ptr{Float64},Ptr{Float64},
     Ptr{FInt}, Ptr{Float64},
-    Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
+    Ptr{FInt}, Ptr{FInt}, Ptr{Float64},
     Ref{CI}, Ptr{FInt}))
 end
 
 """
        function dopri_extract_commonOpt(
-               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
                args::DopriArguments{FInt}) where FInt<:FortranInt
              -> (d,nrdense,rhs_mode,output_mode,output_fcn)
-  
-  calls solver_extract_commonOpt and additionally sets args.ITOL, args.IOUT 
+
+  calls solver_extract_commonOpt and additionally sets args.ITOL, args.IOUT
   """
 function dopri_extract_commonOpt(
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::DopriArguments{FInt}) where FInt<:FortranInt
-  
+
   (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn) =
     solver_extract_commonOpt(t0,T,x0,opt,args)
 
   args.ITOL = [ scalarFlag ? 0 : 1 ]
   args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
                      (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
-  
+
   return (d,nrdense,rhs_mode,output_mode,output_fcn)
 end
 

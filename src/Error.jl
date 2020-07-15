@@ -6,7 +6,7 @@ import Base: showerror
 macro import_exceptions()
   :(
     using ODEInterface: WrappedODEException, ArgumentErrorODE,
-                        OutputErrorODE, SolverODEnotLoaded, 
+                        OutputErrorODE, SolverODEnotLoaded,
                         FunctionCallNotSupported, FeatureNotSupported,
                         StateErrorODE,
                         InternalErrorODE
@@ -15,7 +15,7 @@ end
 
 """
   The ancestor for all wrapped exceptions in ODEInterface.
-  
+
   Required fields: msg, error
   """
 abstract type WrappedODEException <: Base.WrappedException end
@@ -30,7 +30,7 @@ end
 
 """
   This error indicates that one input argument is invalid.
-  
+
   This is a WrappedException: If the invalidity of the argument
   was detected by some error/exception then, this initial
   error/exception can be found in the `error` field.
@@ -47,7 +47,7 @@ end
 
 function showerror(io::IO,e::ArgumentErrorODE)
   println(io,e.msg)
-  e.argname !== nothing && println(io,string("in argument ",e.argname)) 
+  e.argname !== nothing && println(io,string("in argument ",e.argname))
   if e.error !== nothing
     println(io,"Wrapped exception:")
     showerror(io,e.error)
@@ -69,7 +69,7 @@ end
 
 function showerror(io::IO,e::OutputErrorODE)
   println(io,e.msg)
-  e.func !== nothing && println(io,string("function ",e.func)) 
+  e.func !== nothing && println(io,string("function ",e.func))
   if e.error !== nothing
     println(io,"Wrapped exception:")
     showerror(io,e.error)
@@ -102,7 +102,7 @@ function FunctionCallNotSupported(msg)
 end
 
 """
-  This error indicates that a requested feature is not supported or 
+  This error indicates that a requested feature is not supported or
   is not possible.
   """
 mutable struct FeatureNotSupported <: WrappedODEException
@@ -141,4 +141,3 @@ end
 
 
 # vim:syn=julia:cc=79:fdm=indent:
-

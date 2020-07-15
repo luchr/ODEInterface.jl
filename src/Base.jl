@@ -49,7 +49,7 @@ const LOG_JAC        = UInt64(1)<<7
 """Bitmask: log calls to boundary condition function."""
 const LOG_BC         = UInt64(1)<<8
 
-"""Bitmask: during boundary value problems: 
+"""Bitmask: during boundary value problems:
   log calls to initial value solver."""
 const LOG_BVPIVPSOL  = UInt64(1)<<9
 
@@ -72,7 +72,7 @@ macro import_LOG()
   :(
     using ODEInterface: LOG_NOTHING, LOG_GENERAL, LOG_RHS,
                         LOG_SOLVERARGS, LOG_SOLOUT, LOG_OUTPUTFCN,
-                        LOG_EVALSOL, LOG_MASS, LOG_JAC, LOG_BC, 
+                        LOG_EVALSOL, LOG_MASS, LOG_JAC, LOG_BC,
                         LOG_BVPIVPSOL, LOG_RHSDT, LOG_JACBC,
                         LOG_GUESS,
                         LOG_ALL
@@ -82,12 +82,12 @@ end
 """
        function getVectorCheckLength(vec,T::DataType,d::Integer,copy=true)
                          -> Vector{T}
-  
+
   try to convert to `Vector{T}` and checks given length.
   If the `docopy` argument is `true` then the return value will
   always be a different object than `vec`: If `convert` didn't need to
   create a copy then this is done by this function.
-  
+
   throws ArgumentErrorODE this is not possible.
   """
 function getVectorCheckLength(vec,T::DataType,d::Integer,docopy=true)
@@ -110,12 +110,12 @@ end
 """
        function getMatrixCheckSize(mat,T::DataType,
                     m::Integer,n::Integer,docopy=true) -> Matrix{T}
-  
+
   try to convert to `Matrix{T}' and checks the size.
   if the `docopy` argument is `true` then the return value will
   always be a different object than `mat`: If `convert` didn't need
   to create a copy then this is done by this function.
-  
+
   throws ArgumentErrorODE this is not possible.
   """
 function getMatrixCheckSize(mat,T::DataType,m::Integer,n::Integer,docopy=true)

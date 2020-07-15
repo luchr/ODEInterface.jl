@@ -7,22 +7,22 @@ using Dates
 """macro for importing OptionsODE and option handling."""
 macro import_options()
   :(
-    using ODEInterface: OptionsODE, getOption, setOption!, setOptions!, 
+    using ODEInterface: OptionsODE, getOption, setOption!, setOptions!,
                         copyOptions!
   )
 end
 
 """
   Ancestor for all types storing options for ODE-solvers.
-  
+
   ODE-solvers often have serveral parameters for fine-tuning them.
-  In this ODEInterface this parameters are called 'options' and 
-  they are stored in key/value paris. For the key a 
+  In this ODEInterface this parameters are called 'options' and
+  they are stored in key/value paris. For the key a
   `AbstractString` is used. The value can be `Any`-thing.
   The key is often called the option-name.
-  
+
   All types for this purpose have this abstract type as super-type.
-  
+
   Required fields are: `name`, `lastchanged`, `options`
   """
 abstract type AbstractOptionsODE end
@@ -30,24 +30,24 @@ abstract type AbstractOptionsODE end
 """
   Stores options for ODE-Solver(s) together with a name.
   Additionally the time of the last change is saved.
-  
+
   Options can be set at construction time, e.g.
-  
+
        opt=OptionsODE("test",
                       "loglevel" => ODEInterface.LOG_ALL,
                       "logio"    => stderr)
-  
-  or later. For changing single options 
-  
+
+  or later. For changing single options
+
        oldValue = setOption!(opt,"myopt","new value")
        oldValue = setOption!(opt,"myopt" => "new value")
-  
+
   and for changing many options at once:
-  
+
        oldValues = setOption!(opt,
                    "myopt" => "new value",
                    "oldopt" => 56)
-  
+
   see also: `setOption!`, `setOptions!`
   """
 mutable struct OptionsODE <: AbstractOptionsODE
@@ -61,13 +61,13 @@ mutable struct OptionsODE <: AbstractOptionsODE
   end
 end
 
-function OptionsODE(name::AbstractString,copyOptionsFrom::AbstractOptionsODE) 
+function OptionsODE(name::AbstractString,copyOptionsFrom::AbstractOptionsODE)
   opt = OptionsODE(name)
   copyOptions!(opt,copyOptionsFrom)
   return opt
 end
 
-function OptionsODE(copyOptionsFrom::AbstractOptionsODE) 
+function OptionsODE(copyOptionsFrom::AbstractOptionsODE)
   return OptionsODE("",copyOptionsFrom)
 end
 
@@ -85,7 +85,7 @@ end
      function getOption(opt::AbstractOptionsODE,name::AbstractString,
                         default::Any=nothing)
 
-  get saved value of option with given `name` or `default` 
+  get saved value of option with given `name` or `default`
   if option is unknown.
   """
 function getOption(opt::AbstractOptionsODE,name::AbstractString,
@@ -96,7 +96,7 @@ end
 """
      function setOption!(opt::AbstractOptionsODE,name::AbstractString,value::Any)
 
-  set ODE-Option with given `name` and return old value 
+  set ODE-Option with given `name` and return old value
   (or `nothing` if there was no old value).
   """
 function setOption!(opt::AbstractOptionsODE,name::AbstractString,value::Any)
@@ -109,7 +109,7 @@ end
 """
      function setOption!(opt::AbstractOptionsODE,pair::Pair)
 
-  set ODE-Option with given (`name`,`value`) pair and return old value 
+  set ODE-Option with given (`name`,`value`) pair and return old value
   (or `nothing` if there was no old value).
   """
 function setOption!(opt::AbstractOptionsODE,pair::Pair)
@@ -152,7 +152,7 @@ function show(io::IO, opt::AbstractOptionsODE)
       show(io,opt.options[key]); println(io)
     end
   end
-  print(io,"lasted changed "); show(io,opt.lastchanged); 
+  print(io,"lasted changed "); show(io,opt.lastchanged);
 end
 
 # vim:syn=julia:cc=79:fdm=indent:
