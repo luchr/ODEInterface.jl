@@ -1582,7 +1582,7 @@ end
   of the Fortran-Proxy written for BVP_M-2.
   """
 function help_bvpm2_proxy()
-  src_file = joinpath(guess_path_of_module(), "bvp_m_proxy.f90")
+  src_file = joinpath(@__DIR__, "bvp_m_proxy.f90")
   markdown = ""
   fh = open(src_file, "r")
     while !eof(fh)
