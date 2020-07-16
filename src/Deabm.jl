@@ -53,7 +53,7 @@ mutable struct DdeabmInternalCallInfos{FInt<:FortranInt,
   loglevel     :: UInt64                # log level
   # RHS:
   N            :: FInt                  # Dimension of Problem
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   rhs_count    :: Int                   # count: number of calls to rhs
@@ -154,7 +154,7 @@ end
       ║                 │ The value will be rounded up to a        │         ║
       ║                 │ multiple of 500.                         │         ║
       ║                 │ OPT_MAXSTEPS > 0                         │         ║
-      ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
+      ╚═════════════════╧══════════════════════════════════════════╧═════════╝
 
   """
 function ddeabm(rhs, t0::Real, T::Real,
@@ -176,10 +176,10 @@ end
 const ddeabm_maxnum = 500
 
 """
-       function ddeabm_impl(rhs, 
-               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+       function ddeabm_impl(rhs,
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
                args::DdeabmArguments{FInt}) where FInt<:FortranInt
-  
+
   implementation of ddeabm-call for FInt.
 
   This solver has the conecpt of continuation calls (CC), see
@@ -203,11 +203,11 @@ const ddeabm_maxnum = 500
       ║ OUTPUTFCN_WODENSE │ given vector      │ no   INFO(3)=0     │  C3     ║
       ╠═══════════════════╪═══════════════════╧════════════════════╧═════════╣
       ║ OUTPUTFCN_DENSE   │        N O T    S U P P O R T E D !              ║
-      ╚═══════════════════╧══════════════════════════════════════════════════╝ 
+      ╚═══════════════════╧══════════════════════════════════════════════════╝
 
   """
-function ddeabm_impl(rhs, 
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+function ddeabm_impl(rhs,
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::DdeabmArguments{FInt}) where FInt<:FortranInt
 
   (lio,l,l_g,l_solver,lprefix) = solver_start("ddeabm",rhs,t0,T,x0,opt)
@@ -266,7 +266,7 @@ function ddeabm_impl(rhs,
   args.INFO[3] = (case == 2) ? 1 : 0
   retcode = -100
 
-  cbi = DdeabmInternalCallInfos(lio, l, d, rhs, rhs_mode, rhs_lprefix, 
+  cbi = DdeabmInternalCallInfos(lio, l, d, rhs, rhs_mode, rhs_lprefix,
         0, output_mode, output_fcn, Dict())
 
   args.FCN = unsafe_SLATEC1RHSCallback_c(cbi, FInt(0))
@@ -285,7 +285,7 @@ function ddeabm_impl(rhs,
   end
 
   maxsteps_seen = 0
-  while (true) 
+  while (true)
     told = args.t[1]
     args.tEnd[1] = t_values[1]
     ccall( method_ddeabm, Cvoid,
@@ -377,13 +377,13 @@ end
   See `help_ddeabm_license` for the licsense information.
 
   ### Using `gfortran` and 64bit integers (Linux, Mac and Windows)
-  
+
   Here is an example how to compile DDEABM with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fPIC -fdefault-integer-8 
+       gfortran -c -fPIC -fdefault-integer-8
                 -fdefault-real-8 -fdefault-double-8 -o slatec.o slatec.f
-       gfortran -c -fPIC -fdefault-integer-8 
+       gfortran -c -fPIC -fdefault-integer-8
                 -fdefault-real-8 -fdefault-double-8 -o ddeabm.o ddeabm.f
 
   In order to get create a shared library (from the object file above) use
@@ -408,7 +408,7 @@ end
 push!(solverInfo,
   SolverInfo("ddeabm",
     "Adams-Bashforth-Moulton Predictor-Corrector method (orders: 1-12)",
-    tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE, 
+    tuple(:OPT_RTOL, :OPT_ATOL, :OPT_RHS_CALLMODE,
           :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_OUTPUTATTIMES,
           :OPT_TSTOP, :OPT_MAXSTEPS,

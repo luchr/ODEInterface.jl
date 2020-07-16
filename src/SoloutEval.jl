@@ -8,7 +8,7 @@ macro import_outputfcn()
           OUTPUTFCN_MODE,
           OUTPUTFCN_NEVER, OUTPUTFCN_WODENSE, OUTPUTFCN_DENSE,
           OUTPUTFCN_RETURN_VALUE,
-          OUTPUTFCN_RET_STOP, 
+          OUTPUTFCN_RET_STOP,
           OUTPUTFCN_RET_CONTINUE, OUTPUTFCN_RET_CONTINUE_XCHANGED
   )
 end
@@ -18,19 +18,19 @@ end
 
 @doc """
   Possible reasons for calling the `OPT_OUTPUTFCN`
-  """ 
+  """
 OUTPUTFCN_CALL_REASON
 
-@doc """`OPT_OUTPUTFCN` is called for 1st time.""" 
+@doc """`OPT_OUTPUTFCN` is called for 1st time."""
 OUTPUTFCN_CALL_INIT
 
 @doc """
-  `OPT_OUTPUTFCN` is called after a successfull 
+  `OPT_OUTPUTFCN` is called after a successfull
   integration step
-  """ 
+  """
 OUTPUTFCN_CALL_STEP
 
-@doc """`OPT_OUTPUTFCN` is called for the last time.""" 
+@doc """`OPT_OUTPUTFCN` is called for the last time."""
 OUTPUTFCN_CALL_DONE
 
 @enum(OUTPUTFCN_MODE,
@@ -38,22 +38,22 @@ OUTPUTFCN_CALL_DONE
 
 @doc """Possible mode for calling the `OPT_OUTPUTFCN`.
 
-see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`""" 
+see `OPT_OUTPUTFCN` and `OPT_OUTPUTMODE`"""
 OUTPUTFCN_MODE
 
-@doc """`OPT_OUTPUTFCN` is never called."""  
+@doc """`OPT_OUTPUTFCN` is never called."""
 OUTPUTFCN_NEVER
 
 @doc """
-  `OPT_OUTPUTFCN` is called after every successfull step, 
+  `OPT_OUTPUTFCN` is called after every successfull step,
   but no support for dense output.
   """
 OUTPUTFCN_WODENSE
 
 @doc """
-  `OPT_OUTPUTFCN` is called after every successfull step 
+  `OPT_OUTPUTFCN` is called after every successfull step
   and dense output is supported.
-  """ 
+  """
 OUTPUTFCN_DENSE
 
 @enum(OUTPUTFCN_RETURN_VALUE,
@@ -85,7 +85,7 @@ function output_fcn_donothing(args...)
 end
 
 """
-  (Dummy-)eval_sol_function, throwing an error, telling the caller, 
+  (Dummy-)eval_sol_function, throwing an error, telling the caller,
   that this is the INIT-call of the output function.
   """
 function eval_sol_fcn_init(t)
@@ -97,7 +97,7 @@ function eval_sol_fcn_init(t)
 end
 
 """
-  (Dummy-)eval_sol_function, throwing an error, telling the caller, 
+  (Dummy-)eval_sol_function, throwing an error, telling the caller,
   that no evaluation is possible.
   """
 function eval_sol_fcn_noeval(t)
@@ -109,7 +109,7 @@ function eval_sol_fcn_noeval(t)
 end
 
 """
-  (Dummy-)eval_sol_function, throwing an error, telling the caller, 
+  (Dummy-)eval_sol_function, throwing an error, telling the caller,
   that this is the DONE-call of the output function.
   """
 function eval_sol_fcn_done(t)
@@ -122,16 +122,16 @@ end
 
 """
         function call_julia_output_fcn{CI<:ODEinternalCallInfos}(cbi::CI,
-          reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
+          reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64,
           x::Vector{Float64},eval_sol_fcn::Function)
-  
+
   calls the julia output function with the given arguments.
-  
+
   This is more than a simple call, because this function takes care of
   logging, error-checking, etc.
   """
 function call_julia_output_fcn(cbi::CI,
-  reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64, 
+  reason:: OUTPUTFCN_CALL_REASON, told::Float64,t::Float64,
   x::Vector{Float64},eval_sol_fcn::Function) where CI<:ODEinternalCallInfos
 
   lprefix = "call_julia_output_fcn: "
@@ -145,7 +145,7 @@ function call_julia_output_fcn(cbi::CI,
             " extra_data=",cbi.output_data)
   end
   result = cbi.output_fcn(reason,told,t,x,eval_sol_fcn,cbi.output_data)
-  try 
+  try
     @assert isa(result,OUTPUTFCN_RETURN_VALUE)
   catch e
     throw(OutputErrorODE("Result was not an OUTPUTFCN_RETURN_VALUE",

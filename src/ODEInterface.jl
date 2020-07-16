@@ -1,37 +1,37 @@
 """
   # ODEInterface
-  
-  This julia module provides an interface to solvers for 
+
+  This julia module provides an interface to solvers for
   ordinary differential equations (ODEs) written in Fortran
   for solving initial value problems of the form
-  
+
       x' = rhs(t,x),      x(t₀) = x₀
-  
+
   or (for solvers supporting a "mass matrix" M)
-  
+
       M⋅x' = rhs(t,x),    x(t₀) = x₀.
-  
+
   ## What does "Interface" mean?
-  
+
   This julia module does *not* contain code for solving initial value
   problems, but this module does contain code for interacting with
   compiled Fortran-solvers. That's the reason, why this module is not called
   ODESuite.
-  
+
   ## What solvers are currently supported?
-  
+
   Currently the following Fortran-solvers, written by
   Prof. E. Hairer and Prof. G. Wanner, are supported:
-  
+
   * dopri5: explicit Runge-Kutta method of order 5(4) due to Dormand & Prince
   * dop853: explicit Runge-Kutta method of order 8(5,3) due to Dormand & Prince
   * odex: GBS extrapolation-algorithm based on the explicit midpoint rule
   * radau5: implicit Runge-Kutta method (Radau IIA) of order 5
-  * radau: implicit Runge-Kutta method (Radau IIA) of variable order 
+  * radau: implicit Runge-Kutta method (Radau IIA) of variable order
     between 5 and 13
   * seulex: extrapolation-algorithm based on the linear implicit Euler method
   * rodas: Rosenbrock method of order 4(3) (with possibly singular mass matrix)
-  
+
   see [Software page of Prof. Hairer](http://www.unige.ch/~hairer/software.html).
 
   Additionally the following Fortran-solvers from the
@@ -40,9 +40,9 @@
 
   * ddeabm: Adams-Bashforth-Moulton Predictor-Corrector method (order between 1 and 12)
   * ddebdf: Backward Differentiation Formula (orders between 1 and 5)
-  
+
   The following features of this solvers are supported by this ODEInterface:
-  
+
   * providing an output function (e.g. for dense output or for event location)
     to the solvers
   * providing mass- and jacobi-matrices for the solvers (with support for
@@ -51,10 +51,10 @@
   * support for problems with "special structure", see `help_specialstructure`
 
   Also supported:
-  
+
   * bvpsol: a boundary value problem solver for highly nonlinear two point
     boundary value problems using either a local linear solver or a global
-    sparse linear solver. **Please note: The license for `bvpsol` only 
+    sparse linear solver. **Please note: The license for `bvpsol` only
     covers non commercial use, see [License](./LICENSE.md).**
     written by P. Deuflhard, G. Bader, L. Weimann, see
     [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
@@ -66,9 +66,9 @@
     boundary value ordinary differential equations with defect and global error control.
     Written by J. J. Boisvert, P.H. Muir and R. J. Spiteri, see
     [BVP_M-2 Page](http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml).
-  
+
   ## What are the requirements for this module
-  
+
   In order to use this module, you have to *compile* the supported
   Fortran solvers and provide a shared library for each solver.
   The build-script of this module tries to compile all solvers
@@ -76,19 +76,19 @@
   different compile-time options or compilers). Just call
   `ODEInterface.help_solversupport` for further informations (help topics)
   on how to compile the solvers and how to create shared libraries.
-  
+
   ## Further help
-  
-  see `ODEInterface.help_overview` for an overview of some help topics. 
-  
+
+  see `ODEInterface.help_overview` for an overview of some help topics.
+
   ## Contacting the author of this module
-  
-  The author of this julia module is 
-  
+
+  The author of this julia module is
+
        Dr. Christian Ludwig
        email: ludwig@ma.tum.de
          (Faculty of Mathematics, Technische Universität München)
-  
+
   """
 module ODEInterface
 
@@ -166,10 +166,10 @@ end
 
 """
   Type describing a "variant" of a solver.
-  
+
   What is a variant of a solver? Some solvers support more than one
   forms of dynamic libraries, e.g. with 32bit integers and with 64bit
-  integers. The purpose of this type is to have enough fields for 
+  integers. The purpose of this type is to have enough fields for
   describing such an variant.
   """
 struct SolverVariant
@@ -194,7 +194,7 @@ end
 """
   In this array every (supported) solver appends its SolverInfo-record.
   """
-const solverInfo = Vector{SolverInfo}() 
+const solverInfo = Vector{SolverInfo}()
 
 
 """
@@ -214,23 +214,23 @@ abstract type AbstractODESolution{FInt} end
 macro import_OPTcommon()
   :(
     using ODEInterface:   OPT_LOGIO, OPT_LOGLEVEL, OPT_RHS_CALLMODE,
-                          OPT_RTOL, OPT_ATOL, OPT_MAXSTEPS, OPT_EPS, 
+                          OPT_RTOL, OPT_ATOL, OPT_MAXSTEPS, OPT_EPS,
                           OPT_METHODCHOICE,
                           OPT_OUTPUTFCN, OPT_OUTPUTMODE, OPT_OUTPUTATTIMES,
                           OPT_STEST, OPT_RHO, OPT_SSMINSEL,
                           OPT_SSMAXSEL, OPT_SSBETA, OPT_MAXSS, OPT_INITIALSS,
                           OPT_TSTOP,
-                          OPT_MAXEXCOLUMN, OPT_MAXSTABCHECKS, 
+                          OPT_MAXEXCOLUMN, OPT_MAXSTABCHECKS,
                           OPT_MAXSTABCHECKLINE, OPT_INTERPOLDEGREE,
-                          OPT_ORDERDECFRAC, OPT_ORDERINCFRAC, 
+                          OPT_ORDERDECFRAC, OPT_ORDERINCFRAC,
                           OPT_STEPSIZESEQUENCE,
                           OPT_SSREDUCTION, OPT_SSSELECTPAR1, OPT_SSSELECTPAR2,
-                          OPT_RHO2, OPT_DENSEOUTPUTWOEE, 
+                          OPT_RHO2, OPT_DENSEOUTPUTWOEE,
                           OPT_TRANSJTOH,
                           OPT_MAXNEWTONITER, OPT_NEWTONSTARTZERO,
                           OPT_DIMOFIND1VAR, OPT_DIMOFIND2VAR, OPT_DIMOFIND3VAR,
                           OPT_STEPSIZESTRATEGY, OPT_M1, OPT_M2,
-                          OPT_JACRECOMPFACTOR, OPT_NEWTONSTOPCRIT, 
+                          OPT_JACRECOMPFACTOR, OPT_NEWTONSTOPCRIT,
                           OPT_FREEZESSLEFT, OPT_FREEZESSRIGHT, OPT_MASSMATRIX,
                           OPT_JACOBIMATRIX, OPT_JACOBIBANDSTRUCT,
                           OPT_MAXSTAGES, OPT_MINSTAGES, OPT_INITSTAGES,
@@ -240,7 +240,7 @@ macro import_OPTcommon()
                           OPT_WORKFORRHS, OPT_WORKFORJAC, OPT_WORKFORDEC,
                           OPT_WORKFORSOL, OPT_RHSTIMEDERIV,
                           OPT_BVPCLASS, OPT_SOLMETHOD,
-                          OPT_IVPOPT, 
+                          OPT_IVPOPT,
                           OPT_COLLOCATIONPTS, OPT_SUBINTERVALS,
                           OPT_FREEZEINTERVALS, OPT_DIAGNOSTICOUTPUT,
                           OPT_ADDGRIDPOINTS, OPT_MAXSUBINTERVALS,
@@ -349,11 +349,11 @@ const OPT_SINGULARTERM     = "SingularTerm"
 
 @doc """
   The right-hand side has to return `x'` as Array.
-  
+
   The right-hand side must be a function of the form
-  
+
        funtion (t,x) -> dx
-  
+
   `dx` is a `Vector{Float64}` with the same length as `x`.
   """
 RHS_CALL_RETURNS_ARRAY
@@ -363,20 +363,20 @@ RHS_CALL_RETURNS_ARRAY
   where it has to save the the values of `x'`.
 
   The right-hand side must be a function of the form
-  
+
        funtion (t,x,dx) -> nothing
-  
+
   `dx` is a `Vector{Float64}` with the same length as `x`. In `dx` the
   function has to fill in the values of `x'`.
   """
 RHS_CALL_INSITU
 
 """
-       function extractTOLs(d::Integer, opt::AbstractOptionsODE) 
+       function extractTOLs(d::Integer, opt::AbstractOptionsODE)
               -> (scalarFlag,rtol,atol)
-  
+
   extract `OPT_RTOL` and `OPT_ATOL` and convert to `Vector{Float64}`.
-  
+
   Supports scalar `OPT_RTOL` and `OPT_ATOL` and converts them to a
   `Vector{Float64}` of length 1.
 
@@ -415,9 +415,9 @@ end
 
 """
        function extractLogOptions(opt::AbstractOptionsODE) -> (lio, lev)
-  
+
   Extract options for logging.
-  
+
   throws ArgumentErrorODE if logio is not an IO or
   if loglevel is not convertable to UInt64.
 
@@ -439,7 +439,7 @@ function extractLogOptions(opt::AbstractOptionsODE)
 end
 
 """
-       function extractOutputFcn(opt::AbstractOptionsODE) 
+       function extractOutputFcn(opt::AbstractOptionsODE)
               -> (output_mode, output_fcn)
 
   reads options: `OPT_OUTPUTMODE`, `OPT_OUTPUTFCN`
@@ -447,24 +447,24 @@ end
 function extractOutputFcn(opt::AbstractOptionsODE)
   OPT = nothing
   output_mode = OUTPUTFCN_NEVER; output_fcn = output_fcn_donothing
-  try 
+  try
     OPT = OPT_OUTPUTMODE; output_mode = getOption(opt,OPT,OUTPUTFCN_NEVER)
     @assert isa(output_mode,OUTPUTFCN_MODE)
-    
+
     if output_mode ≠ OUTPUTFCN_NEVER
-      OPT = OPT_OUTPUTFCN; 
+      OPT = OPT_OUTPUTFCN;
       output_fcn = getOption(opt,OPT,nothing)
       @assert isa(output_fcn,Function)
     end
   catch e
     throw(ArgumentErrorODE("Option '$OPT' invalid",:opt,e))
   end
-  
+
   return (output_mode,output_fcn)
 end
 
 """
-       function solver_init(solver_name::AbstractString, 
+       function solver_init(solver_name::AbstractString,
                             opt::AbstractOptionsODE)
           ->  (lio,l,l_g,l_solver,lprefix)
 
@@ -478,17 +478,17 @@ function solver_init(solver_name::AbstractString, opt::AbstractOptionsODE)
 end
 
 """
-       function solver_start(solver_name::AbstractString, rhs, 
+       function solver_start(solver_name::AbstractString, rhs,
                    t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
           ->  (lio,l,l_g,l_solver,lprefix)
-  
+
   initialization for a (typical) solver call/start.
 
   reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
   """
-function solver_start(solver_name::AbstractString, rhs, 
+function solver_start(solver_name::AbstractString, rhs,
             t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE)
-  
+
   (lio,l,l_g,l_solver,lprefix) = solver_init(solver_name,opt)
 
   if l_g
@@ -496,14 +496,14 @@ function solver_start(solver_name::AbstractString, rhs,
       "called with rhs=",rhs," t0=",t0," T=",T," x0=",x0," and opt")
     show(lio,opt); println(lio)
   end
-  
+
   return (lio,l,l_g,l_solver,lprefix)
 end
 
 """
        function solver_extract_rhsMode(opt::AbstractOptionsODE)
                    -> rhs_mode
-  
+
   reads options: `OPT_RHS_CALLMODE`
   """
 function solver_extract_rhsMode(opt::AbstractOptionsODE)
@@ -517,20 +517,20 @@ function solver_extract_rhsMode(opt::AbstractOptionsODE)
 end
 
 """
-       function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector, 
-                    opt::AbstractOptionsODE, 
+       function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector,
+                    opt::AbstractOptionsODE,
                     args::AbstractArgumentsODESolver{FInt}) where FInt
          -> (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn)
 
   get d, fill args.N, args.x, args.t, args.tEnd, args.RTOL, args.ATOL
 
-  reads options: `OPT_RTOL`, `OPT_ATOL`, `OPT_RHS_CALLMODE`, 
+  reads options: `OPT_RTOL`, `OPT_ATOL`, `OPT_RHS_CALLMODE`,
   `OPT_OUTPUTMODE`, `OPT_OUTPUTFCN`
   """
-function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector, 
-             opt::AbstractOptionsODE, 
+function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector,
+             opt::AbstractOptionsODE,
              args::AbstractArgumentsODESolver{FInt}) where FInt
-  
+
   d = FInt(0)
   try
     d=convert(FInt,length(x0))
@@ -564,7 +564,7 @@ function solver_extract_commonOpt(t0::Real, T::Real, x0::Vector,
   if output_mode == OUTPUTFCN_NEVER
     nrdense = FInt(0);
   else
-    nrdense = d; 
+    nrdense = d;
   end
 
   return (d,nrdense,scalarFlag,rhs_mode,output_mode,output_fcn)

@@ -29,7 +29,7 @@ end
 
 """
   Type encapsulating all required data for Odex-Solver-Callbacks.
-  
+
   We have the typical calling stack:
 
        odex
@@ -55,7 +55,7 @@ mutable struct OdexInternalCallInfos{FInt<:FortranInt,
   logio        :: IO                    # where to log
   loglevel     :: UInt64                # log level
   # RHS:
-  rhs          :: RHS_F                 # right-hand-side 
+  rhs          :: RHS_F                 # right-hand-side
   rhs_mode     :: RHS_CALL_MODE         # how to call rhs
   rhs_lprefix  :: AbstractString        # saved log-prefix for rhs
   # SOLOUT & output function
@@ -63,7 +63,7 @@ mutable struct OdexInternalCallInfos{FInt<:FortranInt,
   output_fcn   :: OUT_F                 # the output function to call
   output_data  :: Dict                  # extra_data for output_fcn
   out_lprefix  :: AbstractString        # saved log-prefix for solout
-  eval_sol_fcn :: Function              # eval_sol_fcn 
+  eval_sol_fcn :: Function              # eval_sol_fcn
   eval_lprefix :: AbstractString        # saved log-prefix for eval_sol
   tOld         :: Float64               # tOld and
   tNew         :: Float64               # tNew and
@@ -78,9 +78,9 @@ end
 
 """
        mutable struct OdexArguments{FInt} <: AbstractArgumentsODESolver{FInt}
-  
+
   Stores Arguments for Odex solver.
-  
+
   FInt is the Integer type used for the fortran compilation.
   """
 mutable struct OdexArguments{FInt<:FortranInt} <: AbstractArgumentsODESolver{FInt}
@@ -110,37 +110,37 @@ end
 
 """
        function unsafe_odexSoloutCallback(
-               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-               x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
-               ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-               rpar_::Ptr{Float64}, cbi::CI, 
+               nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+               x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
+               ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt},
+               rpar_::Ptr{Float64}, cbi::CI,
                irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                          CI<:OdexInternalCallInfos}
-  
+
   This is the solout given as callback to Fortran-odex.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
 
   This function saves the state informations of the solver in
   `OdexInternalCallInfos`, where they can be found by
   the `eval_sol_fcn`, see `create_odex_eval_sol_fcn_closure`.
-  
+
   Then the user-supplied `output_fcn` is called (which in turn can use
   `eval_sol_fcn`, to evalutate the solution at intermediate points).
-  
+
   The return value of the `output_fcn` is propagated to `ODEX_`.
-  
+
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
 function unsafe_odexSoloutCallback(
-        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64}, 
-        x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64}, 
-        ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt}, 
-        rpar_::Ptr{Float64}, cbi::CI, 
+        nr_::Ptr{FInt}, told_::Ptr{Float64}, t_::Ptr{Float64},
+        x_::Ptr{Float64}, n_::Ptr{FInt}, con_::Ptr{Float64},
+        ncon_::Ptr{FInt}, icomp_::Ptr{FInt}, nd_::Ptr{FInt},
+        rpar_::Ptr{Float64}, cbi::CI,
         irtrn_::Ptr{FInt}) where {FInt<:FortranInt,
                                   CI<:OdexInternalCallInfos}
-  
+
   nr = unsafe_load(nr_); told = unsafe_load(told_); t = unsafe_load(t_)
   n = unsafe_load(n_)
   x = unsafe_wrap(Array, x_, (n,), own=false)
@@ -151,12 +151,12 @@ function unsafe_odexSoloutCallback(
 
   l_sol && println(lio,lprefix,"called with nr=",nr," told=",told,
                                " t=",t," x=",x)
-  
+
   cbi.tOld = told; cbi.tNew = t; cbi.xNew = x;
   cbi.cont_con = con_; cbi.cont_ncon = ncon_; cbi.cont_icomp = icomp_;
   cbi.cont_nd = nd_;
   cbi.output_data["nr"] = nr
-  
+
   ret = call_julia_output_fcn(cbi,OUTPUTFCN_CALL_STEP,told,t,x,
                               cbi.eval_sol_fcn)
   if      ret == OUTPUTFCN_RET_STOP
@@ -169,30 +169,30 @@ function unsafe_odexSoloutCallback(
   else
     throw(InternalErrorODE(string("Unkown ret=",ret," of output function")))
   end
-  
+
   return nothing
 end
 
 """
-       function unsafe_odexSoloutCallback_c(cbi::CI, 
+       function unsafe_odexSoloutCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
   """
-function unsafe_odexSoloutCallback_c(cbi::CI, 
+function unsafe_odexSoloutCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
-  return @cfunction(unsafe_odexSoloutCallback, Cvoid, (Ptr{FInt}, 
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
+  return @cfunction(unsafe_odexSoloutCallback, Cvoid, (Ptr{FInt},
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
     Ptr{FInt}, Ptr{Float64}, Ptr{FInt},
-    Ptr{FInt}, Ptr{FInt}, Ptr{Float64}, 
+    Ptr{FInt}, Ptr{FInt}, Ptr{Float64},
     Ref{CI}, Ptr{FInt}))
 end
 
 """
-       function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+       function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
                method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                                 CI<:OdexInternalCallInfos}
-  
+
   generates a eval_sol_fcn for odex.
-  
+
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTEX_` (with `ccall`).
   But `CONTEX_` needs the informations for the current state. This
@@ -200,7 +200,7 @@ end
   `OdexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
   Here comes `create_odex_eval_sol_fcn_closure` into play: this function
   takes the call informations and generates a `eval_sol_fcn` with this data.
-  
+
   Why doesn't `unsafe_odexSoloutCallback` generate a closure (then
   the current state needs not to be saved in `OdexInternalCallInfos`)?
   Because then every call to `unsafe_odexSoloutCallback` would have
@@ -210,10 +210,10 @@ end
 
   For the typical calling sequence, see `OdexInternalCallInfos`.
   """
-function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt, 
+function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
         method_contex::Ptr{Cvoid}) where {FInt<:FortranInt,
                                          CI<:OdexInternalCallInfos}
-  
+
   function eval_sol_fcn_closure(s::Float64)
     (lio,l,lprefix)=(cbi.logio,cbi.loglevel,cbi.eval_lprefix)
     l_eval = l & LOG_EVALSOL>0
@@ -228,13 +228,13 @@ function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
       for k = 1:d
         cbi.cont_i[1] = k
         result[k] = ccall(method_contex,Float64,
-          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, 
+          (Ptr{FInt}, Ptr{Float64}, Ptr{Float64}, Ptr{FInt},
            Ptr{FInt}, Ptr{FInt},),
           cbi.cont_i,cbi.cont_s, cbi.cont_con, cbi.cont_ncon,
           cbi.cont_icomp, cbi.cont_nd)
       end
     end
-    
+
     l_eval && println(lio,lprefix,"contex returned ",result)
     return result
   end
@@ -242,7 +242,7 @@ function create_odex_eval_sol_fcn_closure(cbi::CI, d::FInt,
 end
 
 """
-       function odex(rhs, t0::Real, T::Real, 
+       function odex(rhs, t0::Real, T::Real,
                      x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
 
@@ -251,10 +251,10 @@ end
         1: computation successful
         2: computation. successful, but interrupted by output function
        -1: error
-  
+
   main call for using Fortran-odex solver. In `opt` the following
   options are used:
-  
+
       ╔═════════════════╤══════════════════════════════════════════╤═════════╗
       ║  Option OPT_…   │ Description                              │ Default ║
       ╠═════════════════╪══════════════════════════════════════════╪═════════╣
@@ -333,7 +333,7 @@ end
       ╟─────────────────┼──────────────────────────────────────────┼─────────╢
       ║ OPT_RHO      &  │ safety factors for step control algorithm│    0.94 ║
       ║ OPT_RHO2        │ hnew=h*RHO*(RHO2*TOL/ERR)^(1/(k-1) )     │    0.65 ║
-      ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
+      ╚═════════════════╧══════════════════════════════════════════╧═════════╝
 
   """
 function odex(rhs, t0::Real, T::Real,
@@ -352,18 +352,18 @@ end
 
 
 """
-       function odex_impl(rhs, 
-               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+       function odex_impl(rhs,
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
                args::OdexArguments{FInt}) where {FInt<:FortranInt}
-  
+
   implementation of odex for FInt.
   """
-function odex_impl(rhs, 
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+function odex_impl(rhs,
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::OdexArguments{FInt}) where {FInt<:FortranInt}
-  
+
   (lio,l,l_g,l_solver,lprefix) = solver_start("odex",rhs,t0,T,x0,opt)
-  
+
   (method_odex, method_contex) = getAllMethodPtrs(
      (FInt == Int64) ? DL_ODEX : DL_ODEX_I32 )
 
@@ -373,7 +373,7 @@ function odex_impl(rhs,
   args.ITOL = [ scalarFlag ? 0 : 1 ]
   args.IOUT = [ FInt( output_mode == OUTPUTFCN_NEVER ? 0 :
                      (output_mode == OUTPUTFCN_DENSE ? 2 : 1) )]
-  
+
   OPT = nothing; KM = FInt(0)
   try
     OPT=OPT_MAXEXCOLUMN; KM=convert(FInt,getOption(opt,OPT,9))
@@ -396,39 +396,39 @@ function odex_impl(rhs,
     OPT=OPT_MAXSTEPS; args.IWORK[1] = convert(FInt,getOption(opt,OPT,10000))
     @assert 0 < args.IWORK[1]
     args.IWORK[2] = KM
-    
+
     OPT = OPT_STEPSIZESEQUENCE
     args.IWORK[3] = convert(FInt,getOption(opt,OPT,
       output_mode == OUTPUTFCN_DENSE ? 4 : 1))
     @assert 1 ≤ args.IWORK[3] ≤ 5
-    
+
     OPT=OPT_MAXSTABCHECKS; args.IWORK[4] = convert(FInt,getOption(opt,OPT,1))
-    
+
     OPT = OPT_MAXSTABCHECKLINE
     args.IWORK[5] = convert(FInt,getOption(opt,OPT,1))
-    
+
     OPT = OPT_DENSEOUTPUTWOEE
     supp_flag = convert(Bool,getOption(opt,OPT,false))
     args.IWORK[6] = FInt( supp_flag ? 1 : 0 )
     @assert !supp_flag || (supp_flag && output_mode == OUTPUTFCN_DENSE)
-    
+
     OPT = OPT_INTERPOLDEGREE
     args.IWORK[7] = convert(FInt,getOption(opt,OPT,4))
     @assert 1 ≤ args.IWORK[7] ≤ 6
-    
+
     args.IWORK[8] = nrdense
-    
+
     # fill WORK
     OPT=OPT_EPS; args.WORK[1]=convert(Float64,getOption(opt,OPT,2.3e-16))
     @assert 1e-35 < args.WORK[1] < 1.0
 
     OPT=OPT_MAXSS; args.WORK[2]=convert(Float64,getOption(opt,OPT,T-t0))
     @assert 0 ≠ args.WORK[2]
-    
+
     OPT=OPT_SSREDUCTION; args.WORK[3]=convert(Float64,getOption(opt,OPT,0.5))
     @assert args.WORK[1] < args.WORK[3] < 1.0
-    
-    OPT = OPT_SSSELECTPAR1; 
+
+    OPT = OPT_SSSELECTPAR1;
     args.WORK[4] = convert(Float64,getOption(opt,OPT,0.02))
     @assert 0 < args.WORK[4]
 
@@ -447,18 +447,18 @@ function odex_impl(rhs,
     OPT = OPT_RHO2
     args.WORK[8] = convert(Float64,getOption(opt,OPT,0.65))
     @assert 0 < args.WORK[8]
-    
+
     OPT = OPT_RHO
     args.WORK[9] = convert(Float64,getOption(opt,OPT,0.94))
     @assert 0 < args.WORK[9]
-    
+
     # H
     OPT = OPT_INITIALSS
     args.H = [ convert(Float64,getOption(opt,OPT,1e-4)) ]
   catch e
     throw(ArgumentErrorODE("Option '$OPT': Not valid",:opt,e))
   end
-  
+
   args.RPAR = zeros(Float64,0)
   args.IDID = zeros(FInt,1)
   rhs_lprefix = "unsafe_HW1RHSCallback: "
@@ -506,7 +506,7 @@ function odex_impl(rhs,
     args.N, args.FCN,
     args.t, args.x, args.tEnd,
     args.H,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.SOLOUT, args.IOUT,
     args.WORK, args.LWORK,
     args.IWORK, args.LIWORK,
@@ -533,7 +533,7 @@ function odex_impl(rhs,
   return ( args.t[1], args.x, args.IDID[1], stats)
 end
 
-"""  
+"""
   ## Compile ODEX
 
   The julia ODEInterface tries to compile and link the solvers
@@ -542,67 +542,67 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_odex_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile ODEX with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o odex.o odex.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
+
        gfortran -shared -fPIC -o odex.so odex.o
        gfortran -shared -fPIC -o odex.dylib odex.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile ODEX with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o odex.o odex.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
+
        gfortran -shared -o odex.dll odex.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile ODEX with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC  
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC
+                -fdefault-real-8 -fdefault-double-8
                 -o odex_i32.o   odex.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
        gfortran -shared -fPIC -o odex_i32.so odex_i32.o
        gfortran -shared -fPIC -o odex_i32.dylib odex_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile ODEX with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
+
        gfortran -c
-                -fdefault-real-8 -fdefault-double-8 
+                -fdefault-real-8 -fdefault-double-8
                 -o odex_i32.o   odex.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o odex_i32.dll odex_i32.o
-  
+
   """
 function help_odex_compile()
   return Docs.doc(help_odex_compile)
@@ -618,8 +618,8 @@ end
 push!(solverInfo,
   SolverInfo("odex",
     "GBS Extrapolation-Algorithm based on the explicit midpoint rule",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
           :OPT_MAXSTEPS, :OPT_EPS, :OPT_MAXS, :OPT_INITIALSS,
           :OPT_MAXEXCOLUMN, :OPT_STEPSIZESEQUENCE, :OPT_MAXSTABCHECKS,
           :OPT_MAXSTABCHECKLINE, :OPT_DENSEOUTPUTWOEE, :OPT_INTERPOLDEGREE,
