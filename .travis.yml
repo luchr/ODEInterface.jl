@@ -8,6 +8,8 @@ julia:
   - 1.0
   - 1.1
   - 1.2
+  - 1.3
+  - 1.4
   - nightly
 addons:
   apt:
@@ -19,7 +21,7 @@ matrix:
 notifications:
   email: false
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then  brew cask uninstall --force oclint || true ; brew install gcc; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then  brew cask uninstall --force oclint || true ; brew list gcc || brew install gcc; fi
 after_success:
   # push coverage results to Coveralls
   - julia -e 'import Pkg; cd(Pkg.dir("ODEInterface")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
