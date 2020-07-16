@@ -93,7 +93,7 @@ end
   """
 function extractSlatecOutputAtTimes(t0, T, opt::AbstractOptionsODE)
   t_values = getOption(opt, OPT_OUTPUTATTIMES, nothing)
-  if t_values === nothing 
+  if t_values === nothing
         t_values = zeros(Float64, 0)
   end
   output_attimes_given = length(t_values)>0
@@ -113,7 +113,7 @@ function extractSlatecOutputAtTimes(t0, T, opt::AbstractOptionsODE)
     if any( x -> sign(x) != s, diff(t_values) )
       throw(ArgumentErrorODE(string("Because sign(T-t0)=sign($T-$t0)=$s ",
         "the vector in OPT_OUTPUTATTIMES has to be ",
-        (T ≥ t0 ? "ascending" : "descending"), 
+        (T ≥ t0 ? "ascending" : "descending"),
         ". But this is not the case."),:opt))
     end
     if s*(t0-t_values[1]) ≥ 0 || s*(t_values[end]-T) ≥ 0
@@ -127,17 +127,17 @@ end
 
 """
        function unsafe_SLATEC1RHSCallback(
-               t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64}, 
+               t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64},
                rpar_::Ptr{Float64}, cbi::CI) where CI<:ODEinternalCallInfos
-  
+
   This is the right-hand side given as callback to SLATEC solvers,
   e.g. ddeabm.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_SLATEC1RHSCallback(
-        t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64}, 
+        t_::Ptr{Float64}, x_::Ptr{Float64}, f_::Ptr{Float64},
         rpar_::Ptr{Float64}, cbi::CI) where CI<:ODEinternalCallInfos
   n = cbi.N
   t = unsafe_load(t_)
@@ -150,13 +150,13 @@ function unsafe_SLATEC1RHSCallback(
 end
 
 """
-       function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
+       function unsafe_SLATEC1RHSCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
 
   This method generates a Pointer to C-callable instructions.
   The two method type parameters `FInt` and `CI` are important:
-  `FInt` is the used Fortran integer type and `CI` is the used 
+  `FInt` is the used Fortran integer type and `CI` is the used
   `ODEinternalCallInfos` *SubType*.
   Because `unsafe_SLATEC1RHSCallback` is a parameterized method,
   special variants are compiled, if `FInt` or `CI` changes.
@@ -165,14 +165,14 @@ end
   calls to such Julia-functions can be resolved at compile-time
   (instead of dynamic calls during run-time).
   """
-function unsafe_SLATEC1RHSCallback_c(cbi::CI, 
+function unsafe_SLATEC1RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
   return @cfunction(unsafe_SLATEC1RHSCallback, Cvoid, (Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 
-function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64}, 
+function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64},
         dfx_::Ptr{Float64}, dfx_rows_::Ptr{FInt}, rpar_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = cbi.N
@@ -205,11 +205,11 @@ function unsafe_SLATEC1JacCallback(t_::Ptr{Float64}, x_::Ptr{Float64},
 end
 
 """
-       function unsafe_SLATEC1JacCallback_c(cbi::CI, 
+       function unsafe_SLATEC1JacCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt, CI}
           -> C-callable function pointer
   """
-function unsafe_SLATEC1JacCallback_c(cbi::CI, 
+function unsafe_SLATEC1JacCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt, CI}
   return @cfunction(unsafe_SLATEC1JacCallback, Cvoid, (Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))

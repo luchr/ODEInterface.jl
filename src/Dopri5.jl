@@ -31,7 +31,7 @@ end
       function dopri5(rhs, t0::Real, T::Real,
                       x0::Vector, opt::AbstractOptionsODE)
            -> (t,x,retcode,stats)
-  
+
   `retcode` can have the following values:
 
         1: computation successful
@@ -40,7 +40,7 @@ end
        -2: larger OPT_MAXSTEPS is needed
        -3: step size becomes too small
        -4: problem is probably stiff (interrupted)
-  
+
   main call for using Fortran-dopri5 solver. In `opt` the following
   options are used:
 
@@ -94,8 +94,8 @@ end
       ║ INITIALSS       │ initial step size                        │     0.0 ║
       ║                 │ if OPT_INITIALSS == 0 then a initial     │         ║
       ║                 │ guess is computed                        │         ║
-      ╚═════════════════╧══════════════════════════════════════════╧═════════╝ 
-  
+      ╚═════════════════╧══════════════════════════════════════════╧═════════╝
+
   """
 function dopri5(rhs, t0::Real, T::Real,
                 x0::Vector, opt::AbstractOptionsODE)
@@ -111,22 +111,22 @@ function dopri5_i32(rhs, t0::Real, T::Real,
 end
 
 """
-       function dopri5_impl(rhs, 
-               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+       function dopri5_impl(rhs,
+               t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
                args::DopriArguments{FInt}) where FInt<:FortranInt
-  
+
   implementation of dopri5 for FInt.
   """
-function dopri5_impl(rhs, 
-        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE, 
+function dopri5_impl(rhs,
+        t0::Real, T::Real, x0::Vector, opt::AbstractOptionsODE,
         args::DopriArguments{FInt}) where FInt<:FortranInt
-  
+
   (lio,l,l_g,l_solver,lprefix) = solver_start("dopri5",rhs,t0,T,x0,opt)
 
   (method_dopri5,method_contd5) = getAllMethodPtrs(
      (FInt == Int64) ? DL_DOPRI5 : DL_DOPRI5_I32 )
 
-  (d,nrdense,rhs_mode,output_mode,output_fcn) = 
+  (d,nrdense,rhs_mode,output_mode,output_fcn) =
     dopri_extract_commonOpt(t0,T,x0,opt,args)
 
   # WORK memory
@@ -209,12 +209,12 @@ function dopri5_impl(rhs,
      Ptr{Cvoid}, Ptr{FInt},                     # Soloutfunc, IOUT
      Ptr{Float64}, Ptr{FInt},                   # WORK, LWORK
      Ptr{FInt}, Ptr{FInt},                      # IWORK, LIWORK
-     Ptr{Float64}, Ref{DopriInternalCallInfos}, # RPAR, IPAR, 
+     Ptr{Float64}, Ref{DopriInternalCallInfos}, # RPAR, IPAR,
      Ptr{FInt},                                 # IDID
     ),
-    args.N, args.FCN, 
+    args.N, args.FCN,
     args.t, args.x, args.tEnd,
-    args.RTOL, args.ATOL, args.ITOL, 
+    args.RTOL, args.ATOL, args.ITOL,
     args.SOLOUT, args.IOUT,
     args.WORK, args.LWORK,
     args.IWORK, args.LIWORK,
@@ -241,8 +241,8 @@ function dopri5_impl(rhs,
   return ( args.t[1], args.x, args.IDID[1], stats)
 end
 
-"""  
-  ## Compile DOPRI5 
+"""
+  ## Compile DOPRI5
 
   The julia ODEInterface tries to compile and link the solvers
   automatically at the build-time of this module. The following
@@ -250,67 +250,67 @@ end
   one wants to change/add some compiler options.
 
   The Fortran source code can be found at:
-  
-       http://www.unige.ch/~hairer/software.html 
-  
+
+       http://www.unige.ch/~hairer/software.html
+
   See `help_dopri5_license` for the licsense information.
-  
+
   ### Using `gfortran` and 64bit integers (Linux and Mac)
-  
+
   Here is an example how to compile DOPRI5 with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fPIC -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fPIC -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dopri5.o dopri5.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
-  
+
        gfortran -shared -fPIC -o dopri5.so dopri5.o
        gfortran -shared -fPIC -o dopri5.dylib dopri5.o
-  
+
   ### Using `gfortran` and 64bit integers (Windows)
-  
+
   Here is an example how to compile DOPRI5 with `Float64` reals and
   `Int64` integers with `gfortran`:
 
-       gfortran -c -fdefault-integer-8 
-                -fdefault-real-8 -fdefault-double-8 
+       gfortran -c -fdefault-integer-8
+                -fdefault-real-8 -fdefault-double-8
                 -o dopri5.o dopri5.f
-  
+
   In order to get create a shared library (from the object file above) use
-  
+
        gfortran -shared -o dopri5.dll dopri5.o
-  
+
   ### Using `gfortran` and 32bit integers (Linux and Mac)
-  
+
   Here is an example how to compile DOPRI5 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
-       gfortran -c -fPIC  
-                -fdefault-real-8 -fdefault-double-8 
+
+       gfortran -c -fPIC
+                -fdefault-real-8 -fdefault-double-8
                 -o dopri5_i32.o   dopri5.f
-  
+
   In order to get create a shared library (from the object file above) use
   one of the forms below (1st for Linux, 2nd for Mac):
 
        gfortran -shared -fPIC -o dopri5_i32.so dopri5_i32.o
        gfortran -shared -fPIC -o dopri5_i32.dylib dopri5_i32.o
-  
+
   ### Using `gfortran` and 32bit integers (Windows)
-  
+
   Here is an example how to compile DOPRI5 with `Float64` reals and
   `Int32` integers with `gfortran`:
-  
+
        gfortran -c
-                -fdefault-real-8 -fdefault-double-8 
+                -fdefault-real-8 -fdefault-double-8
                 -o dopri5_i32.o   dopri5.f
-  
+
   In order to get create a shared library (from the object file above) use:
 
        gfortran -shared -o dopri5_i32.dll dopri5_i32.o
-  
+
   """
 function help_dopri5_compile()
   return Docs.doc(help_dopri5_compile)
@@ -326,10 +326,10 @@ end
 push!(solverInfo,
   SolverInfo("dopri5",
     "Runge-Kutta method of order 5(4) due to Dormand & Prince",
-    tuple(:OPT_RTOL, :OPT_ATOL, 
-          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN, 
-          :OPT_MAXSTEPS, :OPT_STEST, :OPT_EPS, :OPT_RHO, 
-          :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_SSBETA, 
+    tuple(:OPT_RTOL, :OPT_ATOL,
+          :OPT_OUTPUTMODE, :OPT_OUTPUTFCN,
+          :OPT_MAXSTEPS, :OPT_STEST, :OPT_EPS, :OPT_RHO,
+          :OPT_SSMINSEL, :OPT_SSMAXSEL, :OPT_SSBETA,
           :OPT_MAXSS, :OPT_INITIALSS),
     tuple(
       SolverVariant("dopri5_i64",

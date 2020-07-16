@@ -29,38 +29,38 @@ end
 
 """
        function unsafe_HW1RHSCallback(
-               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-               f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64},
+               f_::Ptr{Float64}, rpar_::Ptr{Float64},
                cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
-  
+
   This is the right-hand side given as callback to several Fortran-solvers,
   e.g. dopri5, dop853, odex.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_HW1RHSCallback(
-        n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-        f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+        n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64},
+        f_::Ptr{Float64}, rpar_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
   x = unsafe_wrap(Array, x_, (n,), own=false)
   f = unsafe_wrap(Array, f_, (n,), own=false)
-  
+
   hw1rhs(n,t,x,f,cbi)
   return nothing
 end
 
 """
-       function unsafe_HW1RHSCallback_c(cbi::CI, 
+       function unsafe_HW1RHSCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
 
   This method generates a Pointer to C-callable instructions.
   The two method type parameters `FInt` and `CI` are important:
-  `FInt` is the used Fortran integer type and `CI` is the used 
+  `FInt` is the used Fortran integer type and `CI` is the used
   `ODEinternalCallInfos` *SubType*.
   Because `unsafe_HW1RHSCallback` is a parameterized method,
   special variants are compiled, if `FInt` or `CI` changes.
@@ -69,7 +69,7 @@ end
   calls to such Julia-functions can be resolved at compile-time
   (instead of dynamic calls during run-time).
   """
-function unsafe_HW1RHSCallback_c(cbi::CI, 
+function unsafe_HW1RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
   return @cfunction(unsafe_HW1RHSCallback, Cvoid, (Ptr{FInt},Ptr{Float64},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
@@ -77,21 +77,21 @@ end
 
 """
        function unsafe_HW2RHSCallback(
-               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-               f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+               n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64},
+               f_::Ptr{Float64}, rpar_::Ptr{Float64},
                cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
-  
+
   This is the right-hand side given as callback to Fortran-solvers
-  (e.g. radau5 and radau) that can handle problems with "special structure", 
+  (e.g. radau5 and radau) that can handle problems with "special structure",
   see `help_specialstructure`.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-arguments.
   """
 function unsafe_HW2RHSCallback(
-        n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64}, 
-        f_::Ptr{Float64}, rpar_::Ptr{Float64}, 
+        n_::Ptr{FInt}, t_::Ptr{Float64}, x_::Ptr{Float64},
+        f_::Ptr{Float64}, rpar_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
 
   n = unsafe_load(n_); t = unsafe_load(t_)
@@ -139,25 +139,25 @@ end
 function unsafe_HW2RHSCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
   return @cfunction(unsafe_HW2RHSCallback, Cvoid, (Ptr{FInt},Ptr{Float64},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI})) 
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
 end
 
 """
-       function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64}, 
-               lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+       function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64},
+               lmas_::Ptr{FInt}, rpar_::Ptr{Float64},
                cbi::CI) where {FInt<:FortranInt,CI<:ODEinternalCallInfos}
                 -> nothing
-  
+
   This is the MAS callback given to radau5, radau and seulex.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
-  
-  This function takes the values of  the mass matrix saved in 
+
+  This function takes the values of  the mass matrix saved in
   the InternalCallInfos.
   """
-function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64}, 
-        lmas_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64},
+        lmas_::Ptr{FInt}, rpar_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt,CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   lmas = unsafe_load(lmas_)
@@ -166,7 +166,7 @@ function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64},
 
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_mas = l & LOG_MASS>0
-  
+
   l_mas && println(lio,lprefix,"called with n=",n," lmas=",lmas)
 
   mas = cbi.massmatrix
@@ -180,17 +180,17 @@ function unsafe_HW1MassCallback(n_::Ptr{FInt}, am_::Ptr{Float64},
     @assert (lmas,n) == size(mas)
     am[:] = mas
   end
-  
+
   l_mas && println(lio,lprefix,"am=",am)
   return nothing
 end
 
 """
-       function unsafe_HW1MassCallback_c(cbi::CI, 
+       function unsafe_HW1MassCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HW1MassCallback_c(cbi::CI, 
+function unsafe_HW1MassCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
  return @cfunction(unsafe_HW1MassCallback, Cvoid, (Ptr{FInt},
     Ptr{Float64}, Ptr{FInt}, Ptr{Float64}, Ref{CI}))
@@ -226,15 +226,15 @@ function extractSpecialStructureOpt(
 end
 
 """
-       function extractMassMatrix(M1::FInt, M2::FInt, 
+       function extractMassMatrix(M1::FInt, M2::FInt,
                NM1::FInt, args::AbstractArgumentsODESolver{FInt},
                opt::AbstractOptionsODE) where FInt<:FortranInt
-  
+
   extracts mass matrix and fills `IMAS`, `MLMAS` und `MUMAS` in args.
 
   reads options: `OPT_MASSMATRIX`
   """
-function extractMassMatrix(M1::FInt, M2::FInt, 
+function extractMassMatrix(M1::FInt, M2::FInt,
         NM1::FInt, args::AbstractArgumentsODESolver{FInt},
         opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = nothing
@@ -248,7 +248,7 @@ function extractMassMatrix(M1::FInt, M2::FInt,
       @assert 2==ndims(massmatrix)
       @assert (NM1,NM1,) == size(massmatrix)
       massmatrix = deepcopy(massmatrix)
-      args.IMAS = [1]; 
+      args.IMAS = [1];
       # A BandedMatrix with lower bandwidth == NM1 is treated as full!
       if isa(massmatrix,BandedMatrix) && massmatrix.l == NM1
         massmatrix=full(massmatrix)
@@ -271,21 +271,21 @@ end
 """
        function unsafe_HW1JacCallback(n_::Ptr{FInt},
                t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-               ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+               ldfx_::Ptr{FInt}, rpar_::Ptr{Float64},
                cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
-  
+
   This is the JAC callback given to radau5, radau and seulex.
-  
-  The `unsafe` prefix in the name indicates that no validations are 
+
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
-  
+
   This function calls the user-given Julia function cbi.jacobimatrix
   with the appropriate arguments (depending on M1 and jacobibandstruct).
   """
 function unsafe_HW1JacCallback(n_::Ptr{FInt},
         t_::Ptr{Float64},x_::Ptr{Float64},dfx_::Ptr{Float64},
-        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64}, 
+        ldfx_::Ptr{FInt}, rpar_::Ptr{Float64},
         cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
   n = unsafe_load(n_)
   t = unsafe_load(t_)
@@ -295,7 +295,7 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
   lprefix = cbi.jac_lprefix
   (lio,l)=(cbi.logio,cbi.loglevel)
   l_jac = l & LOG_JAC>0
-  
+
   l_jac && println(lio,lprefix,"called with n=",n," ldfx=",ldfx)
   jac = cbi.jacobimatrix
   jb = cbi.jacobibandstruct
@@ -320,20 +320,20 @@ function unsafe_HW1JacCallback(n_::Ptr{FInt},
       jac(t,x,J...)
     end
   end
-  
+
   l_jac && println(lio,lprefix,"dfx=",M)
   return nothing
 end
 
 """
-       function unsafe_HW1JacCallback_c(cbi::CI, 
+       function unsafe_HW1JacCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HW1JacCallback_c(cbi::CI, 
+function unsafe_HW1JacCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
  return @cfunction(unsafe_HW1JacCallback, Cvoid, (Ptr{FInt},
-    Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, 
+    Ptr{Float64}, Ptr{Float64}, Ptr{Float64},
     Ptr{FInt}, Ptr{Float64}, Ref{CI}))
 end
 
@@ -344,12 +344,12 @@ end
                dfdt_::Ptr{Float64}, rpar_::Ptr{Float64},
                cbi::CI) where {FInt<:FortranInt, CI<:ODEinternalCallInfos}
                 -> nothing
-  
+
   This is the DFX callback given to rodas.
 
-  The `unsafe` prefix in the name indicates that no validations are 
+  The `unsafe` prefix in the name indicates that no validations are
   performed on the `Ptr`-pointers.
-  
+
   This function calls the user-given Julia function cbi.rhstimederiv
   with the appropriate arguments.
   """
@@ -374,11 +374,11 @@ function unsafe_HWRhsTimeDerivCallback(
 end
 
 """
-       function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
+       function unsafe_HWRhsTimeDerivCallback_c(cbi::CI,
                fint_flag::FInt) where {FInt,CI}
           -> C-callable function pointer
   """
-function unsafe_HWRhsTimeDerivCallback_c(cbi::CI, 
+function unsafe_HWRhsTimeDerivCallback_c(cbi::CI,
         fint_flag::FInt) where {FInt,CI}
   return  @cfunction(unsafe_HWRhsTimeDerivCallback, Cvoid, (Ptr{FInt},
     Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ref{CI}))
@@ -387,9 +387,9 @@ end
 """
        function extractJacobiOpt(d::FInt,
                M1::FInt,M2::FInt, NM1::FInt,
-               args::AbstractArgumentsODESolver{FInt}, 
+               args::AbstractArgumentsODESolver{FInt},
                opt::AbstractOptionsODE) where FInt<:FortranInt
-  
+
   extracts jacobi options and
   fills `IJAC`, `MLJAC` and `MUJAC` in args.
 
@@ -397,7 +397,7 @@ end
   """
 function extractJacobiOpt(d::FInt,
         M1::FInt,M2::FInt, NM1::FInt,
-        args::AbstractArgumentsODESolver{FInt}, 
+        args::AbstractArgumentsODESolver{FInt},
         opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = nothing
   jacobimatrix = nothing
@@ -406,13 +406,13 @@ function extractJacobiOpt(d::FInt,
     OPT = OPT_JACOBIMATRIX
     jacobimatrix = getOption(opt,OPT,nothing)
     # @assert (jacobimatrix === nothing) || isa(jacobimatrix,Function)
-    
+
     OPT = OPT_JACOBIBANDSTRUCT
     bs = getOption(opt, OPT, nothing)
-    
+
     if bs !== nothing
       jacobibandstruct = ( convert(FInt,bs[1]), convert(FInt,bs[2]) )
-      if jacobibandstruct[1] == NM1 
+      if jacobibandstruct[1] == NM1
         # A BandedMatrix with lower bandwidth == NM1 is treated as full!
         jacobibandstruct = nothing
       end
@@ -427,7 +427,7 @@ function extractJacobiOpt(d::FInt,
     throw(ArgumentErrorODE("Option '$OPT': Not valid", :opt, e))
   end
 
-  args.IJAC = [ jacobimatrix === nothing ? 0 : 1] 
+  args.IJAC = [ jacobimatrix === nothing ? 0 : 1]
   args.MLJAC = [ jacobibandstruct === nothing ? d : jacobibandstruct[1]  ];
   args.MUJAC=[ jacobibandstruct === nothing ? d : jacobibandstruct[2] ]
   jac_lprefix = "unsafe_HW1JacCallback: "
@@ -436,15 +436,15 @@ end
 
 """
        function extractRhsTimeDerivOpt(
-               args::AbstractArgumentsODESolver{FInt}, 
+               args::AbstractArgumentsODESolver{FInt},
                opt::AbstractOptionsODE) where FInt<:FortranInt
-  
-  extracts options for callback function for time-derivatives 
+
+  extracts options for callback function for time-derivatives
   of the right-hand-side and
   fills `IDFX` in args.
   """
 function extractRhsTimeDerivOpt(
-        args::AbstractArgumentsODESolver{FInt}, 
+        args::AbstractArgumentsODESolver{FInt},
         opt::AbstractOptionsODE) where FInt<:FortranInt
   OPT = OPT_RHSTIMEDERIV
   rhstimederiv = nothing
@@ -462,34 +462,34 @@ end
 
 """
   ## License
-  
+
   This is the license text, which can also be found at
-  
+
        http://www.unige.ch/~hairer/prog/licence.txt
-  
+
   Copyright (c) 2004, Ernst Hairer
-  
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
-  
-  - Redistributions of source code must retain the above copyright 
+
+  - Redistributions of source code must retain the above copyright
   notice, this list of conditions and the following disclaimer.
-  
-  - Redistributions in binary form must reproduce the above copyright 
-  notice, this list of conditions and the following disclaimer in the 
+
+  - Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
-  
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS 
-  IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
-  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR 
-  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS
+  IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   """
 const hw_license = nothing
