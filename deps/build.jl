@@ -148,8 +148,8 @@ end
 
 function build_bvpsol(path::AbstractString)
   options = Dict(
-    "add_flags_i64" => ["-w", ],
-    "add_flags_i32" => ["-w", ],
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
   )
   compile_gfortran(path,"bvpsol", options)
   compile_gfortran(path,"linalg_bvpsol")
