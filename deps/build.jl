@@ -10,6 +10,10 @@ obj_files = []
 verbose_key = "ODEINTERFACE_VERBOSE"
 verbose = haskey(ENV, verbose_key) && 
           length(ENV[verbose_key])>0 ? true : false
+build_script_key = "ODEINTERFACE_BUILD_SCRIPT"
+build_script = get(ENV, build_script_key, nothing)
+build_script_io = nothing
+
 gfortran = nothing
 
 function search_prog(progname::AbstractString)
@@ -25,6 +29,28 @@ function search_prog(progname::AbstractString)
     end
   end
   return output
+end
+
+function build_script_write_cmd(cmd)
+  if build_script_io != nothing
+    cmd_to_str = string(cmd)
+    write(build_script_io, cmd_to_str[2:end-1])
+    write(build_script_io, "\n");
+    return true
+  else
+    return false
+  end
+end
+
+function build_script_write_headline(headline)
+  if build_script_io != nothing
+    write(build_script_io, "\n# ")
+    write(build_script_io, headline)
+    write(build_script_io, "\n")
+    return true
+  else
+    return false
+  end
 end
 
 function compile_gfortran(path::AbstractString, basename::AbstractString,
@@ -48,7 +74,9 @@ function compile_gfortran(path::AbstractString, basename::AbstractString,
       cmd_i64 = `"$gfortran"  $comp_flags $flags_i64 -o $ofile  $ffile` 
     end
     verbose && println(cmd_i64)
-    run(cmd_i64)
+    if ! build_script_write_cmd(cmd_i64)
+      run(cmd_i64)
+    end
     push!(obj_files,ofile)
   end
 
@@ -60,7 +88,9 @@ function compile_gfortran(path::AbstractString, basename::AbstractString,
       cmd_i32 = `"$gfortran"  $comp_flags $flags_i32 -o $ofile  $ffile`
     end
     verbose && println(cmd_i32)
-    run(cmd_i32)
+    if ! build_script_write_cmd(cmd_i32)
+      run(cmd_i32)
+    end
     push!(obj_files,ofile)
   end
 
@@ -79,7 +109,9 @@ function link_gfortran(path::AbstractString, basenames, options::Dict=Dict())
       cmd_i64 = `"$gfortran" $link_flags -o $sofile $i64_obj`
     end
     verbose && println(cmd_i64)
-    run(cmd_i64)
+    if ! build_script_write_cmd(cmd_i64)
+      run(cmd_i64)
+    end
   end
 
   if get(options, "build_i32", true)
@@ -91,19 +123,22 @@ function link_gfortran(path::AbstractString, basenames, options::Dict=Dict())
       cmd_i32 = `"$gfortran" $link_flags -o $sofile $i32_obj`
     end
     verbose && println(cmd_i32)
-    run(cmd_i32)
+    if ! build_script_write_cmd(cmd_i32)
+      run(cmd_i32)
+    end
   end
   return nothing
 end
 
 function del_obj_files()
   for name in obj_files
-    rm(name)
+    rm(name; force=true)
   end
   return nothing
 end
 
 function build_dopri(path::AbstractString)
+  build_script_write_headline("dopri")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -117,6 +152,7 @@ function build_dopri(path::AbstractString)
 end
 
 function build_odex(path::AbstractString)
+  build_script_write_headline("odex")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -127,6 +163,7 @@ function build_odex(path::AbstractString)
 end
 
 function compile_lapack(path::AbstractString)
+  build_script_write_headline("lapack")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -138,6 +175,7 @@ function compile_lapack(path::AbstractString)
 end
 
 function build_radau(path::AbstractString)
+  build_script_write_headline("radau")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -151,6 +189,7 @@ function build_radau(path::AbstractString)
 end
 
 function build_seulex(path::AbstractString)
+  build_script_write_headline("seulex")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -161,6 +200,7 @@ function build_seulex(path::AbstractString)
 end
 
 function build_rodas(path::AbstractString)
+  build_script_write_headline("rodas")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -171,6 +211,7 @@ function build_rodas(path::AbstractString)
 end
 
 function build_bvpsol(path::AbstractString)
+  build_script_write_headline("bvpsol")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -189,6 +230,7 @@ function build_bvpsol(path::AbstractString)
 end
 
 function compile_slatec(path::AbstractString)
+  build_script_write_headline("slatec")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -227,6 +269,7 @@ function compile_slatec(path::AbstractString)
 end
 
 function build_ddeabm(path::AbstractString)
+  build_script_write_headline("ddeabm")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -241,6 +284,7 @@ function build_ddeabm(path::AbstractString)
 end
 
 function build_ddebdf(path::AbstractString)
+  build_script_write_headline("ddebdf")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -256,6 +300,7 @@ function build_ddebdf(path::AbstractString)
 end
 
 function build_colnew(path::AbstractString)
+  build_script_write_headline("colnew")
   options = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "add_flags_i32" => ["-w", "-std=legacy"],
@@ -266,6 +311,7 @@ function build_colnew(path::AbstractString)
 end
 
 function build_bvpm2(path::AbstractString)
+  build_script_write_headline("bvpm2")
   opt = Dict(
     "add_flags_i64" => ["-w", "-std=legacy"],
     "build_i32"      => false)
@@ -284,33 +330,47 @@ function build_bvpm2(path::AbstractString)
   link_gfortran(path, ["bvp_m_proxy", "bvp_m-2", "bvp_la-2"], opt)
 end
 
-# test for gfortran
-gfortran = search_prog("gfortran")
-if isempty(gfortran)
-  error("Currently only gfortran is supported.")
+if build_script != nothing
+  # write build script; do not call any program
+  build_script_io = open(build_script, "w")
+  gfortran = "gfortran"
+  dir_of_src = "./"
+else
+  # test for gfortran
+  gfortran = search_prog("gfortran")
+  if isempty(gfortran)
+    error("Currently only gfortran is supported.")
+  end
+  dir_of_this_file = dirname(@__FILE__)
+  dir_of_src = normpath(joinpath(dir_of_this_file, "..", "src"))
+  if !isdir(dir_of_src)
+    error(string("Cannot find src directory. I tried: ", dir_of_src))
+  end
 end
 
-dir_of_this_file = dirname(@__FILE__)
-dir_of_src = normpath(joinpath(dir_of_this_file,"..","src"))
-if !isdir(dir_of_src)
-  error(string("Cannot find src directory. I tried: ",dir_of_src))
+try
+
+  build_dopri(dir_of_src)
+  build_odex(dir_of_src)
+  compile_lapack(dir_of_src)
+  build_radau(dir_of_src)
+  build_seulex(dir_of_src)
+  build_rodas(dir_of_src)
+
+  compile_slatec(dir_of_src)
+  build_ddeabm(dir_of_src)
+  build_ddebdf(dir_of_src)
+
+  build_bvpsol(dir_of_src)
+  build_colnew(dir_of_src)
+  build_bvpm2(dir_of_src)
+
+  del_obj_files()
+
+finally
+  if build_script_io != nothing
+    close(build_script_io)
+  end
 end
-
-build_dopri(dir_of_src)
-build_odex(dir_of_src)
-compile_lapack(dir_of_src)
-build_radau(dir_of_src)
-build_seulex(dir_of_src)
-build_rodas(dir_of_src)
-
-compile_slatec(dir_of_src)
-build_ddeabm(dir_of_src)
-build_ddebdf(dir_of_src)
-
-build_bvpsol(dir_of_src)
-build_colnew(dir_of_src)
-build_bvpm2(dir_of_src)
-
-del_obj_files()
 
 # vim:syn=julia:cc=79:fdm=indent:
