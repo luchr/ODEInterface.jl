@@ -104,44 +104,68 @@ function del_obj_files()
 end
 
 function build_dopri(path::AbstractString)
-  compile_gfortran(path,"dopri5")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"dopri5", options)
   link_gfortran(path,["dopri5"])
 
-  compile_gfortran(path,"dop853")
+  compile_gfortran(path,"dop853", options)
   link_gfortran(path,["dop853"])
   return nothing
 end
 
 function build_odex(path::AbstractString)
-  compile_gfortran(path,"odex")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"odex", options)
   link_gfortran(path,["odex"])
   return nothing
 end
 
 function compile_lapack(path::AbstractString)
-  compile_gfortran(path,"dc_lapack")
-  compile_gfortran(path,"lapack")
-  compile_gfortran(path,"lapackc")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"dc_lapack", options)
+  compile_gfortran(path,"lapack", options)
+  compile_gfortran(path,"lapackc", options)
   return nothing
 end
 
 function build_radau(path::AbstractString)
-  compile_gfortran(path,"radau5")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"radau5", options)
   link_gfortran(path,["radau5","dc_lapack","lapack","lapackc"])
 
-  compile_gfortran(path,"radau")
+  compile_gfortran(path,"radau", options)
   link_gfortran(path,["radau","dc_lapack","lapack","lapackc"])
   return nothing
 end
 
 function build_seulex(path::AbstractString)
-  compile_gfortran(path,"seulex")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"seulex", options)
   link_gfortran(path,["seulex","dc_lapack","lapack","lapackc"])
   return nothing
 end
 
 function build_rodas(path::AbstractString)
-  compile_gfortran(path,"rodas")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"rodas", options)
   link_gfortran(path,["rodas","dc_lapack","lapack","lapackc"])
   return nothing
 end
@@ -152,9 +176,9 @@ function build_bvpsol(path::AbstractString)
     "add_flags_i32" => ["-w", "-std=legacy"],
   )
   compile_gfortran(path,"bvpsol", options)
-  compile_gfortran(path,"linalg_bvpsol")
-  compile_gfortran(path,"zibconst")
-  compile_gfortran(path,"ma28_bvpsol")
+  compile_gfortran(path,"linalg_bvpsol", options)
+  compile_gfortran(path,"zibconst", options)
+  compile_gfortran(path,"ma28_bvpsol", options)
   link_gfortran(path,
     ["bvpsol","linalg_bvpsol","zibconst","ma28_bvpsol"])
   println("\n\n!!! bvpsol: only non commercial use !!!")
@@ -165,7 +189,11 @@ function build_bvpsol(path::AbstractString)
 end
 
 function compile_slatec(path::AbstractString)
-  compile_gfortran(path,"slatec")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"slatec", options)
   # compile_gfortran(path,"d1mach")
   # compile_gfortran(path,"daxpy")
   # compile_gfortran(path,"dcfod")
@@ -199,7 +227,11 @@ function compile_slatec(path::AbstractString)
 end
 
 function build_ddeabm(path::AbstractString)
-  compile_gfortran(path,"ddeabm")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"ddeabm", options)
 
   link_gfortran(path,["ddeabm", "slatec"])
   # link_gfortran(path,["ddeabm",
@@ -209,7 +241,11 @@ function build_ddeabm(path::AbstractString)
 end
 
 function build_ddebdf(path::AbstractString)
-  compile_gfortran(path,"ddebdf")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path,"ddebdf", options)
 
   link_gfortran(path,["ddebdf", "slatec"])
   # link_gfortran(path,["ddebdf",
@@ -230,15 +266,19 @@ function build_colnew(path::AbstractString)
 end
 
 function build_bvpm2(path::AbstractString)
-  opt = Dict("build_i32"      => false)
+  opt = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "build_i32"      => false)
   proxy_options = Dict(
     "file_extension" => ".f90",
     "build_i32"      => false,
-    "add_flags_i64"  => [ "-Wall", "-Wextra", "-Wimplicit-interface" ],
+    "add_flags_i64"  => [
+      "-Wall", "-Wextra", "-Wimplicit-interface", "-std=f2008"],
   )
   compile_gfortran(path, "bvp_la-2", opt)
   compile_gfortran(path, "bvp_m-2", Dict(
     "file_extension" => ".f90",
+    "add_flags_i64"  => [ "-std=f2008" ],
     "build_i32"      => false,))
   compile_gfortran(path, "bvp_m_proxy", proxy_options)
   link_gfortran(path, ["bvp_m_proxy", "bvp_m-2", "bvp_la-2"], opt)
