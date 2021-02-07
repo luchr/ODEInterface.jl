@@ -12,6 +12,9 @@ verbose = haskey(ENV, verbose_key) &&
           length(ENV[verbose_key])>0 ? true : false
 build_script_key = "ODEINTERFACE_BUILD_SCRIPT"
 build_script = get(ENV, build_script_key, nothing)
+if build_script == ""
+  build_script = nothing
+end
 build_script_io = nothing
 
 gfortran = nothing
@@ -319,7 +322,7 @@ function build_bvpm2(path::AbstractString)
     "file_extension" => ".f90",
     "build_i32"      => false,
     "add_flags_i64"  => [
-      "-Wall", "-Wextra", "-Wimplicit-interface", "-std=f2008"],
+      "-Wall", "-Wextra", "-Wimplicit-interface", "-std=f2008ts"],
   )
   compile_gfortran(path, "bvp_la-2", opt)
   compile_gfortran(path, "bvp_m-2", Dict(
