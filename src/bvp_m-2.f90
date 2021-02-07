@@ -334,7 +334,7 @@
 
     ! Memory to store deferred-correction residual 
     DOUBLE PRECISION, ALLOCATABLE, DIMENSION (:) :: H_PHI !Holds Residual for 
-										    !deferred-corrections approach
+                                                                                    !deferred-corrections approach
     !For Weight Matrices
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: W12,W3
 
@@ -574,24 +574,24 @@
             G_STOP_ON_FAIL = .TRUE.
         ENDIF
     
-        !	Mesh selection strategy
+        !       Mesh selection strategy
         IF (PRESENT(ERROR_CONTROL)) THEN
             IF (ERROR_CONTROL >= 1 .AND. ERROR_CONTROL <=4 ) THEN
-            	USE_MESH_STRAT= ERROR_CONTROL
+                USE_MESH_STRAT= ERROR_CONTROL
             ELSE
-            	PRINT *, "Please choose an error control method between 1 and 4"
-            	PRINT *, "where: "
-            	PRINT *, "1: Defect control"
-            	PRINT *, "2: Global error control"
-            	PRINT *, "1: Defect the global error control"
-            	PRINT *, "1: Hybrid defect and global error control"
-            	STOP
+                PRINT *, "Please choose an error control method between 1 and 4"
+                PRINT *, "where: "
+                PRINT *, "1: Defect control"
+                PRINT *, "2: Global error control"
+                PRINT *, "1: Defect the global error control"
+                PRINT *, "1: Hybrid defect and global error control"
+                STOP
            END IF !(ERROR_CONTROL >= 1 .OR. <=4 ) 
         ELSE
             USE_MESH_STRAT = 1 !Use defect control
         END IF
-	
-        !	Defect threshold based on error control method.
+        
+        !       Defect threshold based on error control method.
         IF (USE_MESH_STRAT .EQ. 1) THEN
             USE_DT = .TRUE.
         ELSE
@@ -600,17 +600,17 @@
 
         ! Calculate a conditioning constant only if a defect error control method is used
         IF (USE_MESH_STRAT .EQ. 1) THEN
-        	IF (PRESENT(COND) .OR. PRESENT(CERROR)) THEN
-            	UCO = .TRUE.
-        	ELSE
-            	UCO = .FALSE.
-        	END IF !(PRESENT(COND) .OR. PRESENT(CERROR))
+                IF (PRESENT(COND) .OR. PRESENT(CERROR)) THEN
+                UCO = .TRUE.
+                ELSE
+                UCO = .FALSE.
+                END IF !(PRESENT(COND) .OR. PRESENT(CERROR))
         ELSE
-        	PRINT *, "An estimate of the defect must be obtained in order to estimate"
-        	PRINT *, "a conditioning constant.  Please choose ERROR_CONTROL=1." 
-        	STOP
+                PRINT *, "An estimate of the defect must be obtained in order to estimate"
+                PRINT *, "a conditioning constant.  Please choose ERROR_CONTROL=1." 
+                STOP
         END IF !(USE_MESH_STRAT .EQ. 1)
-	
+        
  
 
 
@@ -685,12 +685,12 @@
         !   If computation performed by MIRKDC was successful ...
         IF (INFO >= 0) THEN
 
-            !	  Load Solution into BVP_SOL Struct
+            !     Load Solution into BVP_SOL Struct
             CALL LOAD_SOL(G_X,G_Y,G_K_DISCRETE,G_K_INTERP,INFO,SOL)
-	  
+          
             IF (PRESENT(REERROR)) THEN
-                !		The call of the Richardson extrapolation routine depends on 
-                !		the use of exact partial derivatives of both FSUB and BCSUB
+                !               The call of the Richardson extrapolation routine depends on 
+                !               the use of exact partial derivatives of both FSUB and BCSUB
                 IF (HAVE_DFDY) THEN
                     IF (HAVE_DBCDY) THEN
                         CALL RE_GERROR(SOL,FSUB,BCSUB,DFDY,DBCDY, INFO,REERROR)
@@ -710,9 +710,9 @@
       
             !    Option to estimate global error with a higher-order method
             IF(PRESENT(HOERROR)) THEN
-	
+        
                
-		
+                
                 IF (HAVE_DFDY) THEN
                     IF (HAVE_DBCDY) THEN
                         CALL HO_GERROR(SOL,FSUB,BCSUB,DFDY,DBCDY, INFO,HOERROR)
@@ -728,14 +728,14 @@
                 END IF
         
                
-		
+                
             END IF !PRESENT(HOERROR)
-	
+        
             !    Option to estimate global error with a deferred-correction method
             IF(PRESENT(DCERROR)) THEN
-	
+        
                 
-		
+                
                 IF (HAVE_DFDY) THEN
                     IF (HAVE_DBCDY) THEN
                         CALL DC_GERROR(SOL,FSUB,BCSUB,DFDY,DBCDY, INFO,DCERROR)
@@ -749,20 +749,20 @@
                         CALL DC_GERROR(SOL,FSUB,BCSUB,DUMMY_DF,DUMMY_DBC, INFO,DCERROR)
                     END IF
                 END IF
-	
+        
                
             END IF !PRESENT(DCERROR)
-	
+        
             IF (UCO) THEN
-		
+                
                 IF (PRESENT(COND)) THEN
-                	COND = CONCONST
-            	END IF !(PRESENT(COND))
+                        COND = CONCONST
+                END IF !(PRESENT(COND))
                 IF (PRESENT(CERROR)) THEN
                     CERROR = GECON
-                END IF 	!(PRESENT(CERROR))        
+                END IF  !(PRESENT(CERROR))        
             END IF !(UCO) 
-	
+        
            
       
         END IF ! (INFO >= 0)
@@ -825,13 +825,13 @@
         DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE :: GE_SUB ! Global error estimate for each 
                                                             ! subinterval
         DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: HYBRID_SUB ! Error estimate for each subinterval
-														          ! that consists of a combination of
-														          ! defect and global error
+                                                                                                                          ! that consists of a combination of
+                                                                                                                          ! defect and global error
         DOUBLE PRECISION :: ERROR_NORM ! An error norm that composes of some linear
-							           !combination of the global error norm and defect
-							           !norm
+                                                                   !combination of the global error norm and defect
+                                                                   !norm
         DOUBLE PRECISION :: ALPHA, BETA ! weight factors of the defect norm and global error
-								        ! norm.
+                                                                        ! norm.
         DOUBLE PRECISION :: GE_TOL !Tolerance to compute the global error
         TYPE(BVP_SOL) :: GSOL ! Sol structure for global error estimation
         INTEGER :: MESH_STRAT ! Use a hybrid mesh selection strategy
@@ -894,7 +894,7 @@
 
         !  Sets mesh selection strategy
         IF (USE_MESH_STRAT .EQ. 1) THEN
-            !	Defect mesh selection strategy
+            !   Defect mesh selection strategy
             IF (PROFILE > 0) THEN
                 PRINT *,'Use a defect mesh selection strategy.' 
             END IF
@@ -946,7 +946,7 @@
             GE_TOL = 0.01D0
         END IF
    
-   	
+        
         !  This code returns a solution if the user-supplied tolerance 
         !  is less than Alpha*NEFECT_MORM + BETA*GE_NORM
    
@@ -1007,18 +1007,18 @@
                     IF(PROFILE > 0) THEN
                         PRINT *, 'Compute only defect'
                     END IF !PROFILE > 0
-		
+                
                     DEFECT=0D0
                     ! compute defect
                     CALL DEFECT_ESTIMATE(NEQN,NSUB,G_X,G_Y,DEFECT,DEFECT_NORM,INFO,&
                     G_K_DISCRETE,G_K_INTERP,FSUB)
                     ERROR_NORM = DEFECT_NORM 
                 
-		
+                
                     IF (PROFILE > 0) THEN
                         PRINT *,'The norm of the defect is ',DEFECT_NORM
                     END IF
-		
+                
                 ELSE IF(USE_MESH_STRAT == 2) THEN
                     ! compute ge
                     INFO = 0
@@ -1087,8 +1087,8 @@
                 ELSE
                     MESH_STRAT = 0
                 END IF
-		
-	  
+                
+          
             END IF ! (INFO == 0)
 
             !     If the Newton iteration failed or the defect was not acceptable, INFO is 
@@ -1108,7 +1108,7 @@
                     END IF
 
                     !         Attempt to select a new mesh based on a desired strategy.
-			
+                        
                     IF (MESH_STRAT .EQ. 0) THEN
                         IF (PROFILE > 0) THEN
                             PRINT *,'Perform defect mesh selection strategy'
@@ -1131,7 +1131,7 @@
                         UGE = .FALSE.
                         DEALLOCATE(GE_SUB,GE_VECTOR,STAT=IER)
                         CALL CHECK_STAT(IER)
-          	
+                
                     ELSE IF (MESH_STRAT .EQ. 2) THEN
                         IF (PROFILE > 0) THEN
                             PRINT *,'Perform global error mesh selection strategy'
@@ -1149,7 +1149,7 @@
                         DEALLOCATE (GE_SUB,STAT=IER)
                         CALL CHECK_STAT(IER)
                     END IF
-		
+                
                     !         If we were successful in obtaining a new mesh, compute a new estimate
                     !         for the solution on this mesh and then update NSUB, MESH, and Y.
                     IF (INFO == 0) THEN
@@ -1327,11 +1327,11 @@
     
     
         ! Perform the optional estimate of the conditioning constant
-        IF (UCO) THEN !UCO		    
+        IF (UCO) THEN !UCO                  
             ALLOCATE(INTWORK(NEQN*(Nsub+1)),V((NSUB+1)*NEQN),BWORK(NEQN*(NSUB+1)), &
             STAT=IER)
             CALL CHECK_STAT(IER)
-    	
+        
             !Call routine to estimate the conditioning constant
             Call BSPNORMMAX((NSUB+1)*NEQN,MTOP,LEFTBC,NEQN,MBLOCKS,NEQN,2*NEQN, &
             NSUB,MBOT,NEQN-LEFTBC,CONEST,V,INTWORK,BWORK, &
@@ -1341,11 +1341,11 @@
             CONCONST = CONEST
             ! because we have defect_norm, determine an estimate of ge.
             GECON = CONCONST * DEFECT_NORM
-            	
+                
             DEALLOCATE(INTWORK,V,BWORK,STAT=IER)
             CALL CHECK_STAT(IER)
         END IF !(UCO)
-   	
+        
 
     END SUBROUTINE MIRKDC
     
@@ -1356,10 +1356,10 @@
         !     CALLED BY: BVP_SOLVER
         !     CALLS: CHECK CHECSTAT
         !--------------------------------------------------------------------------------
-        ! 	Local
+        !       Local
         INTEGER :: IER ! Mem deallocation flag
-	
-        !	Clear the Newton Matrix from memory
+        
+        !       Clear the Newton Matrix from memory
         IF(UPDATENEWT) THEN
             UPDATENEWT = .FALSE.
             DEALLOCATE(MBLOCKS,MPIVOT,MTOP,MBOT,STAT=IER)
@@ -1375,8 +1375,8 @@
         CONCONST = 0.0D0
         GECON = 0D0
         
-	
-	END SUBROUTINE CLEAN_MEM
+        
+        END SUBROUTINE CLEAN_MEM
 
 
     SUBROUTINE CRITERION(NEQN,NSUB,MESH,Y,TOP,BLOCKS,BOT,PIVOT,PHI,                &
@@ -1430,7 +1430,7 @@
         !   right hand side in solving the system, so we call it with a copy of PHI.
         PHI_COPY = PHI
     
-   	
+        
         CALL CRSLVE(TOP,LEFTBC,NEQN,BLOCKS,NEQN,2*NEQN,NSUB,BOT,RIGHTBC,PIVOT, &
         PHI_COPY,DELTA)
                 
@@ -1611,8 +1611,8 @@
     
         
     
-        !	If HO, DC error-estimation routine is being used, simply use the factored 
-        !	Matrix already in memory
+        !       If HO, DC error-estimation routine is being used, simply use the factored 
+        !       Matrix already in memory
         IF(UHO .OR. UDC) THEN
             !IF (.FALSE.) THEN
             
@@ -1627,8 +1627,8 @@
                 PIVOT(J) = MPIVOT(J)
             END DO
                 
-            !   	Factor the Newton matrix and solve a linear system with the input
-            !   	vector PHI as right hand side to get the Newton correction DELTA_0.
+            !           Factor the Newton matrix and solve a linear system with the input
+            !           vector PHI as right hand side to get the Newton correction DELTA_0.
         
            
             CALL CRSLVE(TOP,LEFTBC,NEQN,BLOCKS,NEQN,2*NEQN,NSUB,BOT,RIGHTBC, PIVOT, &
@@ -1638,19 +1638,19 @@
             CALL CRSLVE(TOP,LEFTBC,NEQN,BLOCKS,NEQN,2*NEQN,NSUB,BOT,RIGHTBC, PIVOT, &
             PHI,DELTA_0)
         ELSE
-    	
+        
 
-            !   	Form the Newton matrix with NEWMAT.
+            !           Form the Newton matrix with NEWMAT.
             CALL NEWMAT(LEFTBC,RIGHTBC,NEQN,NSUB,MESH,Y,TOP,BLOCKS,BOT, &
             K_DISCRETE,FSUB,GSUB,DFSUB,DGSUB)
                 
-            !   	Factor the Newton matrix and solve a linear system with the input
-            !   	vector PHI as right hand side to get the Newton correction DELTA_0.
+            !           Factor the Newton matrix and solve a linear system with the input
+            !           vector PHI as right hand side to get the Newton correction DELTA_0.
             CALL COLROW((NSUB+1)*NEQN,TOP,LEFTBC,NEQN,BLOCKS, &
             NEQN,2*NEQN,NSUB,BOT,RIGHTBC,PIVOT,PHI,DELTA_0,FACTOR)
         end if
-        	
- 	
+                
+        
         IF ( FACTOR == -1 ) THEN
             INFO = 2 ! Singular Newton matrix encountered.
         END IF
@@ -1744,11 +1744,11 @@
         EXTERNAL :: DFDY ! Partial-derivative routine for ODEs
         EXTERNAL :: DBCDY ! Partial-derivative routine for boundary conditions
         INTEGER :: INFO ! Success flag
-	
+        
     !   Output
         DOUBLE PRECISION, OPTIONAL, DIMENSION (:) :: GEVECTOR ! Global-error vector 
         DOUBLE PRECISION :: GENORM ! Global-error norm 
-	
+        
     !   Local variables
         INTEGER :: IER ! Memory allocation flag
         INTEGER :: ST,EN ! Array location
@@ -1757,11 +1757,11 @@
         INTEGER :: GE_INFO ! Newton solver flag
         INTEGER :: NITERS ! Number of Newton Iterations
         DOUBLE PRECISION, ALLOCATABLE,DIMENSION (:) :: Y_HIGH, Y_LOW ! Hold solutions
-    	!Holds the result from the Newton solver.
+        !Holds the result from the Newton solver.
         DOUBLE PRECISION, ALLOCATABLE, DIMENSION (:) :: GE_Y,GE_X,GE_K_DISCRETE
         REAL :: T
 
-	
+        
     !   Allocate Arrays
         ALLOCATE(GE_X(0:NSUB),GE_Y((NSUB+1)*NEQN),STAT=IER)
         CALL CHECK_STAT(IER)
@@ -1773,7 +1773,7 @@
         GE_X = GSOL%X
         NDEX = C_S_STAR*NEQN*NSUB + (NSUB+1)
         GE_Y = GSOL%WORK(NDEX+1:NDEX+(NSUB+1)*NEQN)
-	
+        
     !   Change Mirk fourmulas to orders.
         SELECT CASE (BVP_METHOD)
             CASE (2)
@@ -1800,14 +1800,14 @@
         ALLOCATE(H_PHI(NEQN*(NSUB+1)))
         CALL CHECK_STAT(IER)
         H_PHI(:) = 0D0 
-	  
-    !	Allocate Mem for GE_K_DISCRETE
+          
+    !   Allocate Mem for GE_K_DISCRETE
         ALLOCATE(GE_K_DISCRETE(C_S*NEQN*(NSUB)),STAT=IER)
-    !	Get residual from higher-order formulas
+    !   Get residual from higher-order formulas
         CALL RESID(NEQN,NSUB,GE_X,GE_Y,H_PHI,GE_K_DISCRETE,FSUB,BCSUB)
 
-    !	Deallocate We will need a different size GE_K_DISCRETE for Newton's 
-    !	method.  Deallocate the array now
+    !   Deallocate We will need a different size GE_K_DISCRETE for Newton's 
+    !   method.  Deallocate the array now
         DEALLOCATE(GE_K_DISCRETE,STAT=IER)
         CALL CHECK_STAT(IER)
 
@@ -1831,18 +1831,18 @@
         DEALLOCATE(C_C,C_V,C_B,C_X,STAT=IER)
         CALL CHECK_STAT(IER)
         CALL RK_TABLEAU
-  	
+        
     !   Re-allocate mem for GE_K_DISCRETE with appropriate size
         ALLOCATE(GE_K_DISCRETE(C_S*NEQN*(NSUB)),STAT=IER)
  
     !   Run the Newton solver with deferred corrections
  
- 	
+        
         UDC=.TRUE.
         CALL NEWITER(NEQN,NSUB,GE_X,GE_Y,GE_INFO,GE_K_DISCRETE,             &
         FSUB,BCSUB,DFDY,DBCDY, USAGE=2)
         UDC = .FALSE.
-     	
+        
         IF (GE_INFO /= 0) THEN
             IF (G_STOP_ON_FAIL) THEN
                 PRINT *,'Computation of deferred-corrections error failed--the solution SOL is in doubt.'
@@ -1851,12 +1851,12 @@
             END IF
         END IF
      
-    !	Get Both Solutions
+    !   Get Both Solutions
         Y_HIGH = GE_Y
         Y_LOW = GSOL%WORK(NDEX+1:NDEX+(NSUB+1)*NEQN) 
-	
-    !	Get an estimate of the scaled global-error norm
-    !	and optionally a scaled global-error vector
+        
+    !   Get an estimate of the scaled global-error norm
+    !   and optionally a scaled global-error vector
         GENORM = 0D0
         
         IF (PRESENT(GEVECTOR)) THEN
@@ -1872,7 +1872,7 @@
         CALL CHECK_STAT(IER)
         DEALLOCATE(H_PHI,STAT=IER)
         CALL CHECK_STAT(IER)
-	
+        
     END SUBROUTINE
 
 
@@ -1973,7 +1973,7 @@
                 DEFECT_I = (Z_PRIME - F_I)/(ABS(F_I) + 1D0)
       
 
-		 
+                 
                 !       Compute norm of defect and update the maximum defect.
                 ESTIMATE(J) = MAXVAL(ABS(DEFECT_I))
                 IF (ESTIMATE(J) > MAX_ESTIMATE) THEN
@@ -1984,7 +1984,7 @@
                     END IF
         
                 END IF
-      		
+                
             END DO ! J = 1,2
       
             !Assign W12, W3
@@ -2004,7 +2004,7 @@
     
         W3((NSUB)*NEQN + 1:(NSUB)*NEQN + NEQN) = & 
         1D0/(ABS(Y((NSUB)*NEQN + 1:(NSUB)*NEQN + NEQN)) +1D0)
-      		
+                
         DEFECT_NORM = MAXVAL(ABS(DEFECT))
 
         !   If the defect is too big, the current solution cannot be trusted,
@@ -2013,7 +2013,7 @@
             IF (DEFECT_NORM > 0.1D0 ) INFO = 4
 
         END IF
-    	
+        
     END SUBROUTINE DEFECT_ESTIMATE
 
 
@@ -2149,20 +2149,20 @@
     SUBROUTINE GE_SUBINTERVAL(GE_VECTOR,GE_SUB)
     ! This routine assigns a global error estimate for each subinterval
     !-------------------------------------------------------------------------------
-    !	CALLED BY: MIRKDC
-    !	CALLS:
+    !   CALLED BY: MIRKDC
+    !   CALLS:
     !-------------------------------------------------------------------------------
-    !	Input arguments:
+    !   Input arguments:
         DOUBLE PRECISION, DIMENSION (:) :: GE_VECTOR
-    !	Output arguments: 
+    !   Output arguments: 
         DOUBLE PRECISION, DIMENSION (:) :: GE_SUB
-    !	Local arguments:
+    !   Local arguments:
         INTEGER :: I, J ! Counters
         DOUBLE PRECISION :: ESTIMATE(0:1)
         DOUBLE PRECISION :: MAX_ESTIMATE
         DOUBLE PRECISION :: ERROR_I(NEQN)
-	
-	
+        
+        
         DO I = 1, NSUB
             MAX_ESTIMATE = 0D0
             DO J = 0,1
@@ -2172,41 +2172,41 @@
                     MAX_ESTIMATE = ESTIMATE(J)
                     GE_SUB((I-1)*NEQN+1:I*NEQN) = ERROR_I
                 END IF
-  		
+                
             END DO ! J = 0,1
     
         END DO ! I = 1,NSUB
-	
+        
     END SUBROUTINE
     
     SUBROUTINE GLOBAL_ERROR(Y_LOW,Y_HIGH,GENORM,GEVECTOR)
-	!  Computes the Norm and, optionally, a scaled Vector of the global error relative to 
+        !  Computes the Norm and, optionally, a scaled Vector of the global error relative to 
     ! |1-Y(X)|.
     !---------------------------------------------------------------------
-    !	CALLED BY: RE_GERROR,HO_GERROR,DC_GERROR
-    !	CALLS: CHECK_STAT
+    !   CALLED BY: RE_GERROR,HO_GERROR,DC_GERROR
+    !   CALLS: CHECK_STAT
     !_____________________________________________________________________
         !   Input arguments:
         DOUBLE PRECISION, DIMENSION(:) :: Y_LOW, Y_HIGH
-	
-        !	Output arguments: 
+        
+        !       Output arguments: 
         DOUBLE PRECISION:: GENORM  !Scaled Norm of the Global error 
         DOUBLE PRECISION, DIMENSION (:), OPTIONAL :: GEVECTOR !Scaled vector of global error for
-						              !each solution point
-	
-        !	Local Variables:
+                                                              !each solution point
+        
+        !       Local Variables:
         DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE:: WT !Scale
         INTEGER :: IER ! Memory allocation flag
-        INTEGER :: I=1	! Counter
+        INTEGER :: I=1  ! Counter
         INTEGER :: ST,EN !Index locations
         DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE:: TEMP_GEVECTOR !Temp vector of the 
-								        !Global error
+                                                                        !Global error
     
-        !	Alllocate WT, TEMP_GEVECTOR
+        !       Alllocate WT, TEMP_GEVECTOR
         ALLOCATE(WT(NEQN),TEMP_GEVECTOR(NEQN*(NSUB+1)),STAT=IER)
         CALL CHECK_STAT(IER)
    
-        !	Compute scaled global error vector
+        !       Compute scaled global error vector
         TEMP_GEVECTOR = 0D0
         GENORM = 0D0
         WT=0D0
@@ -2215,7 +2215,7 @@
             EN = (I-1)*NEQN + NEQN
             WT = 1D0 + ABS(Y_LOW(ST:EN)) 
             TEMP_GEVECTOR(ST:EN) = (Y_LOW(ST:EN)-Y_HIGH(ST:EN))/WT
-	           
+                   
         END DO !(I = 1,(NSUB+1))
 
      
@@ -2224,10 +2224,10 @@
             GEVECTOR = TEMP_GEVECTOR
         END IF ! PRESENT(GEVECTOR)
   
-        !	Compute scaled global error norm
+        !       Compute scaled global error norm
         GENORM = MAXVAL(DABS(TEMP_GEVECTOR))
     
-        !	Deallocate mem
+        !       Deallocate mem
         DEALLOCATE(WT,TEMP_GEVECTOR,STAT=IER)
         CALL CHECK_STAT(IER)
        
@@ -2256,11 +2256,11 @@
     END SUBROUTINE HALF_MESH
     
     SUBROUTINE HO_GERROR(GSOL,FSUB,BCSUB,DFDY,DBCDY, INFO, GENORM,GEVECTOR)
-	!		Uses a solution obtained from a BVP_METHOD+2 order MIRKDC
-	!		method in order to estimate the global error in solution component 
-	!		y(i)  relative to 1 + |y(i)|. Return the maximum GE over all 
-	!       solution components and mesh points as YERROR. The same estimate 
-	!       applies to unknown parameters.  The estimate is computed 
+        !               Uses a solution obtained from a BVP_METHOD+2 order MIRKDC
+        !               method in order to estimate the global error in solution component 
+        !               y(i)  relative to 1 + |y(i)|. Return the maximum GE over all 
+        !       solution components and mesh points as YERROR. The same estimate 
+        !       applies to unknown parameters.  The estimate is computed 
     !       by using higher-order MIRK formulas.
     !-----------------------------------------------------------------------------
     ! CALLED BY: BVP_SOLVER
@@ -2274,11 +2274,11 @@
         EXTERNAL :: DFDY ! Partial-derivative routine for ODEs
         EXTERNAL :: DBCDY ! Partial-derivative routine for boundary conditions
         INTEGER  :: INFO ! Success fla
-	
+        
     !   Output Arguments:
         DOUBLE PRECISION, OPTIONAL, DIMENSION (:) :: GEVECTOR ! Global-error vector 
         DOUBLE PRECISION :: GENORM ! Global-error norm 
-	
+        
     !   Local variables
         INTEGER :: IER ! Memory allocation flag
         INTEGER :: ST,EN ! Array location
@@ -2290,8 +2290,8 @@
     !   Holds the result from the Newton solver.
         DOUBLE PRECISION, ALLOCATABLE, DIMENSION (:) :: GE_Y,GE_X,GE_K_DISCRETE
         REAL T
-	
-	
+        
+        
     !   Allocate Arrays
         ALLOCATE(GE_X(0:NSUB),GE_Y((NSUB+1)*NEQN),STAT=IER)
         CALL CHECK_STAT(IER)
@@ -2303,8 +2303,8 @@
         GE_X = GSOL%X
         NDEX = C_S_STAR*NEQN*NSUB + (NSUB+1)
         GE_Y = GSOL%WORK(NDEX+1:NDEX+(NSUB+1)*NEQN)
-	
-    !	Set Higher MIRK orders
+        
+    !   Set Higher MIRK orders
         SELECT CASE (BVP_METHOD)
             CASE (2)
                 C_S = 3
@@ -2321,20 +2321,20 @@
         END SELECT 
         DEALLOCATE(C_C,C_V,C_B,C_X,STAT=IER)
         CALL CHECK_STAT(IER)
-	
+        
     !    Defines MIRK coefficents
         CALL RK_TABLEAU
      
      
-    !	 Allocate mem for Newton's method
+    !    Allocate mem for Newton's method
         ALLOCATE(GE_K_DISCRETE(C_S*NEQN*(NSUB)),STAT=IER)
         CALL CHECK_STAT(IER)
    
     
-    !	Solve with Newton's method. First set the logical operator to use a fixed Newton
+    !   Solve with Newton's method. First set the logical operator to use a fixed Newton
     !   matrix.  Might be changed to include it as a parameter
-	
-	
+        
+        
         UHO = .TRUE.
         Y_LOW = GE_Y
         CALL NEWITER(NEQN,NSUB,GE_X,GE_Y,GE_INFO,GE_K_DISCRETE,             &
@@ -2371,16 +2371,16 @@
         END SELECT
         DEALLOCATE(C_C,C_V,C_B,C_X,STAT=IER)
         CALL CHECK_STAT(IER)
-	
+        
     !    Defines MIRK coefficents
         CALL RK_TABLEAU
     
-    !	Get Both Solutions
+    !   Get Both Solutions
         Y_HIGH = GE_Y
         Y_LOW = GSOL%WORK(NDEX+1:NDEX+(NSUB+1)*NEQN) 
 
-    !	Get an estimate of the scaled global-error norm
-    !	and optionally a scaled global-error vector
+    !   Get an estimate of the scaled global-error norm
+    !   and optionally a scaled global-error vector
         GENORM = 0D0
         IF (PRESENT(GEVECTOR)) THEN
             CALL GLOBAL_ERROR(Y_LOW,Y_HIGH,GENORM,GEVECTOR)
@@ -2388,41 +2388,41 @@
             CALL GLOBAL_ERROR(Y_LOW,Y_HIGH,GENORM)
         END IF
 
-    !	Deallocate Memory
+    !   Deallocate Memory
         DEALLOCATE(GE_X,GE_Y,GE_K_DISCRETE,STAT=IER)
         CALL CHECK_STAT(IER)
         DEALLOCATE(Y_LOW,Y_HIGH,STAT=IER)
         CALL CHECK_STAT(IER)
- 	
+        
     END SUBROUTINE
     
     SUBROUTINE HYBRID_ERROR(ALPHA,BETA,GE_SUB,DEFECT_SUB,HYBRID_SUB)
     ! This routine assigns a hybrid error estimate for each subinterval
     !-------------------------------------------------------------------------------
-    !	CALLED BY: MIRKDC
-    !	CALLS:
+    !   CALLED BY: MIRKDC
+    !   CALLS:
     !-------------------------------------------------------------------------------
-    !	Input arguments:
+    !   Input arguments:
         DOUBLE PRECISION :: ALPHA !Defect factor
         DOUBLE PRECISION :: BETA  !Global error factor
         DOUBLE PRECISION, DIMENSION (:) :: GE_SUB !Global error estimate for each suninterval
         DOUBLE PRECISION, DIMENSION (:) :: DEFECT_SUB !Defect estimate for each subinterval
-	
-    !	Output arguments:
+        
+    !   Output arguments:
         DOUBLE PRECISION, DIMENSION (:) :: HYBRID_SUB!Hybrid error estimate for each subinterval
-	
-    !	Local arguments:
+        
+    !   Local arguments:
         INTEGER :: I ! Counter
         INTEGER :: ST,EN !Start and End of error estimate for each subinterval
-	
+        
     !   Linear combination of the error measurements. 
         DO I=1,NSUB
             ST= (I-1)*NEQN+1
             EN = (I-1)*NEQN + NEQN
             HYBRID_SUB(ST:EN) =  ALPHA*DABS(DEFECT_SUB(ST:EN))+BETA*DABS(GE_SUB(ST:EN))
-	   
+           
         END DO !(I=1,NSUB)
-		
+                
     END SUBROUTINE
 
 
@@ -2541,7 +2541,7 @@
         ! This routine constructs the S_STAR-S extra stages needed by the interpolant for 
         ! a every subinterval. 
         !--------------------------------------------------------------------------
-        !	 CALLED BY:
+        !        CALLED BY:
         !    CALLS: 
         !--------------------------------------------------------------------------
         ! Input Arguments:
@@ -3182,7 +3182,7 @@
 
            
             
-      	
+        
 
             !    Compute corresponding mesh function value.
             IF (USE_DEFECT) THEN
@@ -3337,8 +3337,8 @@
         CONVRG = .FALSE.
         INFO = 0
 
-        !	Checks to see if method is being used by MIRKDC or one of the
-        !	global error routines
+        !       Checks to see if method is being used by MIRKDC or one of the
+        !       global error routines
         IF(PRESENT(USAGE)) THEN
             IF (USAGE .EQ. 1) THEN
                 STORE_NEWT = .TRUE.
@@ -3407,23 +3407,23 @@
             END IF
         END IF
     
-        !	Store Factored Newton Matrix in memory if allowed
+        !       Store Factored Newton Matrix in memory if allowed
  
         IF(STORE_NEWT) THEN
-            !  	Check For Mem
+            !   Check For Mem
             IF (UPDATENEWT) THEN
                 DEALLOCATE(MBLOCKS,MPIVOT,MTOP,MBOT,STAT=IER)
                 CALL CHECK_STAT(IER)
             END IF !UPDATENEWT
- 	
+        
             UPDATENEWT = .TRUE.
 
-            !   	Allocate space in mem for factored Newton matrix
+            !           Allocate space in mem for factored Newton matrix
             ALLOCATE(MBLOCKS(2*NEQN**2 * NSUB),MTOP(NEQN**2),MBOT(NEQN**2), &
             MPIVOT(NEQN*(NSUB+1)),STAT=IER)
             CALL CHECK_STAT(IER)
     
-            !   	Copy Factored Matrix
+            !           Copy Factored Matrix
              DO J=1,NEQN**2
                 MTOP(J) = TOP(J)
                 MBOT(J) = BOT(J)
@@ -3434,10 +3434,10 @@
             DO J=1,NEQN*(NSUB+1)
                 MPIVOT(J) = PIVOT(J)
             END DO
-		
+                
 
         END IF !STORE_NEWT
-	
+        
         
     END SUBROUTINE NEWITER
 
@@ -3543,27 +3543,27 @@
         !    CALLS: CHECK_STAT
         !----------------------------------------------------------------------------------
         
-        !	Input arguments:
+        !       Input arguments:
         DOUBLE PRECISION, DIMENSION (:) :: ARY_X ! Solution Mesh 
         DOUBLE PRECISION, DIMENSION (:) :: ARY_Y ! Solution
         DOUBLE PRECISION, DIMENSION (:) :: ARY_DISCRETE ! Info for discrete MIRK stages
         DOUBLE PRECISION, DIMENSION (:) :: ARY_INTERP ! Info for continuous MIRK stages
         INTEGER :: INFO ! Flag for success of MIRKDC
         
-        !	Output arguments:
+        !       Output arguments:
         TYPE(BVP_SOL) :: SOL
-	
-        !	Local variabels:
+        
+        !       Local variabels:
         INTEGER :: N_IWORK,NDEX,N_WORK ! Array Values
         DOUBLE PRECISION, DIMENSION (:,:), ALLOCATABLE :: TEMPY !Holds Y
         INTEGER :: IER !Mem Allocation flag
-	
-        !	State if solver was successful
+        
+        !       State if solver was successful
         SOL%INFO = INFO
-        !	Number of mesh points
+        !       Number of mesh points
         SOL%NPTS = NSUB + 1
-	
-        !	Copy NODE, NPAR, LEFTBC, MXNSUB values from global 
+        
+        !       Copy NODE, NPAR, LEFTBC, MXNSUB values from global 
         !   variables to SOL fields.
         SOL%NODE = NODE
         SOL%NPAR = NPAR
@@ -3633,7 +3633,7 @@
     ! CALLED BY: BVP_SOLVER
     ! CALLS BVP_EVAL, NEWITER, GLOBAL_ERROR
     !-----------------------------------------------------------------------------
-	
+        
     !   Input arguments:
         TYPE(BVP_SOL) :: GSOL
         EXTERNAL :: FSUB ! User-supplied ODEs routine
@@ -3641,11 +3641,11 @@
         EXTERNAL :: DFDY ! Partial-derivative routine for ODEs
         EXTERNAL :: DBCDY ! Partial-derivative routine for boundary conditions
         INTEGER :: INFO ! Success flag
-	
+        
     !   Output arguments:
         DOUBLE PRECISION, OPTIONAL, DIMENSION (:) :: GEVECTOR ! Global-error vector 
         DOUBLE PRECISION :: GENORM ! Global-error norm 
-	
+        
     !   Local variables:
         INTEGER :: IER ! Memory allocation flag
         INTEGER :: ST,EN ! Array location
@@ -3656,7 +3656,7 @@
         DOUBLE PRECISION, ALLOCATABLE,DIMENSION (:) :: Y_HIGH, Y_LOW ! Hold solutions
     !   Holds the result from the Newton solver.
         DOUBLE PRECISION, ALLOCATABLE, DIMENSION (:) :: GE_Y,GE_X,GE_K_DISCRETE
-	
+        
         ALLOCATE(GE_X(0:2*NSUB),GE_Y((2*NSUB+1)*NEQN),                             &
         GE_K_DISCRETE(C_S*NEQN*(2*NSUB)),STAT=IER)
         CALL CHECK_STAT(IER)
@@ -3664,10 +3664,10 @@
         ALLOCATE(Y_HIGH(NEQN*(NPTS)),Y_LOW(NEQN*(NPTS)),STAT=IER)
         CALL CHECK_STAT(IER)    
    
-    !	Load mesh values
+    !   Load mesh values
         GE_X(0:2*NSUB:2) = GSOL%X
         GE_X(1:2*NSUB-1:2) = 0.5D0*(GE_X(0:2*NSUB-2:2) + GE_X(2:2*NSUB:2))
-	
+        
         DO I = 1,2*NSUB+1
     !   Solution values.
             CALL BVP_EVAL(GSOL,GE_X(I-1),GE_Y((I-1)*NEQN+1:(I-1)*NEQN+NODE))
@@ -3682,10 +3682,10 @@
         NSUB = 2*NSUB
         NPTS = NSUB+1
 
-    !	Solves on more     
+    !   Solves on more     
         NEWTON_TOL = NEWTON_TOL/2D0
     
-    !	Solve Nonlinear equations
+    !   Solve Nonlinear equations
         URE = .TRUE.
         CALL NEWITER(NEQN,NSUB,GE_X,GE_Y,GE_INFO,GE_K_DISCRETE,             &
         FSUB,BCSUB,DFDY,DBCDY, USAGE=2)
@@ -3707,13 +3707,13 @@
         NPTS = NSUB+1
         NEWTON_TOL = NEWTON_TOL*2D0
 
-    !	Load values in Y_HIGH, Y_LOW	
+    !   Load values in Y_HIGH, Y_LOW    
         DO I = 1,GSOL%NPTS
             Y_HIGH((I-1)*NEQN+1:(I-1)*NEQN+NEQN)=GE_Y((I-1)*2*NEQN+1:(I-1)*2*NEQN+NEQN)
         END DO
-        NDEX = C_S_STAR*NEQN*NSUB + (NSUB+1)	
+        NDEX = C_S_STAR*NEQN*NSUB + (NSUB+1)    
         Y_LOW=GSOL%WORK(NDEX+1:NDEX+(NSUB+1)*NEQN)
-	
+        
         GENORM = 0D0
         
     !   Get GE norm and GE vector
@@ -3734,7 +3734,7 @@
     !   DEALLOCATE Memory
         DEALLOCATE(GE_X,GE_Y,GE_K_DISCRETE,Y_HIGH,Y_LOW)
         CALL CHECK_STAT(IER)
-	
+        
     END SUBROUTINE RE_GERROR
 
   
@@ -3910,7 +3910,7 @@
         !   Local variable: 
         INTEGER IER ! Error flag for allocation call.
         DOUBLE  PRECISION :: BETA = 0.0D0 ! Temp free parameter 
- 									          ! for 8th order MIRK method
+                                                                                  ! for 8th order MIRK method
        
         !   Global variables:
         !   BVP_METHOD identifies the Runge-Kutta method to be set up.
@@ -4029,7 +4029,7 @@
                 C_X(5,5) = 0D0
         
             CASE (8)
-                !    	Define a 10-stage, 8th order MIRK formula.
+                !       Define a 10-stage, 8th order MIRK formula.
                 !       C_S has been set to 10
 
                 C_C(1) = 0D0
@@ -4065,121 +4065,121 @@
                 C_B(8) = 49D0/180D0
                 C_B(9) = 16D0/45D0
         
-                !		Column 1 of C_X
+                !               Column 1 of C_X
 
                 C_X(1,1) = 0D0
                 C_X(2,1) = 0D0
                 C_X(3,1) = 9D0/64D0
                 C_X(4,1) = 3D0/64D0
-                !		C_X(5,1) = -5D0/24D0
+                !               C_X(5,1) = -5D0/24D0
                 C_X(5,1) = 757D0/9216D0 - BETA/18D0
                 C_X(6,1) = -43D0/9216D0 + BETA/18D0
                 C_X(7,1) = 3451D0/139258D0 + (717 * SQRT(21D0))/139258D0
                 C_X(8,1) = 3451D0/139258D0 - (717 * SQRT(21D0))/139258D0
                 C_X(9,1) = 29D0/896D0
-		
-                !		Column 2 of C_X
+                
+                !               Column 2 of C_X
                 C_X(1,2) = 0D0
                 C_X(2,2) = 0D0
                 C_X(3,2) = -3D0/64D0
                 C_X(4,2) = -9D0/64D0
-                !		C_X(5,2) = 5D0/24D0
+                !               C_X(5,2) = 5D0/24D0
                 C_X(5,2) = 43D0/9216D0 - BETA/18D0
                 C_X(6,2) = -757D0/9216D0 + BETA/18D0
                 C_X(7,2) = -3451D0/139258D0 + (717 * SQRT(21D0))/139258D0
                 C_X(8,2) = -3451D0/139258D0 - (717 * SQRT(21D0))/139258D0
                 C_X(9,2) = -29D0/896D0
-		
+                
                 !       Column 3 of C_X
                 C_X(1,3) = 0D0
                 C_X(2,3) = 0D0
                 C_X(3,3) = 0D0
                 C_X(4,3) = 0D0
-                !		C_X(5,3) = 2D0/3D0
+                !               C_X(5,3) = 2D0/3D0
                 C_X(5,3) = 235D0/4608D0 - (4D0 * BETA)/9D0
                 C_X(6,3) = 59D0/4608D0 + (4D0 * BETA)/9D0
                 C_X(7,3) = 0D0
                 C_X(8,3) = 0D0
                 C_X(9,3) = 0D0
-		
-                !		Column 4 of C_X 
+                
+                !               Column 4 of C_X 
                 C_X(1,4) = 0D0
                 C_X(2,4) = 0D0
                 C_X(3,4) = 0D0
                 C_X(4,4) = 0D0
-                !		C_X(5,4) = -2D0/3D0
+                !               C_X(5,4) = -2D0/3D0
                 C_X(5,4) = -59D0/4608D0 - (4D0 * BETA)/9D0
                 C_X(6,4) = -235D0/4608D0 + (4D0 * BETA)/9D0
                 C_X(7,4) = 0D0
                 C_X(8,4) = 0D0
                 C_X(9,4) = 0D0
-		
+                
                 !       Column 5 of C_X
-                !		C_X(1,5) = 0D0
-                !		C_X(2,5) = 0D0
-                !		C_X(3,5) = 0D0
-                !		C_X(4,5) = 0D0
-                !		C_X(5,5) = 0D0
-                !		C_X(6,5) = 0D0
-                !		C_X(7,5) = 0D0
-                !		C_X(8,5) = 0D0
-                !		C_X(9,5) = 0D0
-                !		C_X(10,5) = 0D0
+                !               C_X(1,5) = 0D0
+                !               C_X(2,5) = 0D0
+                !               C_X(3,5) = 0D0
+                !               C_X(4,5) = 0D0
+                !               C_X(5,5) = 0D0
+                !               C_X(6,5) = 0D0
+                !               C_X(7,5) = 0D0
+                !               C_X(8,5) = 0D0
+                !               C_X(9,5) = 0D0
+                !               C_X(10,5) = 0D0
 
-                !		Column 6 of C_X
+                !               Column 6 of C_X
                 C_X(1,5) = 0D0
                 C_X(2,5) = 0D0
                 C_X(3,5) = 0D0
                 C_X(4,5) = 0D0
-                !		C_X(5,6) = 0D0
+                !               C_X(5,6) = 0D0
                 C_X(5,5) = 0D0
                 C_X(6,5) = 0D0
                 C_X(7,5) = 64D0/1029D0 + (1024D0 * SQRT(21D0))/69629D0
                 C_X(8,5) = 64D0/1029D0 - (1024D0 * SQRT(21D0))/69629D0
                 C_X(9,5) = -2D0/21D0
-		
-                !		Column 7 of C_X
+                
+                !               Column 7 of C_X
                 C_X(1,6) = 0D0
                 C_X(2,6) = 0D0
                 C_X(3,6) = 0D0
                 C_X(4,6) = 0D0
-                !		C_X(5,7) = 0D0
+                !               C_X(5,7) = 0D0
                 C_X(5,6) = 0D0
                 C_X(6,6) = 0D0
                 C_X(7,6) = -64D0/1029D0 + (1024D0 * SQRT(21D0))/69629D0
                 C_X(8,6) = -64D0/1029D0 - (1024D0 * SQRT(21D0))/69629D0
                 C_X(9,6) = 2D0/21D0
-		
-                !		Column 8 of C_X
+                
+                !               Column 8 of C_X
                 C_X(1,7) = 0D0
                 C_X(2,7) = 0D0
                 C_X(3,7) = 0D0
                 C_X(4,7) = 0D0
-                !		C_X(5,8) = 0D0
+                !               C_X(5,8) = 0D0
                 C_X(5,7) = 0D0
                 C_X(6,7) = 0D0
                 C_X(7,7) = 0D0
                 C_X(8,7) = 0D0
                 C_X(9,7) = (7D0 * SQRT(21D0))/128D0
-		
-                !		Column 9 of C_X
+                
+                !               Column 9 of C_X
                 C_X(1,8) = 0D0
                 C_X(2,8) = 0D0
                 C_X(3,8) = 0D0
                 C_X(4,8) = 0D0
-                !		C_X(5,8) = 0D0
+                !               C_X(5,8) = 0D0
                 C_X(5,8) = 0D0
                 C_X(6,8) = 0D0
                 C_X(7,8) = 0D0
                 C_X(8,8) = 0D0
                 C_X(9,8) = -(7D0 * SQRT(21D0))/128D0
 
-                !		Column 10 of C_X
+                !               Column 10 of C_X
                 C_X(1,9) = 0D0
                 C_X(2,9) = 0D0
                 C_X(3,9) = 0D0
                 C_X(4,9) = 0D0
-                !		C_X(5,10) = 0D0
+                !               C_X(5,10) = 0D0
                 C_X(5,9) = 0D0
                 C_X(6,9) = 0D0
                 C_X(7,9) = 0D0
