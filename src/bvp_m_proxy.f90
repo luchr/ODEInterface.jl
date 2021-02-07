@@ -479,14 +479,14 @@ contains
     !
     type(bvp_sol) :: sol
     character(len=*), parameter :: fmt_i  = '(A12, 5X, I18)'
-    character(len=*), parameter :: fmt_h  = '(A12, 5X, A, Z16.16)'
+    ! character(len=*), parameter :: fmt_h  = '(A12, 5X, A, Z16.16)'
     character(len=*), parameter :: fmt_vd = '(A12, 5X, *(F5.2))'
     integer :: k, state
     !
     sol = sol_wrapper%sol
     state = sol_wrapper%state
     write(*,*) "show_sol_wrapper:"
-    write(*, fmt_h)  "handle"    , "0x", sol_wrapper_to_handle(sol_wrapper)
+    ! write(*, fmt_h)  "handle"    , "0x", sol_wrapper_to_handle(sol_wrapper)
     write(*, fmt_i)  "state"     , state
     if (state > 0) then
       write(*, fmt_i)  "NODE"      , sol%node
