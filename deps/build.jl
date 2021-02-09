@@ -5,7 +5,7 @@ end
 
 windows_flag = Sys.iswindows()
 apple_flag = Sys.isapple()
-file_extension = apple_flag ? ".dylib" : windows_flag ? ".dll" : ".so" 
+file_extension = nothing
 obj_files = []
 verbose_key = "ODEINTERFACE_VERBOSE"
 verbose = haskey(ENV, verbose_key) && 
@@ -18,6 +18,11 @@ end
 build_script_io = nothing
 
 gfortran = nothing
+
+function adapt_to_os()
+  global file_extension = apple_flag ? ".dylib" : windows_flag ? ".dll" : ".so" 
+  return nothing
+end
 
 function search_prog(progname::AbstractString)
   output = ""
@@ -333,26 +338,7 @@ function build_bvpm2(path::AbstractString)
   link_gfortran(path, ["bvp_m_proxy", "bvp_m-2", "bvp_la-2"], opt)
 end
 
-if build_script != nothing
-  # write build script; do not call any program
-  build_script_io = open(build_script, "w")
-  gfortran = "gfortran"
-  dir_of_src = "./"
-else
-  # test for gfortran
-  gfortran = search_prog("gfortran")
-  if isempty(gfortran)
-    error("Currently only gfortran is supported.")
-  end
-  dir_of_this_file = dirname(@__FILE__)
-  dir_of_src = normpath(joinpath(dir_of_this_file, "..", "src"))
-  if !isdir(dir_of_src)
-    error(string("Cannot find src directory. I tried: ", dir_of_src))
-  end
-end
-
-try
-
+function build_all(dir_of_src::AbstractString)
   build_dopri(dir_of_src)
   build_odex(dir_of_src)
   compile_lapack(dir_of_src)
@@ -369,11 +355,59 @@ try
   build_bvpm2(dir_of_src)
 
   del_obj_files()
+  return nothing
+end
 
-finally
-  if build_script_io != nothing
-    close(build_script_io)
+function build_with_gfortran()
+  global gfortran = search_prog("gfortran")
+  if isempty(gfortran)
+    error("Currently only gfortran is supported.")
   end
+  dir_of_this_file = dirname(@__FILE__)
+  dir_of_src = normpath(joinpath(dir_of_this_file, "..", "src"))
+  if !isdir(dir_of_src)
+    error(string("Cannot find src directory. I tried: ", dir_of_src))
+  end
+  build_all(dir_of_src)
+  return nothing
+end
+
+function create_build_script()
+  global build_script_io = open(build_script, "w")
+  global gfortran = "gfortran"
+  global windows_flag
+  global apple_flag
+  dir_of_src = "./"
+
+  try
+    write(build_script_io, raw"""if [[ $target == *mingw* ]] ; then""" * "\n")
+    (windows_flag, apple_flag) = (true, false); adapt_to_os()
+    build_all(dir_of_src)
+    write(build_script_io, "\n\n\n")
+
+    write(build_script_io, raw"""elif [[ $target == *apple* ]] ; then""" * "\n")
+    (windows_flag, apple_flag) = (false, true); adapt_to_os()
+    build_all(dir_of_src)
+    write(build_script_io, "\n\n\n")
+
+    write(build_script_io, "else\n")
+    (windows_flag, apple_flag) = (false, false); adapt_to_os()
+    build_all(dir_of_src)
+    write(build_script_io, "\n\n\n")
+
+    write(build_script_io, "fi\n\n")
+  finally
+    if build_script_io != nothing
+      close(build_script_io)
+    end
+  end
+end
+
+if build_script != nothing
+  create_build_script()
+else
+  adapt_to_os()
+  build_with_gfortran()
 end
 
 # vim:syn=julia:cc=79:fdm=indent:
