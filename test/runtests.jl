@@ -1158,7 +1158,7 @@ function test_all()
 
   println("Solver informations:")
   for info in values(solvers)
-    println(info)
+    println(info.libname, ": ", info.libhandle, "; ", info.libfilepath)
   end
 end
 
