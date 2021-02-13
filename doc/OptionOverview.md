@@ -11,13 +11,13 @@ There are the following classes of options.
 
 ### Options of this ODEInterface
 
-  * `OPT_RHS_CALLMODE`: There are two possible ways to call the Julia right-hand side:  `RHS_CALL_RETURNS_ARRAY` and `RHS_CALL_INSITU`, see `help_callsolvers` for an explanation. difference.
+  * `OPT_RHS_CALLMODE`: There are two possible ways to call the Julia right-hand side: `RHS_CALL_RETURNS_ARRAY` and `RHS_CALL_INSITU`, see `help_callsolvers` for an explanation. difference.
   * `OPT_LOGIO`: This option sets the `IO` that is used for logging messages
-  * `OPT_LOGLEVEL`: This is a bitmask for activating different logging messages.  The following bitmasks are available.
+  * `OPT_LOGLEVEL`: This is a bitmask for activating different logging messages. The following bitmasks are available.
 
     ```
        LOG_NOTHING     log nothing
-       LOG_GENERAL     log some general information, 
+       LOG_GENERAL     log some general information,
                        especially the main julia call of the solver
        LOG_RHS         log all calls of the right-hand side
        LOG_SOLVERARGS  log the arguments for the C-/Fortran-calls

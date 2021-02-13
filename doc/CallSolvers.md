@@ -12,28 +12,28 @@ There are two ways of calling the solvers.
 All ODE-solvers have the same calling convention:
 
 ```
-(t,x,retcode,stats) = 
+(t,x,retcode,stats) =
     odesolver(rhs, t0::Real, T::Real,
               x0::Vector, opt::AbstractOptionsODErhs)
 
 function rhs(t::Float64,x::Vector{Float64}) -> Vector{Float64}
     if OPT_RHS_CALLMODE == RHS_CALL_RETURNS_ARRAY
 
-function rhs(t::Float64,x::Vector{Float64},dx::Vector{Float64}) 
+function rhs(t::Float64,x::Vector{Float64},dx::Vector{Float64})
     if OPT_RHS_CALLMODE == RHS_CALL_INSITU
 ```
 
 The input arguments are:
 
 1. a julia function `rhs` for evaluating the right-hand side of the ODE, see below. It's OK to return something, that `convert` can transform to a `Vector{Float64}`.
-2. the initial time `t0`. `(t0,x0)` is the initial value of the  initial value problem.
+2. the initial time `t0`. `(t0,x0)` is the initial value of the initial value problem.
 3. the final time `T`.
-4. the initial state `x0`. `(t0,x0)` is the initial value of the  initial value problem.
-5. further parameters/options in `opt` for the solver and for the interface.  There is a separate section for the explanation of the options, see help_options.
+4. the initial state `x0`. `(t0,x0)` is the initial value of the initial value problem.
+5. further parameters/options in `opt` for the solver and for the interface. There is a separate section for the explanation of the options, see help_options.
 
 The output arguments are:
 
-1. `t` the *last* time for which the solution has been computed  (if the whole computation was successfull, then `t==T`)
+1. `t` the *last* time for which the solution has been computed (if the whole computation was successfull, then `t==T`)
 2. `x` the numerical solation at time `t`
 3. `retcode` the return code of the solver (interpretation is solver dependent)
 
@@ -46,7 +46,7 @@ function rhs(t::Float64,x::Vector{Float64}) -> Vector{Float64}
 This is used, if `OPT_RHS_CALLMODE == RHS_CALL_RETURNS_ARRAY`. So you can use anonymous functions like `(t,x) -> x` as right-hand sides. But this form has a price: every time the right-hand side is called, a temporary Array is created (the result). The form
 
 ```
-function rhs(t::Float64,x::Vector{Float64},dx::Vector{Float64}) 
+function rhs(t::Float64,x::Vector{Float64},dx::Vector{Float64})
              -> nothing
 ```
 
@@ -54,7 +54,7 @@ used if `OPT_RHS_CALLMODE == RHS_CALL_INSITU` does not have this problem. But th
 
 ### The simplified version
 
-There is a simplified calling convention (using the methods above) to provide a method like odecalls in MATLAB,  see `odecall`.
+There is a simplified calling convention (using the methods above) to provide a method like odecalls in MATLAB, see `odecall`.
 
 
 

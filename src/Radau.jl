@@ -237,7 +237,7 @@ end
                method_cont::Ptr{Cvoid}) where {FInt<:FortranInt,
                                               CI<:RadauInternalCallInfos}
 
-  generates a eval_sol_fcn for radau and radau5.
+  generates a `eval_sol_fcn` for radau and radau5.
 
   Why is a closure needed? We need a function `eval_sol_fcn`
   that calls `CONTR5_` OR `CONTRA_` (with `ccall`).

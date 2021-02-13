@@ -120,12 +120,12 @@ end
   tries to (dynamically) load the libraries for the solvers.
 
   ## case: use ODEInterface_jll
-  If the julia version is 1.3 or higher and ignore_jll is false (the default)
-  then this method only tries to use ODEInterface_jll. In this case
+  If the julia version is 1.3 or higher and `ignore_jll` is false (the default)
+  then this method only tries to use `ODEInterface_jll`. In this case
   the extrapaths-argument is ignored/useless.
 
-  ## case: don't use ODEInterface_jll
-  If the julia version is less than 1.3 or ignore_jll is true then this
+  ## case: don't use `ODEInterface_jll`
+  If the julia version is less than 1.3 or `ignore_jll` is true then this
   method tries to (dynamically) load the libraries. Then in the
   extrapathas argument additional locations/paths to look at can be given.
 

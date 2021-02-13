@@ -25,7 +25,8 @@ supported for boundary value problems (BVP) of the form
 This julia module does *not* contain code for solving initial value
 problems, but this module does contain code for interacting with
 compiled Fortran-solvers. That's the reason, why this module is not called
-ODESuite.
+ODESuite. See the requirements below how to get to the compiled
+Fortran-solvers.
 
 ## What solvers are currently supported?
 
@@ -61,7 +62,7 @@ Also supported:
   systems using collocation.
   Written by U. Ascher, G. Bader, see
   [Colnew Homepage](https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html)
-* BVP_M-2: a boundary value problem solver for the numerical solution of
+* `BVP_M-2`: a boundary value problem solver for the numerical solution of
   boundary value ordinary differential equations with defect and global error control.
   Written by J. J. Boisvert, P.H. Muir and R. J. Spiteri, see
   [BVP_M-2 Page](http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml)
@@ -83,18 +84,15 @@ see [special structure](./doc/SpecialStructure.md)
 ## What are the requirements for this module
 
 This module needs the *compiled* Fortran solvers as shared libraries 
-(i.e. `.so`, `.dylib` or `.dll` files, respectively). 
-The build script of this module tries to do this compilation. 
-It was tested with:
+(i.e. `.so`, `.dylib` or `.dll` files, respectively). There are three ways
+to get them:
 
-* Linux (64bit) and `gfortran`
-* MacOS and `gfortran`
-* Windows 7 (64bit) and `gfortran` of mingw-w64 (`x86_64`)
+* The package [ODEInterface_jll.jl](https://github.com/JuliaBinaryWrappers/ODEInterface_jll.jl) has precompiled solvers for different platforms. Julia 1.3 or newer is needed for this. This is the default behaviour for julia versions 1.3 or newer.
+* The build-script of this module: It tries to use `gfortran` and compile the solver libraries. This is the default behaviour for julia versions less than 1.3.
+* You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further informations (help topics) on how to compile the solvers and how to create shared libraries.
 
-If you want to compile the solvers yourself (perhaps with different
-options and/or a different compiler), then just call
-`ODEInterface.help_solversupport` for further informations (help topics)
-on how to compile the solvers and how to create shared libraries.
+Please see the help for `ODEInterface.loadODESolves` how to ignore the 
+precompiled `ODEInterface_jll` package and use the/your locally built libraries.
 
 ## Further help
 

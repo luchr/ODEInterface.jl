@@ -1,9 +1,9 @@
-! # BVP_M_proxy
-! (This BVP_M_proxy is part of the ODEInterface.)
+! # `BVP_M_proxy`
+! (This `BVP_M_proxy` is part of the ODEInterface.)
 !
-! ## Why this BVP_M_proxy/wrapper?
+! ## Why this `BVP_M_proxy`/wrapper?
 !
-! BVP_M-2 is written in a modern Fortran (2003) language. Fortran90 
+! `BVP_M-2` is written in a modern Fortran (2003) language. Fortran90 
 ! and above has a (completely) different conecpt of a "pointer" (or a 
 ! reference) than C:
 !
@@ -44,13 +44,13 @@
 !                                       ╚══════════╝
 ! ```
 !
-! 2. Because BVP_M-2 needs (as input) some (boundary-value problem dependent)
+! 2. Because `BVP_M-2` needs (as input) some (boundary-value problem dependent)
 !    Fortran functions/subroutines (e.g. the right-hand side of the ODEs) this
 !    proxy also tries to implement such Fortran subroutines that call
 !    (C-)functions supplied by julia. This can be used to even allow
 !    for julia-callback functions that are closures.
 !    Let's see this principle in action for a concrete example.
-!    The BVP_M-2 solver has a method called `bvp_init` which can be called
+!    The `BVP_M-2` solver has a method called `bvp_init` which can be called
 !    with a Fortran-Function which is used as callback to get the
 !    initial guesses at different positions with the help of this
 !    Fortran-Function.
@@ -105,7 +105,7 @@
 !       ═════════  Fortran2003 code in BVP_M-2 (without ISO_C_BINDING)
 ! ```
 !
-! 3. Because BVP_M-2 uses Fortran objects (for a user-friendly and modern
+! 3. Because `BVP_M-2` uses Fortran objects (for a user-friendly and modern
 !    approach) this proxy tries to implement "handles" (see below)
 !    to make it possible to have "proxy"-objects/types in Julia in such a
 !    way that the objet-oriented feeling is preserved and the Fortran
@@ -114,7 +114,7 @@
 ! ## What does "handle" mean in this context?
 !
 ! To support the/a object-oriented look-and-feel in Julia for the
-! Fortran90 objects of BVP_M-2 the following idea is used:
+! Fortran90 objects of `BVP_M-2` the following idea is used:
 !
 ! Julia (or C) is given (via `C_LOC`) the "C-address" of an Fortran-object 
 ! as handle. If Julia (or C) calls some method of this proxy with
@@ -146,8 +146,8 @@
 ! calls to this (Fortran-)Proxy and to Fortran.
 !
 !
-! State transition diagram for BVP_M-2 sol object, according to the 
-! documentation. BVP_M-2 does *NOT* track the state. Hence this proxy takes 
+! State transition diagram for `BVP_M-2` sol object, according to the 
+! documentation. `BVP_M-2` does *NOT* track the state. Hence this proxy takes 
 ! over this task.
 !
 !                   ┌──────────────────────────────────────┐

@@ -283,7 +283,7 @@ main call for using Fortran-dopri5 solver. In `opt` the following options are us
 # odex
 
 ```
- function odex(rhs, t0::Real, T::Real, 
+ function odex(rhs, t0::Real, T::Real,
                x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
 ```
@@ -1221,7 +1221,7 @@ main call for using Fortran-ddebdf solver. In `opt` the following options are us
  function radau(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
- 
+
  function radau5(rhs, t0::Real, T::Real,
                  x0::Vector, opt::AbstractOptionsODE)
      -> (t,x,retcode,stats)
@@ -1242,7 +1242,7 @@ main call for using Fortran radau or radau5 solver.
 
 This solver support problems with special structure, see `help_specialstructure`.
 
-Remark: Because radau and radau5 are collocation methods, there is no difference  in the computational costs for OUTPUTFCN*WODENSE and OUTPUTFCN*DENSE.
+Remark: Because radau and radau5 are collocation methods, there is no difference in the computational costs for OUTPUTFCN*WODENSE and OUTPUTFCN*DENSE.
 
 In `opt` the following options are used:
 
@@ -1578,16 +1578,16 @@ It has to calculate the residual for the boundary conditions and save them in `r
 
 `x` gives the initial guess for all multiple-shooting nodes. Hence `size(x,2)==length(t)`.
 
-`odesolver`: Either `nothing`: then the internal solver of `bvpsol` is used. Or `odesolver` is a ode-solver (like `dopri5`, `dop853`, `seulex`,  etc.).
+`odesolver`: Either `nothing`: then the internal solver of `bvpsol` is used. Or `odesolver` is a ode-solver (like `dopri5`, `dop853`, `seulex`, etc.).
 
 `retcode` can have the following values:
 
 ```
   >0: computation successful: number of iterations
   -1:        Iteration stops at stationary point for OPT_SOLMETHOD==0
-             Gaussian elimination failed due to singular 
+             Gaussian elimination failed due to singular
              Jacobian for OPT_SOLMETHOD==1
-  -2: Iteration stops after OPT_MAXSTEPS 
+  -2: Iteration stops after OPT_MAXSTEPS
   -3: Integrator failed to complete the trajectory
   -4: Gauss Newton method failed to converge
   -5: Given initial values inconsistent with separable linear bc
@@ -1731,7 +1731,7 @@ All (Julia-)callback-functions (like rhs, etc.) use the in-situ call-mode, i.e. 
 function rhs(t, z, f)
 ```
 
-with the input data: t (scalar) time and z∈ℝᵈ (z=z(x(t))). The values of the right-hand side have to be saved in f: f∈ℝⁿ!  Only the non-trivial parts of the right-hand side must be calculated.
+with the input data: t (scalar) time and z∈ℝᵈ (z=z(x(t))). The values of the right-hand side have to be saved in f: f∈ℝⁿ! Only the non-trivial parts of the right-hand side must be calculated.
 
 ## Drhs
 
@@ -1767,7 +1767,7 @@ with the input data: integer index i and z∈ℝᵈ (z=z(x(t))). The scalar(!) v
 function Dbc(i, z, dbc)
 ```
 
-with the input data: integer index i and z∈ℝᵈ (z=z(x(t))). The  values of the derivative of the i-th side-condition  (at time ζ(i)) has to be saved in dbc:
+with the input data: integer index i and z∈ℝᵈ (z=z(x(t))). The  values of the derivative of the i-th side-condition (at time ζ(i)) has to be saved in dbc:
 
 ```
           ∂bcᵢ
@@ -1795,7 +1795,7 @@ dmx(i) = ────────      (i=1,…,n)
 
 ## return values
 
-`sol` is a solution object which can be evaluated with the  `evalSolution` functions. Or you can ask for the (final) grid of the solution with `getSolutionGrid`.
+`sol` is a solution object which can be evaluated with the `evalSolution` functions. Or you can ask for the (final) grid of the solution with `getSolutionGrid`.
 
 `retcode` can have to following values:
 
@@ -1946,7 +1946,7 @@ In `opt` the following options are used:
 
 # Bvpm2 object for solving boundary value problems
 
-This is the Julia part of the BVP*M-2 (Fortran-)solution object.  For (nearly) all the operations the corresponding Fortran-Proxy  methods are called (call `help*bvpm2_proxy()` to get internal details).
+This is the Julia part of the BVP*M-2 (Fortran-)solution object. For (nearly) all the operations the corresponding Fortran-Proxy methods are called (call `help*bvpm2_proxy()` to get internal details).
 
 ## Boundary value problem (BVP)
 
@@ -1962,27 +1962,27 @@ BVPs of the following form are considered:
 ```
 
   * y(x) ∈ ℝᵈ and `d` is also called `no_odes` (the number of ordinary differential equations).
-  * S ∈ ℝᵈˣᵈ is an optional constant matrix (also  called the singularity term) because the whole term S⋅y/(x-a) has a  singularity at x=a. If S is not given, then the ODEs are reduced to y'(x) = f(x, y, p).
+  * S ∈ ℝᵈˣᵈ is an optional constant matrix (also called the singularity term) because the whole term S⋅y/(x-a) has a singularity at x=a. If S is not given, then the ODEs are reduced to y'(x) = f(x, y, p).
   * p ∈ ℝᵐ (with 0≤m) are unknown parameters of the problem. `m` is also called `no_par` (the number of parameters).
   * f(x, y, p) ∈ ℝᵈ is also called the right-hand side (of the ODEs).
   * ga(ya, p) ∈ ℝˡ describes the left boundary conditions. `l` is also called `no_left_bc` (the number of the BCs at x=a).
   * ga(yb, p) ∈ ℝⁿ describes the right boundary conditions. It is
 
     ```
-      n = d + m - l 
+      n = d + m - l
       n = no_odes + no_par - no_left_bc
     ```
 
 ## Initial guess and solutions
 
-A Bvpm2 object can be used to represent either an initial guess (for a  BVP like above) or a solution. It is possible to use a solution of a  (different) BVP as initial guess to another BVP.
+A Bvpm2 object can be used to represent either an initial guess (for a BVP like above) or a solution. It is possible to use a solution of a (different) BVP as initial guess to another BVP.
 
 Such a Bvpm2 object can be in one of the following states:
 
-  * `state==0`: object created (and connected to Fortran-object), but  not initialized, i.e. it does neither represent a guess nor an solution.
+  * `state==0`: object created (and connected to Fortran-object), but not initialized, i.e. it does neither represent a guess nor an solution.
   * `state==1`: object created, and initialized with an (initial) guess, i.e. the object represents a guess.
   * `state==2`: object created and a solution was calculated successfully and saved in the object, i.e. the object represents a solution.
-  * `state==-1`: object is not connected to a Fortran-Proxy. Either `bvpm2_destroy` was called or at creation time, the connection to the   Fortran-Proxy couldn't be established, i.e. the object is unusable and  all associated memory was deallocated.
+  * `state==-1`: object is not connected to a Fortran-Proxy. Either `bvpm2_destroy` was called or at creation time, the connection to the  Fortran-Proxy couldn't be established, i.e. the object is unusable and  all associated memory was deallocated.
 
 The following table shows possible actions and the state-transitions initiated by the actions.
 
@@ -2084,7 +2084,7 @@ The following table shows possible actions and the state-transitions initiated b
 </tr>
 </table>
 
-There are functions that take an Bvpm2-object `obj_in` as input,  perhaps change `obj_in` and create an additonal `obj_out`.
+There are functions that take an Bvpm2-object `obj_in` as input, perhaps change `obj_in` and create an additonal `obj_out`.
 
 The following table shows possible actions, the change of the state of `obj_in` and which `obj_out` object is created:
 
@@ -2162,7 +2162,7 @@ creates bvpm2 object.
 
 ```
  function bvpm2_init(obj::Bvpm2,
-   no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector, 
+   no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector,
    parameters::Vector=[], max_num_subintervals=3000)
 ```
 
@@ -2172,7 +2172,7 @@ initialize Bvpm2 object with a constant intial guess.
 
 ```
  function bvpm2_init(obj::Bvpm2,
-   no_odes, no_left_bc, x_grid::Vector, guess::Matrix, 
+   no_odes, no_left_bc, x_grid::Vector, guess::Matrix,
    parameters::Vector=[], max_num_subintervals=3000)
 ```
 
@@ -2181,8 +2181,8 @@ initialize Bvpm2 object with a guess for every state at every node in x_grid.
 
 
 ```
- function bvpm2_init(obj, no_odes, no_left_bc, x_grid, 
-                     guess<:Function, parameters, 
+ function bvpm2_init(obj, no_odes, no_left_bc, x_grid,
+                     guess<:Function, parameters,
                      max_num_subintervals=3000)
 ```
 
@@ -2199,7 +2199,7 @@ initialize Bvpm2 object where the function `guess` is used to get the guesses fo
 
 
 ```
- function bvpm2_solve(guess_obj::Bvpm2, rhs, bc, 
+ function bvpm2_solve(guess_obj::Bvpm2, rhs, bc,
    opt::AbstractOptionsODE) -> (obj_out, retcode, stats)
 ```
 
@@ -2252,7 +2252,7 @@ The function `bc` must have the form:
 where
 
 ```
-  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes),
   p::Vector{Float64}(no_par),
   bca::Vector{Float64}(no_left_bc),
   bcb::Vector{Float64}(no_odes - no_left_bc)
@@ -2272,7 +2272,7 @@ The function `Dbc` is optional. If not given finite differences are used to appr
 where
 
 ```
-  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes), 
+  ya::Vector{Float64}(no_odes), yb::Vector{Float64}(no_odes),
   p::Vector{Float64}(no_par),
   dya::Matrix{Float64}(no_left_bc, no_odes)
   dyb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_odes)
@@ -2280,7 +2280,7 @@ where
   dpb::Matrix{Float64}(no_odes+no_par-no_left_bc, no_par)
 ```
 
-Inside the function, the values of the derivatives of the boundary  conditions must be saved in `dya`, `dyb`, `dpa` and `dpb`.
+Inside the function, the values of the derivatives of the boundary conditions must be saved in `dya`, `dyb`, `dpa` and `dpb`.
 
 ## Options `opt`
 
