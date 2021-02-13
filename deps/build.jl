@@ -1,20 +1,50 @@
+# This is the build-script for ODEInterface
+# Its behaviour can be changed by environment variables.
+#
+# This script tries to build die ODE-Libraries for Julia-Versions 
+# between 1.0 and 1.2 (or if ODEINTERFACE_IGNORE_JLL is set).
+#
+# For Julia-Versions 1.3 or newer the build-script will exit immediately
+# (except if ODEINTERFACE_BUILD_SCRIPT is used or ODEINTERFACE_IGNORE_JLL
+# is set) because the default is to use the ODEInterface_jll.jl package
+# with precompiled libraries.
+#
+# ODEINTERFACE_BUILD_SCRIPT       If set to some filename then nothing is
+#                                 built, but building commands for all the
+#                                 supported OS will be written in this given
+#                                 file. If the filename already exists
+#                                 its content will be overwritten.
+# 
+# ODEINTERFACE_VERBOSE            If set to something non-empty
+#                                 the build-script will print commands that
+#                                 are used to build the libraries
+#
+# ODEINTERFACE_IGNORE_JLL         If set to something non-empty the build
+#                                 the build-script will try to compile/link
+#                                 the libraries (even if Julia is 1.3 or newer
+#                                 and even if then ODEInterface_jll is
+#                                 available).
+
 try
   using Unicode
 catch e
+end
+
+function read_env(name)
+  value = get(ENV, name, nothing)
+  if value == ""
+    value = nothing
+  end
+  return value
 end
 
 windows_flag = Sys.iswindows()
 apple_flag = Sys.isapple()
 file_extension = nothing
 obj_files = []
-verbose_key = "ODEINTERFACE_VERBOSE"
-verbose = haskey(ENV, verbose_key) && 
-          length(ENV[verbose_key])>0 ? true : false
-build_script_key = "ODEINTERFACE_BUILD_SCRIPT"
-build_script = get(ENV, build_script_key, nothing)
-if build_script == ""
-  build_script = nothing
-end
+ignore_jll = read_env("ODEINTERFACE_IGNORE_JLL") != nothing
+verbose = read_env("ODEINTERFACE_VERBOSE") != nothing
+build_script = read_env("ODEINTERFACE_BUILD_SCRIPT")
 build_script_io = nothing
 
 gfortran = nothing
@@ -383,16 +413,19 @@ function create_build_script()
     write(build_script_io, raw"""if [[ $target == *mingw* ]] ; then""" * "\n")
     (windows_flag, apple_flag) = (true, false); adapt_to_os()
     build_all(dir_of_src)
+    write(build_script_io, "cp *$file_extension \$libdir\n")
     write(build_script_io, "\n\n\n")
 
     write(build_script_io, raw"""elif [[ $target == *apple* ]] ; then""" * "\n")
     (windows_flag, apple_flag) = (false, true); adapt_to_os()
     build_all(dir_of_src)
+    write(build_script_io, "cp *$file_extension \$libdir\n")
     write(build_script_io, "\n\n\n")
 
     write(build_script_io, "else\n")
     (windows_flag, apple_flag) = (false, false); adapt_to_os()
     build_all(dir_of_src)
+    write(build_script_io, "cp *$file_extension \$libdir\n")
     write(build_script_io, "\n\n\n")
 
     write(build_script_io, "fi\n\n")
@@ -406,8 +439,18 @@ end
 if build_script != nothing
   create_build_script()
 else
-  adapt_to_os()
-  build_with_gfortran()
+  # to build or not-to-build?
+  if VERSION >= v"1.3" && !ignore_jll
+    # Julia supports Artifacts and we don't build anything and we try
+    # to use ODEInterface_jll
+    exit()
+  else
+    # either Julia version before v1.3 or we were asked to ignore
+    # ODEInterface_jll
+    # => in both cases we try to build:
+    adapt_to_os()
+    build_with_gfortran()
+  end
 end
 
 # vim:syn=julia:cc=79:fdm=indent:
