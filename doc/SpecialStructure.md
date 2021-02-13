@@ -2,15 +2,15 @@
 
 ## Special Structure
 
-Some solvers (e.g. radau5 and radau) supports ODEs with a "special structure". In this context an ODE has special structure  if there exists M1>0 and M2>0 and M1 = M⋅M2 for some integer M and
+Some solvers (e.g. radau5 and radau) supports ODEs with a "special structure". In this context an ODE has special structure if there exists M1>0 and M2>0 and M1 = M⋅M2 for some integer M and
 
 ```
              x'(k) = x(k+M2)   for all k = 1,…,M1            (*)
 ```
 
-There are the options `OPT_M1` and `OPT_M2` to tell the solvers, if the ODE has this special structure. In this case only the non-trivial parts of the right-hand side, of the mass matrix and of the Jacobian matrix  had to be supplied.
+There are the options `OPT_M1` and `OPT_M2` to tell the solvers, if the ODE has this special structure. In this case only the non-trivial parts of the right-hand side, of the mass matrix and of the Jacobian matrix had to be supplied.
 
-If an ODE has the special structure, then the right-hand side  for `OPT_RHS_CALLMODE == RHS_CALL_RETURNS_ARRAY` has to return a vector of length d-M1 because the right-hand side for the first M1 entries are known from (*). For `OPT_RHS_CALLMODE == RHS_CALL_INSITU` the right-hand side gets (a reference) to the array of length d, but only the last d-M1 components need to be filled in.
+If an ODE has the special structure, then the right-hand side for `OPT_RHS_CALLMODE == RHS_CALL_RETURNS_ARRAY` has to return a vector of length d-M1 because the right-hand side for the first M1 entries are known from (*). For `OPT_RHS_CALLMODE == RHS_CALL_INSITU` the right-hand side gets (a reference) to the array of length d, but only the last d-M1 components need to be filled in.
 
 The mass matrix has the form
 
@@ -42,7 +42,7 @@ J =  ⎜    0   1  ⎟ ⎭
      ⎝           ⎠ ⎭
 ```
 
-Then there has to be only the (d-M1)×d matrix J̃ in `OPT_JACOBIMATRIX`. In this case banded Jacobian matrices are only supported for the case M1 + M2 == d. Then in this case J̃ is divided into d/M2 = 1+(M1/M2) blocks of the size M2×M2. All this blocks can be banded with a (common) lower bandwidth < M2. 
+Then there has to be only the (d-M1)×d matrix J̃ in `OPT_JACOBIMATRIX`. In this case banded Jacobian matrices are only supported for the case M1 + M2 == d. Then in this case J̃ is divided into d/M2 = 1+(M1/M2) blocks of the size M2×M2. All this blocks can be banded with a (common) lower bandwidth < M2.
 
 The option `OPT_JACOBIBANDSTRUCT` is used to describe the banded structure of the Jacobian. It is eigher `nothing` if the Jacobian is full or a tuple `(l,u)` with the lower and upper bandwidth.
 
@@ -53,7 +53,7 @@ The function for providing the Jacobian for ∂f/∂x can have the following for
  function (t,x,J1,…,JK) -> nothing       (B)
 ```
 
-The following table shows when `OPT_JACOBIMATRIX` has the form (A)  and when it has the form (B):
+The following table shows when `OPT_JACOBIMATRIX` has the form (A) and when it has the form (B):
 
 <table>
 <tr><th><pre></pre></th>

@@ -62,6 +62,25 @@ function trytoloadlib(name::AbstractString,extrapaths::Vector)
 end
 
 """
+       function trytofindjlllib(name::AbstractString)
+
+  tries to find the library-handle and the filepath-info for the given
+  solver lib-name in the ODEInterface_jll module.
+
+  The ODEInterface_jll modules must be loaded before.
+
+  returns `(ptr, filepath)`
+  """
+function trytofindjlllib(name::AbstractString)
+  ptr_name = Symbol("lib" * name * "_handle")
+  filepath_name = Symbol("lib" * name * "_path")
+
+  ptr = getproperty(ODEInterface_jll, ptr_name) :: Ptr{Nothing}
+  filepath = getproperty(ODEInterface_jll, filepath_name) :: AbstractString
+  return (ptr, filepath)
+end
+
+"""
        function trytoloadmethod(libhandle::Ptr{Cvoid},
              method_name::AbstractString) -> (ptr,namefound)
 
@@ -96,16 +115,25 @@ end
 
 """
        function loadODESolvers(extrapaths::Vector=AbstractString[],
-                 loadlibnames::Tuple=() )
+                 loadlibnames::Tuple=(); ignore_jll=false )
 
-  tries to (dynamically) load the solvers.
+  tries to (dynamically) load the libraries for the solvers.
 
-  additional locations/paths to look at can be given as argument.
+  ## case: use ODEInterface_jll
+  If the julia version is 1.3 or higher and `ignore_jll` is false (the default)
+  then this method only tries to use `ODEInterface_jll`. In this case
+  the extrapaths-argument is ignored/useless.
+
+  ## case: don't use `ODEInterface_jll`
+  If the julia version is less than 1.3 or `ignore_jll` is true then this
+  method tries to (dynamically) load the libraries. Then in the
+  extrapathas argument additional locations/paths to look at can be given.
 
   If the 1st argument is an empty Vector, then the method tries to
   find the path of the ODEInterface module and (if successfull)
   uses this path as `extrapaths`.
 
+  ## load only some libraries
   The 2nd argument is a `Tuple` with libnames of solvers to load.
   If it is an empty tuple, then all known solvers will be tried.
 
@@ -114,7 +142,7 @@ end
 
   returns `Dict` with informations about the loaded solvers (and errors).
 
-  If a solver cannot be found (or needed methods inside a dynmic library
+  If a solver cannot be found (or needed methods inside a dynamic library
   cannot be found) then the errors are not propagated to the caller. The
   errors and expections are saved in the returned `Dict`. Why? Using this
   way, it is possible to see with one call (and try to load all solvers)
@@ -127,9 +155,15 @@ end
        ODEInterface.help_solversupport()
   """
 function loadODESolvers(extrapaths::Vector=AbstractString[],
-          loadlibnames::Tuple=() )
+          loadlibnames::Tuple=(); ignore_jll=false )
   if isempty(extrapaths)
     extrapaths = [ @__DIR__ ]
+  end
+  use_jll = VERSION >= v"1.3" && !ignore_jll
+  if use_jll
+    @eval ODEInterface begin
+      using ODEInterface_jll
+    end
   end
   for solver in solverInfo
     for variant in solver.variants
@@ -141,7 +175,9 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
            libhandle = C_NULL; filepath =""; err = nothing
            mArray = Vector{MethodDLinfo}()
            try
-             (libhandle,filepath) = trytoloadlib(libname,extrapaths)
+             (libhandle, filepath) = (
+               use_jll ? trytofindjlllib(libname) :
+                         trytoloadlib(libname, extrapaths))
              for generic_name in variant.methods
                methodsname_found = ""; method_ptr = C_NULL; merr = nothing
                try

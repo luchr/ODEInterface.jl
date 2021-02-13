@@ -1040,6 +1040,7 @@ function test_Options()
 end
 
 function test_DLSolvers()
+  result = nothing
   @testset "DLSolvers" begin
     result = loadODESolvers()
     @testset for dl in dl_solvers
@@ -1056,6 +1057,7 @@ function test_DLSolvers()
       end
     end
   end
+  return result
 end
 
 function test_vanilla()
@@ -1147,12 +1149,17 @@ end
 function test_all()
   test_Banded()
   test_Options()
-  test_DLSolvers()
+  solvers = test_DLSolvers()
   test_solvers()
   test_odecall()
   test_bvp()
   test_colnew()
   test_bvpm2()
+
+  println("Solver informations:")
+  for info in values(solvers)
+    println(info.libname, ": ", info.libhandle, "; ", info.libfilepath)
+  end
 end
 
 test_all()

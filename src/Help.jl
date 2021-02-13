@@ -17,6 +17,7 @@ macro import_help()
     @ODEInterface.import_ddebdf_help
     @ODEInterface.import_bvpsol_help
     @ODEInterface.import_colnew_help
+    @ODEInterface.import_bvpm2_help
   end
 end
 
@@ -76,10 +77,10 @@ function help_solversupport()
   for solver in solverInfo
     write(io,"### ",solver.name,"\n\n",solver.description,"\n\n");
     for variant in solver.variants
-      write(io,"* ",variant.name,": ",variant.description,"\n");
+      write(io,"* `",variant.name,"`: ",variant.description,"\n");
     end
-    write(io,"\nHelp for compiling: ",string(solver.help_compile));
-    write(io,"\n\nLicense: ",string(solver.help_license),"\n\n");
+    write(io,"\nHelp for compiling: `",string(solver.help_compile),"`");
+    write(io,"\n\nLicense: `",string(solver.help_license),"`\n\n");
   end
   write(io,"## Load status\n\n",
            "     ╔═════════════╤═══════════════╤══════════",
@@ -88,7 +89,7 @@ function help_solversupport()
            "│       method                  ║\n",
            "     ╠═════════════╪═══════════════╪══════════",
            "╪═══════════════════════════════╣\n")
-  first = Vector{Bool}(uninitialized, 4)
+  first = Vector{Bool}(undef, 4)
   first_solver = true
   for solver in solverInfo
     if !first_solver
@@ -126,13 +127,13 @@ function help_solversupport()
         end
         method_name = method
         if length(method_name) > 22
-          method_name = string(method[1:19],"...")
+          method_name = string(method_name[1:19],"...")
         end
-        write(io,"     ║ ",rpad(first[1] ? solver.name : "",12), "│ ",
-                 rpad(first[2] ? variant.libname : "",14)      ,"│ ",
-                 rpad(first[3] ? (loaded ? "yes" : " no") : "",9)  ,"│ ",
-                 rpad(method,23),found ? "  OK  " : "FAILED",
-                 " ║\n")
+        write(io,"     ║ ",
+                 rpad(first[1] ? solver.name              : "", 12), "│ ",
+                 rpad(first[2] ? variant.libname          : "", 14), "│ ",
+                 rpad(first[3] ? (loaded ? "yes" : " no") : "",  9), "│ ",
+                 rpad(method_name,23),found ? "  OK  " : "FAILED", " ║\n")
         first[1] = first[2] = first[3] = false
       end
       first[1] = false
@@ -148,18 +149,13 @@ end
 """
   ## Installation
 
-  Because this module is an *interface* for C-/Fortran-ODE-solvers, you
-  need to compile/link the solvers before you can use them.
+  This module needs the *compiled* Fortran solvers as shared libraries 
+  (i.e. `.so`, `.dylib` or `.dll` files, respectively). There are three ways
+  to get them:
 
-  All solvers are dynamically loaded (at julia runtime),
-  see `loadODESolvers`. Therefor a shared library is needed for every
-  solver, i.e. you have to compile each solver and create a shared library.
-
-  See `help_solversupport` for a list with supported solvers and for
-  further informations how to compile/link the solvers.
-
-  This module has its own build script `deps/build.jl` which tries
-  to compile and link the shared libraries automatically.
+  * The package [ODEInterface_jll.jl](https://github.com/JuliaBinaryWrappers/ODEInterface_jll.jl) has precompiled solvers for different platforms. Julia 1.3 or newer is needed for this. This is the default behaviour for julia versions 1.3 or newer.
+  * The build-script of this module: It tries to use `gfortran` and compile the solver libraries. This is the default behaviour for julia versions less than 1.3. A `gfortran` compiler is needed for this.
+  * You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further informations (help topics) on how to compile the solvers and how to create shared libraries.
   """
 function help_install()
   return Docs.doc(help_install)
@@ -169,7 +165,7 @@ end
   ## Loading the solvers
 
   All ODE solvers are dynamically loaded. See `help_install` for
-  informations how to create such shared libraries for the solvers.
+  informations how to get or create such shared libraries for the solvers.
 
   Before using a solver for the 1st time, it has to be loaded by
   a call of `loadODESolvers`.
@@ -493,7 +489,7 @@ end
   1. What is the typical "call stack" for all this callbacks? see
      documentation of `DopriInternalCallInfos`,  `OdexInternalCallInfos` and
      `Radau5InternalCallInfos`.
-  1. What closures (and how many) are generated to support the eval_sol_fcn?
+  1. What closures (and how many) are generated to support the `eval_sol_fcn`?
      see `create_radau_eval_sol_fcn_closure`
   """
 function help_internals()

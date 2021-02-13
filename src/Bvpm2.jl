@@ -1595,7 +1595,7 @@ function help_bvpm2_proxy()
       end
     end
   close(fh)
-  return Base.Markdown.parse(markdown)
+  return Markdown.parse(markdown)
 end
 
 """
