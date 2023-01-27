@@ -159,7 +159,8 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
   if isempty(extrapaths)
     extrapaths = [ @__DIR__ ]
   end
-  use_jll = VERSION >= v"1.3" && !ignore_jll
+  apple_silicon = Sys.isapple() && Sys.ARCH === :aarch64
+  use_jll = VERSION >= v"1.3" && !ignore_jll && !apple_silicon
   if use_jll
     @eval ODEInterface begin
       using ODEInterface_jll

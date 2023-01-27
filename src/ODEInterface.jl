@@ -597,6 +597,7 @@ function __init__()
   # at this stage dlSolversInfo should be empty, but
   # just to be sure
   empty!(dlSolversInfo)
+  loadODESolvers()
 end
 
 
