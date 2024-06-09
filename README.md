@@ -62,6 +62,10 @@ Also supported:
   systems using collocation.
   Written by U. Ascher, G. Bader, see
   [Colnew Homepage](https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html)
+* coldae: a multi-point boundary value differential algebraic equations
+  solver for mixed order systems using collocation.
+  Written by U. Ascher, R. Spiteri, see
+  [Coldae Homepage](https://www.cs.ubc.ca/~ascher/coldae.f)
 * `BVP_M-2`: a boundary value problem solver for the numerical solution of
   boundary value ordinary differential equations with defect and global error control.
   Written by J. J. Boisvert, P.H. Muir and R. J. Spiteri, see

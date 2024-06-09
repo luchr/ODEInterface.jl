@@ -348,6 +348,17 @@ function build_colnew(path::AbstractString)
   return nothing
 end
 
+function build_coldae(path::AbstractString)
+  build_script_write_headline("coldae")
+  options = Dict(
+    "add_flags_i64" => ["-w", "-std=legacy"],
+    "add_flags_i32" => ["-w", "-std=legacy"],
+  )
+  compile_gfortran(path, "coldae", options)
+  link_gfortran(path, ["coldae",])
+  return nothing
+end
+
 function build_bvpm2(path::AbstractString)
   build_script_write_headline("bvpm2")
   opt = Dict(
@@ -382,6 +393,7 @@ function build_all(dir_of_src::AbstractString)
 
   build_bvpsol(dir_of_src)
   build_colnew(dir_of_src)
+  build_coldae(dir_of_src)
   build_bvpm2(dir_of_src)
 
   del_obj_files()

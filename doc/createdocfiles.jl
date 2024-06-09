@@ -135,6 +135,10 @@ function docSolverOptions(filename)
   write(io,"# colnew",NL,NL)
   formatMDelement(io,Base.Docs.doc(colnew))
 
+  # coldae
+  write(io, "# coldae",NL,NL)
+  formatMDelement(io,Base.Docs.doc(coldae))
+
   # bvpm2
   write(io,"# bvpm2",NL,NL)
   formatMDelement(io,Base.Docs.doc(Bvpm2))

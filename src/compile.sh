@@ -81,6 +81,12 @@ gfortran -c -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./colnew_i32.o
 gfortran -shared -o ./colnew.dll ./colnew.o
 gfortran -shared -o ./colnew_i32.dll ./colnew_i32.o
 
+# coldae
+gfortran -c -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae.o ./coldae.f
+gfortran -c -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae_i32.o ./coldae.f
+gfortran -shared -o ./coldae.dll ./coldae.o
+gfortran -shared -o ./coldae_i32.dll ./coldae_i32.o
+
 # bvpm2
 gfortran -c -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./bvp_la-2.o ./bvp_la-2.f
 gfortran -c -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -std=f2008 -o ./bvp_m-2.o ./bvp_m-2.f90
@@ -172,6 +178,12 @@ gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./colnew
 gfortran -shared -fPIC -o ./colnew.dylib ./colnew.o
 gfortran -shared -fPIC -o ./colnew_i32.dylib ./colnew_i32.o
 
+# coldae
+gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae.o ./coldae.f
+gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae_i32.o ./coldae.f
+gfortran -shared -fPIC -o ./coldae.dylib ./coldae.o
+gfortran -shared -fPIC -o ./coldae_i32.dylib ./coldae_i32.o
+
 # bvpm2
 gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./bvp_la-2.o ./bvp_la-2.f
 gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -std=f2008 -o ./bvp_m-2.o ./bvp_m-2.f90
@@ -262,6 +274,12 @@ gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -st
 gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./colnew_i32.o ./colnew.f
 gfortran -shared -fPIC -o ./colnew.so ./colnew.o
 gfortran -shared -fPIC -o ./colnew_i32.so ./colnew_i32.o
+
+# coldae
+gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae.o ./coldae.f
+gfortran -c -fPIC -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./coldae_i32.o ./coldae.f
+gfortran -shared -fPIC -o ./coldae.so ./coldae.o
+gfortran -shared -fPIC -o ./coldae_i32.so ./coldae_i32.o
 
 # bvpm2
 gfortran -c -fPIC -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8 -w -std=legacy -o ./bvp_la-2.o ./bvp_la-2.f

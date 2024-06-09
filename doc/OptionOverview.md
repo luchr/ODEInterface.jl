@@ -50,15 +50,16 @@ To get an overview, what options are supported by what solvers, call `ODEInterfa
 1. bvpm2
 2. bvpsol
 3. colnew
-4. ddeabm
-5. ddebdf
-6. dop853
-7. dopri5
-8. odex
-9. radau
-10. radau5
-11. rodas
-12. seulex
+4. coldae
+5. ddeabm
+6. ddebdf
+7. dop853
+8. dopri5
+9. odex
+10. radau
+11. radau5
+12. rodas
+13. seulex
 
 ## Options used by Solvers
 

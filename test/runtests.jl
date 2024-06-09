@@ -53,6 +53,9 @@ const solvers_bvpsol  = ( bvpsol, bvpsol_i32
 const solvers_colnew  = ( colnew, colnew_i32 
                        )
 
+const solvers_coldae  = ( coldae, coldae_i32 
+                       )
+
 """
   create a callable-type in order to check, if solvers
   can handle callable-types (which are not a subclass of
@@ -1137,6 +1140,81 @@ function test_colnew()
   end
 end
 
+function test_coldae()
+  a, b = 0.0, 1.0
+  orders = [1, 1, 1]
+  ζ = [0.0, 0.0, 1.0]
+  
+  function rhs(x, z, y, f)
+      e = 2.7
+      f[1] = (1+z[2]-sin(x))*y[1] + cos(x)
+      f[2] = cos(x)
+      f[3] = y[1]
+      f[4] = (z[1]-sin(x))*(y[1]-e^x)
+  end
+  
+  function Drhs(x, z, y, df)
+      df[:]=0.0
+      df[1,1] = 0.0
+      df[1,2] = y[1]
+      df[1,3] = 0.0
+      df[1,4] = 1+z[2]-sin(x)
+  
+      df[2,1] = 0.0
+      df[2,2] = 0.0
+      df[2,3] = 0.0
+      df[2,4] = 0.0
+      
+      df[3,1] = 0.0
+      df[3,2] = 0.0
+      df[3,3] = 0.0
+      df[3,4] = 1.0
+      
+      df[4,1] = y[1]-e^x
+      df[4,2] = 0.0
+      df[4,3] = 0.0
+      df[4,4] = z[1]-sin(x)
+  end
+  
+  function bc(i, z, bc)
+      if i == 1
+          bc[1] = z[1]
+      elseif i == 2
+          bc[1] = z[3] - 1.0
+      elseif i == 3
+          bc[1] = z[2] - sin(1.0)
+      end
+  end
+  
+  function Dbc(i, z, dbc)
+      if i == 1
+          dbc[1] = 1.0
+          dbc[2] = 0.0
+          dbc[3] = 0.0
+      elseif i == 2
+          dbc[1] = 0.0
+          dbc[2] = 0.0
+          dbc[3] = 1.0
+      elseif i == 3
+          dbc[1] = 0.0
+          dbc[2] = 1.0
+          dbc[3] = 0.0
+      end
+  end
+  
+  ny = 1
+  index = 1
+  
+  opt = OptionsODE("example 8",
+        OPT_BVPCLASS => 2, OPT_COLLOCATIONPTS => 7,
+        OPT_RTOL => [1e-4, 1e-4, 1e-4], OPT_MAXSUBINTERVALS => 200)
+  
+  guess = nothing  
+  sol, retcode, stats = coldae([a,b], orders, ny, index, ζ, rhs, Drhs, bc, Dbc, guess, opt);
+  @printf("ε=%g, retcode=%i\n", ε, retcode)
+  @assert retcode>0
+end
+
 function test_bvpm2()
   problems = (test_bvpm2_1, test_bvpm2_2, test_bvpm2_3, test_bvpm2_4, )
   @testset "bvpm2" begin
@@ -1154,6 +1232,7 @@ function test_all()
   test_odecall()
   test_bvp()
   test_colnew()
+  test_coldae()
   test_bvpm2()
 
   println("Solver informations:")

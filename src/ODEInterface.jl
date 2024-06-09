@@ -136,6 +136,8 @@ macro import_huge()
     @ODEInterface.import_DLddebdf
     @ODEInterface.import_colnew
     @ODEInterface.import_DLcolnew
+    @ODEInterface.import_coldae
+    @ODEInterface.import_DLcoldae
     @ODEInterface.import_bvpm2
     @ODEInterface.import_DLbvpm2
   end
@@ -159,6 +161,7 @@ macro import_normal()
     @ODEInterface.import_ddeabm
     @ODEInterface.import_ddebdf
     @ODEInterface.import_colnew
+    @ODEInterface.import_coldae
     @ODEInterface.import_options
     @ODEInterface.import_OPTcommon
   end
@@ -585,6 +588,7 @@ include("./Bvpsol.jl")
 include("./Deabm.jl")
 include("./Debdf.jl")
 include("./Colnew.jl")
+include("./Coldae.jl")
 include("./Bvpm2.jl")
 
 include("./Call.jl")
