@@ -75,8 +75,10 @@ function trytofindjlllib(name::AbstractString)
   ptr_name = Symbol("lib" * name * "_handle")
   filepath_name = Symbol("lib" * name * "_path")
 
-  ptr = getproperty(ODEInterface_jll, ptr_name) :: Ptr{Nothing}
-  filepath = getproperty(ODEInterface_jll, filepath_name) :: AbstractString
+  # Access ODEInterface_jll - it's imported at module level by loadODESolvers
+  # Use @eval to access the module reference
+  ptr = @eval getproperty(ODEInterface_jll, $(QuoteNode(ptr_name))) :: Ptr{Nothing}
+  filepath = @eval getproperty(ODEInterface_jll, $(QuoteNode(filepath_name))) :: AbstractString
   return (ptr, filepath)
 end
 
@@ -161,8 +163,10 @@ function loadODESolvers(extrapaths::Vector=AbstractString[],
   end
   use_jll = VERSION >= v"1.3" && !ignore_jll
   if use_jll
-    @eval ODEInterface begin
-      using ODEInterface_jll
+    # For Julia 1.12+, we need to import at module level, not inside @eval
+    # Store the loaded module in a local variable for use
+    @eval begin
+      import ODEInterface_jll
     end
   end
   for solver in solverInfo
