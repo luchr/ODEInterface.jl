@@ -1,0 +1,42 @@
+name: "Tests"
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "doc/**"
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - "doc/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch || github.ref != 'refs/tags/v*' }}
+
+jobs:
+  test:
+    name: "Tests"
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "1"
+        os:
+          - "ubuntu-latest"
+          - "windows-latest"
+          - "macOS-latest"
+        include:
+          - version: "min"
+            os: "ubuntu-latest"
+          - version: "pre"
+            os: "ubuntu-latest"
+    uses: "SciML/.github/.github/workflows/tests.yml@v1"
+    with:
+      julia-version: ${{ matrix.version }}
+      os: ${{ matrix.os }}
+      coverage-directories: "src"
+    secrets: inherit
