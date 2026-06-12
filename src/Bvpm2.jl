@@ -206,7 +206,7 @@ initiated by the actions.
 ```
 
 There are functions that take an Bvpm2-object `obj_in` as input,
-perhaps change `obj_in` and create an additonal `obj_out`.
+perhaps change `obj_in` and create an additional `obj_out`.
 
 The following table shows possible actions, the change of the state
 of `obj_in` and which `obj_out` object is created:
@@ -416,7 +416,7 @@ end
 """
      function bvpm2_get_details(obj::Bvpm2)
 
-returns dict with informations about an Bvpm2 object.
+returns dict with information about an Bvpm2 object.
 """
 function bvpm2_get_details(obj::Bvpm2)
     if !bvpm2_is_handle_valid(obj)
@@ -606,7 +606,7 @@ end
        no_odes, no_left_bc, x_grid::Vector, constant_guess::Vector,
        parameters::Vector=[], max_num_subintervals=3000)
 
-initialize Bvpm2 object with a constant intial guess.
+initialize Bvpm2 object with a constant initial guess.
 """
 function bvpm2_init(
         obj::Bvpm2,
@@ -837,7 +837,7 @@ end
 
 """
 This is the right-hand side given as callback to bvpm2 in the
-case where the problem has no unkown parameters.
+case where the problem has no unknown parameters.
 
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-arguments.
@@ -1238,7 +1238,7 @@ where
 Inside the function, the values of the boundary conditions must be
 saved in `bca` and `bcb`.
 
-## Derivatives of the boundary conditons: `Dbc`
+## Derivatives of the boundary conditions: `Dbc`
 
 The function `Dbc` is optional. If not given finite differences are
 used to approximate the derivatives. If `Dbc` is given it must have
@@ -1789,7 +1789,7 @@ The Fortran source code can be found at:
 
      http://cs.stmarys.ca/~muir/BVP_SOLVER_Webpage.shtml
 
-See `help_bvpm3_license` for the licsense information.
+See `help_bvpm3_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -1910,7 +1910,7 @@ function help_bvpm2_license()
 end
 
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

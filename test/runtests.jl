@@ -1242,7 +1242,7 @@ function test_all()
     test_colnew()
     test_bvpm2()
 
-    println("Solver informations:")
+    println("Solver information:")
     for info in values(solvers)
         println(info.libname, ": ", info.libhandle, "; ", info.libfilepath)
     end

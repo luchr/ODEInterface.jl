@@ -88,7 +88,7 @@ to get them:
 
 * The package [ODEInterface_jll.jl](https://github.com/JuliaBinaryWrappers/ODEInterface_jll.jl) has precompiled solvers for different platforms. Julia 1.3 or newer is needed for this. This is the default behaviour for julia versions 1.3 or newer.
 * The build-script of this module: It tries to use `gfortran` and compile the solver libraries. This is the default behaviour for julia versions less than 1.3.
-* You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further informations (help topics) on how to compile the solvers and how to create shared libraries.
+* You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further information (help topics) on how to compile the solvers and how to create shared libraries.
 
 Please see the help for `ODEInterface.loadODESolves` how to ignore the 
 precompiled `ODEInterface_jll` package and use the/your locally built libraries.

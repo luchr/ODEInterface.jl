@@ -15,7 +15,7 @@ end
 """
 Ancestor for all types storing options for ODE-solvers.
 
-ODE-solvers often have serveral parameters for fine-tuning them.
+ODE-solvers often have several parameters for fine-tuning them.
 In this ODEInterface this parameters are called 'options' and
 they are stored in key/value paris. For the key a
 `AbstractString` is used. The value can be `Any`-thing.

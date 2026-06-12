@@ -124,12 +124,12 @@ This is the solout given as callback to Fortran-odex.
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-pointers.
 
-This function saves the state informations of the solver in
+This function saves the state information of the solver in
 `OdexInternalCallInfos`, where they can be found by
 the `eval_sol_fcn`, see `create_odex_eval_sol_fcn_closure`.
 
 Then the user-supplied `output_fcn` is called (which in turn can use
-`eval_sol_fcn`, to evalutate the solution at intermediate points).
+`eval_sol_fcn`, to evaluate the solution at intermediate points).
 
 The return value of the `output_fcn` is propagated to `ODEX_`.
 
@@ -182,7 +182,7 @@ function unsafe_odexSoloutCallback(
             )
         )
     else
-        throw(InternalErrorODE(string("Unkown ret=", ret, " of output function")))
+        throw(InternalErrorODE(string("Unknown ret=", ret, " of output function")))
     end
 
     return nothing
@@ -216,11 +216,11 @@ generates a eval_sol_fcn for odex.
 
 Why is a closure needed? We need a function `eval_sol_fcn`
 that calls `CONTEX_` (with `ccall`).
-But `CONTEX_` needs the informations for the current state. This
-informations were saved by `unsafe_odexSoloutCallback` in the
-`OdexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+But `CONTEX_` needs the information for the current state. This
+information were saved by `unsafe_odexSoloutCallback` in the
+`OdexInternalCallInfos`. `eval_sol_fcn` needs to get this information.
 Here comes `create_odex_eval_sol_fcn_closure` into play: this function
-takes the call informations and generates a `eval_sol_fcn` with this data.
+takes the call information and generates a `eval_sol_fcn` with this data.
 
 Why doesn't `unsafe_odexSoloutCallback` generate a closure (then
 the current state needs not to be saved in `OdexInternalCallInfos`)?
@@ -597,7 +597,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_odex_license` for the licsense information.
+See `help_odex_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -666,7 +666,7 @@ end
 
 @doc(@doc(hw_license), help_odex_license)
 
-# Add informations about solver in global solverInfo-array.
+# Add information about solver in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

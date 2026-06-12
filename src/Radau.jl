@@ -172,12 +172,12 @@ This is the solout given as callback to Fortran radau5/radau.
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-pointers.
 
-This function saves the state informations of the solver in
+This function saves the state information of the solver in
 `RadauInternalCallInfos`, where they can be found by
 the `eval_sol_fcn`, see `create_radau_eval_sol_fcn_closure`.
 
 Then the user-supplied `output_fcn` is called (which in turn can use
-`eval_sol_fcn`, to evalutate the solution at intermediate points).
+`eval_sol_fcn`, to evaluate the solution at intermediate points).
 
 The return value of the `output_fcn` is propagated to `RADAU5_`/`RADAU_`.
 
@@ -229,7 +229,7 @@ function unsafe_radauSoloutCallback(
             )
         )
     else
-        throw(InternalErrorODE(string("Unkown ret=", ret, " of output function")))
+        throw(InternalErrorODE(string("Unknown ret=", ret, " of output function")))
     end
 
     return nothing
@@ -262,11 +262,11 @@ generates a `eval_sol_fcn` for radau and radau5.
 
 Why is a closure needed? We need a function `eval_sol_fcn`
 that calls `CONTR5_` OR `CONTRA_` (with `ccall`).
-But `CONTR5_`/`CONTRA_` need the informations for the current state. This
-informations were saved by `unsafe_radauSoloutCallback` in the
-`RadauInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+But `CONTR5_`/`CONTRA_` need the information for the current state. This
+information were saved by `unsafe_radauSoloutCallback` in the
+`RadauInternalCallInfos`. `eval_sol_fcn` needs to get this information.
 Here comes `create_radau_eval_sol_fcn_closure` into play: this function
-takes call informations and generates a `eval_sol_fcn` with this data.
+takes call information and generates a `eval_sol_fcn` with this data.
 
 Why doesn't `unsafe_radauSoloutCallback` generate a closure (then
 the current state needs not to be saved in `RadauInternalCallInfos`)?
@@ -568,7 +568,7 @@ function radau5_impl(
     ]
     args.WORK = zeros(Float64, args.LWORK[1])
 
-    # IWORK memoery
+    # IWORK memory
     args.LIWORK = [3 * d + 20]
     args.IWORK = zeros(FInt, args.LIWORK[1])
 
@@ -759,7 +759,7 @@ In `opt` the following options are used:
     ║                 │ OPT_SSMINSEL ≤ 1, OPT_SSMAXSEL ≥ 1       │         ║
     ╟─────────────────┼──────────────────────────────────────────┼─────────╢
     ║ MASSMATRIX      │ the mass matrix of the problem. If not   │ nothing ║
-    ║                 │ given (nothing) then the identiy matrix  │         ║
+    ║                 │ given (nothing) then the identity matrix  │         ║
     ║                 │ is used.                                 │         ║
     ║                 │ The size has to be (d-M1)×(d-M1).        │         ║
     ║                 │ It can be an full matrix or a banded     │         ║
@@ -871,7 +871,7 @@ function radau_impl(
     ]
     args.WORK = zeros(Float64, args.LWORK[1])
 
-    # IWORK memoery
+    # IWORK memory
     args.LIWORK = [(2 + (NSMAX - 1) ÷ 2) * d + 20]
     args.IWORK = zeros(FInt, args.LIWORK[1])
 
@@ -933,7 +933,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_radau5_license` for the licsense information.
+See `help_radau5_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -1048,7 +1048,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_radau_license` for the licsense information.
+See `help_radau_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -1151,7 +1151,7 @@ end
 
 @doc(@doc(hw_license), help_radau_license)
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

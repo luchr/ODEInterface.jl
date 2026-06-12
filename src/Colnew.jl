@@ -826,7 +826,7 @@ function colnew_impl(
             throw(
                 ArgumentErrorODE(
                     string(
-                        "Given guess has differnt d or n: ",
+                        "Given guess has different d or n: ",
                         "d=", d, " n=", n, ", but in guess: ",
                         "guess_d=", sol_old.d, " guess_n=", sol_old.n
                     ), :guess
@@ -961,7 +961,7 @@ end
        t::Real) where FInt<:FortranInt
 
 Evaluates an already obtained solution `sol` at time `t`.
-A newly allocated vector with the solution values is retured.
+A newly allocated vector with the solution values is returned.
 `t` must be in the interval [a,b] where the problem was solved.
 """
 function evalSolution(
@@ -981,7 +981,7 @@ end
 Evaluates an already obtained solution `sol` at time all
 times in the vector `t`.
 A newly allocated matrix of size `(length(t), d)` with the solution
-values is retured.
+values is returned.
 All values of `t` must be in the interval [a,b] where the problem was solved.
 """
 function evalSolution(
@@ -1004,7 +1004,7 @@ end
      function getSolutionGrid(sol::ColnewSolution{FInt})
               where FInt<:FortranInt
 
-returnes a Float64-vector with the (last) grid points used.
+returns a Float64-vector with the (last) grid points used.
 """
 function getSolutionGrid(sol::ColnewSolution{FInt}) where {FInt <: FortranInt}
     return sol.FSPACE[1:sol.ISPACE[1]]
@@ -1023,7 +1023,7 @@ The Fortran source code can be found at:
 
      https://people.sc.fsu.edu/~jburkardt/f77_src/colnew/colnew.html
 
-See `help_colnew_license` for the licsense information.
+See `help_colnew_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -1237,7 +1237,7 @@ function help_colnew_license()
     return Docs.doc(help_colnew_license)
 end
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

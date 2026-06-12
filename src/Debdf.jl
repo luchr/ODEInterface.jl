@@ -136,7 +136,7 @@ options are used:
     ║                 │ OUTPUTFCN_WODENSE                        │         ║
     ║                 │   call OPT_OUTPUTFCN either              │         ║
     ║                 │   (a) either for all intermediate steps  │         ║
-    ║                 │       choosen by the solver or           │         ║
+    ║                 │       chosen by the solver or           │         ║
     ║                 │   (b) at the times given in the option   │         ║
     ║                 │       OPT_OUTPUTATTIMES                  │         ║
     ║                 │ OUTPUTFCN_DENSE                          │         ║
@@ -154,7 +154,7 @@ options are used:
     ║                 │ between t0 and T.                        │         ║
     ╟─────────────────┼──────────────────────────────────────────┼─────────╢
     ║ TSTOP           │ tell the solver, that it is not          │     NaN ║
-    ║                 │ permissable to integrate past the point  │         ║
+    ║                 │ permissible to integrate past the point  │         ║
     ║                 │ TSTOP. If TSTOP is NaN then the solver   │         ║
     ║                 │ may integrate past T and interpolate the │         ║
     ║                 │ result at T. Sometimes there are         │         ║
@@ -220,7 +220,7 @@ const ddebdf_maxnum = 500
 
 implementation of ddebdf-call for FInt.
 
-This solver has the conecpt of continuation calls (CC), see
+This solver has the concept of continuation calls (CC), see
 help for `ODEInterface.SLATEC_continuation_call`.
 
 This CC are used in this method to get the solution at user-given
@@ -228,7 +228,7 @@ t-values (see `OPT_OUTPUTATTIMES`) in order to support some alternative
 method for dense output.
 
 The solver also has an intermediate-output mode. If activated then
-the numerical integration is stoped at every (solver-chosen) intermediate
+the numerical integration is stopped at every (solver-chosen) intermediate
 step and can be continued with a CC.
 
 Different cases for this method:
@@ -460,7 +460,7 @@ The Fortran source code can be found at:
 
      http://www.netlib.org/slatec/src/
 
-See `help_ddebdf_license` for the licsense information.
+See `help_ddebdf_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux, Mac and Windows)
 
@@ -489,7 +489,7 @@ end
 
 @doc(@doc(SLATEC_license), help_ddebdf_license)
 
-# Add informations about solver in global solverInfo-array.
+# Add information about solver in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

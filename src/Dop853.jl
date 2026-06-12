@@ -269,7 +269,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_dop853_license` for the licsense information.
+See `help_dop853_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -338,7 +338,7 @@ end
 
 @doc(@doc(hw_license), help_dop853_license)
 
-# Add informations about solver in global solverInfo-array.
+# Add information about solver in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

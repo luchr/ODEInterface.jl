@@ -22,7 +22,7 @@ loadODESolvers();
 # fileName = Name of the file where the plot is to be stored
 #            (with or without extension)
 # f_e = Array containing function evaluations as columns for each solver
-# err = Array containing erros as columns for each solver
+# err = Array containing errors as columns for each solver
 # solverNames = Array containing the names of solvers used in respective order
 # plotSize = size of the plot to be created
 ###################################################################################

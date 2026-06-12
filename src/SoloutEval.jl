@@ -27,7 +27,7 @@ OUTPUTFCN_CALL_REASON
 OUTPUTFCN_CALL_INIT
 
 @doc """
-`OPT_OUTPUTFCN` is called after a successfull
+`OPT_OUTPUTFCN` is called after a successful
 integration step
 """
 OUTPUTFCN_CALL_STEP
@@ -49,13 +49,13 @@ OUTPUTFCN_MODE
 OUTPUTFCN_NEVER
 
 @doc """
-`OPT_OUTPUTFCN` is called after every successfull step,
+`OPT_OUTPUTFCN` is called after every successful step,
 but no support for dense output.
 """
 OUTPUTFCN_WODENSE
 
 @doc """
-`OPT_OUTPUTFCN` is called after every successfull step
+`OPT_OUTPUTFCN` is called after every successful step
 and dense output is supported.
 """
 OUTPUTFCN_DENSE

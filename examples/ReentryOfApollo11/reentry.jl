@@ -252,7 +252,7 @@ function reentry(T0)
     if retcode > 0
         println("    # Newton-iterations = $retcode")
         T = y[7, 1]
-        println(@sprintf "** manuever time T = %5.2f" T)
+        println(@sprintf "** maneuver time T = %5.2f" T)
 
         # Plot the optimal solution
         J_opt = showSolution(t_msm, y, T, false, false, colorant"#00FF00", "")

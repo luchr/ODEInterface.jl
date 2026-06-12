@@ -74,7 +74,7 @@ Fortran solvers and provide a shared library for each solver.
 The build-script of this module tries to compile all solvers
 automatically. But you can use your own compiled versions (with
 different compile-time options or compilers). Just call
-`ODEInterface.help_solversupport` for further informations (help topics)
+`ODEInterface.help_solversupport` for further information (help topics)
 on how to compile the solvers and how to create shared libraries.
 
 ## Further help
@@ -293,7 +293,7 @@ const OPT_SSSELECTPAR2 = "StepSizeSelectionParam2"
 const OPT_RHO2 = "rho2"
 const OPT_DENSEOUTPUTWOEE = "DeactivateErrorEstInDenseOutput"
 
-const OPT_TRANSJTOH = "TransfromJACtoHess"
+const OPT_TRANSJTOH = "TransformJACtoHess"
 const OPT_MAXNEWTONITER = "MaxNewtonIterations"
 const OPT_NEWTONSTARTZERO = "StartNewtonWithZeros"
 const OPT_DIMOFIND1VAR = "DimensionOfIndex1Vars"
@@ -353,7 +353,7 @@ The right-hand side has to return `x'` as Array.
 
 The right-hand side must be a function of the form
 
-     funtion (t,x) -> dx
+     function (t,x) -> dx
 
 `dx` is a `Vector{Float64}` with the same length as `x`.
 """
@@ -365,7 +365,7 @@ where it has to save the the values of `x'`.
 
 The right-hand side must be a function of the form
 
-     funtion (t,x,dx) -> nothing
+     function (t,x,dx) -> nothing
 
 `dx` is a `Vector{Float64}` with the same length as `x`. In `dx` the
 function has to fill in the values of `x'`.
@@ -430,7 +430,7 @@ end
 Extract options for logging.
 
 throws ArgumentErrorODE if logio is not an IO or
-if loglevel is not convertable to UInt64.
+if loglevel is not convertible to UInt64.
 
 reads options: `OPT_LOGIO`, `OPT_LOGLEVEL`
 """

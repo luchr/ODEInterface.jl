@@ -1,4 +1,4 @@
-[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these information in a nicer output format. ]
 
 ## Special Structure
 
