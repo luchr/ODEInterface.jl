@@ -336,7 +336,7 @@ etc.).
       -3: Integrator failed to complete the trajectory
       -4: Gauss Newton method failed to converge
       -5: Given initial values inconsistent with separable linear bc
-      -6:        Iterative refinement faild to converge for OPT_SOLMETHOD==0
+      -6:        Iterative refinement failed to converge for OPT_SOLMETHOD==0
                  Termination since multiple shooting condition or
                  condition of Jacobian is too bad for OPT_SOLMETHOD==1
       -7: wrong EPS (should not happen; checked by ODEInterface module)
@@ -351,7 +351,7 @@ In `opt` the following options are used:
     ╔═════════════════╤══════════════════════════════════════════╤═════════╗
     ║  Option OPT_…   │ Description                              │ Default ║
     ╠═════════════════╪══════════════════════════════════════════╪═════════╣
-    ║ RTOL            │ relative accuracy for soltuion           │    1e-6 ║
+    ║ RTOL            │ relative accuracy for solution           │    1e-6 ║
     ╟─────────────────┼──────────────────────────────────────────┼─────────╢
     ║ MAXSTEPS        │ maximum permitted number of iteration    │      40 ║
     ║                 │ steps                                    │         ║
@@ -590,7 +590,7 @@ The Fortran source code can be found at:
 
      http://elib.zib.de/pub/elib/codelib/bvpsol/
 
-See `help_bvpsol_license` for the licsense information.
+See `help_bvpsol_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -703,14 +703,14 @@ to sign an according licence agreement with ZIB.
 This code has been tested up to a certain level. Defects and
 weaknesses, which may be included in the code, do not establish
 any warranties by ZIB. ZIB does not take over any liabilities
-which may follow from aquisition or application of this code.
+which may follow from acquisition or application of this code.
 """
 function help_bvpsol_license()
     return Docs.doc(help_bvpsol_license)
 end
 
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

@@ -154,12 +154,12 @@ This is the solout given as callback to Fortran-rodas.
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-pointers.
 
-This function saves the state informations of the solver in
+This function saves the state information of the solver in
 `RodasInternalCallInfos`, where they can be found by
 the `eval_sol_fcn`, see `create_rodas_eval_sol_fcn_closure`.
 
 Then the user-supplied `output_fcn` is called (which in turn can use
-`eval_sol_fcn`, to evalutate the solution at intermediate points).
+`eval_sol_fcn`, to evaluate the solution at intermediate points).
 
 The return value of the `output_fcn` is propagated to `RODAS_`.
 
@@ -211,7 +211,7 @@ function unsafe_rodasSoloutCallback(
             )
         )
     else
-        throw(InternalErrorODE(string("Unkown ret=", ret, " of output function")))
+        throw(InternalErrorODE(string("Unknown ret=", ret, " of output function")))
     end
 
     return nothing
@@ -244,11 +244,11 @@ generates a eval_sol_fcn for rodas.
 
 Why is a closure needed? We need a function `eval_sol_fcn`
 that calls `CONTRO_` (with `ccall`).
-But `CONTRO_` needs the informations for the current state. This
-informations were saved by `unsafe_rodasSoloutCallback` in the
-`RodasInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+But `CONTRO_` needs the information for the current state. This
+information were saved by `unsafe_rodasSoloutCallback` in the
+`RodasInternalCallInfos`. `eval_sol_fcn` needs to get this information.
 Here comes `create_rodas_eval_sol_fcn_closure` into play: this function
-takes the call informations and generates a `eval_sol_fcn` with this data.
+takes the call information and generates a `eval_sol_fcn` with this data.
 
 Why doesn't `unsafe_rodasSoloutCallback` generate a closure (then
 the current state needs not to be saved in `RodasInternalCallInfos`)?
@@ -406,7 +406,7 @@ In `opt` the following options are used:
     ║                 │ see help_specialstructure                │         ║
     ╟─────────────────┼──────────────────────────────────────────┼─────────╢
     ║ MASSMATRIX      │ the mass matrix of the problem. If not   │ nothing ║
-    ║                 │ given (nothing) then the identiy matrix  │         ║
+    ║                 │ given (nothing) then the identity matrix  │         ║
     ║                 │ is used.                                 │         ║
     ║                 │ The size has to be (d-M1)×(d-M1).        │         ║
     ║                 │ It can be an full matrix or a banded     │         ║
@@ -630,7 +630,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_rodas_license` for the licsense information.
+See `help_rodas_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -723,7 +723,7 @@ end
 
 @doc(@doc(hw_license), help_rodas_license)
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

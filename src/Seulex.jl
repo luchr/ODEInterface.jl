@@ -147,12 +147,12 @@ This is the solout given as callback to Fortran-seulex.
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-pointers.
 
-This function saves the state informations of the solver in
+This function saves the state information of the solver in
 `SeulexInternalCallInfos`, where they can be found by
 the `eval_sol_fcn`, see `create_seulex_eval_sol_fcn_closure`.
 
 Then the user-supplied `output_fcn` is called (which in turn can use
-`eval_sol_fcn`, to evalutate the solution at intermediate points).
+`eval_sol_fcn`, to evaluate the solution at intermediate points).
 
 The return value of the `output_fcn` is propagated to `SEULEX_`.
 
@@ -206,7 +206,7 @@ function unsafe_seulexSoloutCallback(
             )
         )
     else
-        throw(InternalErrorODE(string("Unkown ret=", ret, " of output function")))
+        throw(InternalErrorODE(string("Unknown ret=", ret, " of output function")))
     end
 
     return nothing
@@ -239,11 +239,11 @@ generates a eval_sol_fcn for seulex.
 
 Why is a closure needed? We need a function `eval_sol_fcn`
 that calls `CONTEX_` (with `ccall`).
-But `CONTEX_` needs the informations for the current state. This
-informations were saved by `unsafe_seulexSoloutCallback` in the
-`SeulexInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+But `CONTEX_` needs the information for the current state. This
+information were saved by `unsafe_seulexSoloutCallback` in the
+`SeulexInternalCallInfos`. `eval_sol_fcn` needs to get this information.
 Here comes `create_seulex_eval_sol_fcn_closure` into play: this function
-takes the call informations and generates a `eval_sol_fcn` with this data.
+takes the call information and generates a `eval_sol_fcn` with this data.
 
 Why doesn't `unsafe_seulexSoloutCallback` generate a closure (then
 the current state needs not to be saved in `SeulexInternalCallInfos`)?
@@ -397,7 +397,7 @@ In `opt` the following options are used:
     ║ OPT_RHO2        │ hnew=h*RHO*(RHO2*TOL/ERR)^(1/(k-1) )     │    0.80 ║
     ╟─────────────────┼──────────────────────────────────────────┼─────────╢
     ║ MASSMATRIX      │ the mass matrix of the problem. If not   │ nothing ║
-    ║                 │ given (nothing) then the identiy matrix  │         ║
+    ║                 │ given (nothing) then the identity matrix  │         ║
     ║                 │ is used.                                 │         ║
     ║                 │ The size has to be (d-M1)×(d-M1).        │         ║
     ║                 │ It can be an full matrix or a banded     │         ║
@@ -701,7 +701,7 @@ The Fortran source code can be found at:
 
      http://www.unige.ch/~hairer/software.html
 
-See `help_seulex_license` for the licsense information.
+See `help_seulex_license` for the license information.
 
 ### Using `gfortran` and 64bit integers (Linux and Mac)
 
@@ -804,7 +804,7 @@ end
 
 @doc(@doc(hw_license), help_seulex_license)
 
-# Add informations about solvers in global solverInfo-array.
+# Add information about solvers in global solverInfo-array.
 push!(
     solverInfo,
     SolverInfo(

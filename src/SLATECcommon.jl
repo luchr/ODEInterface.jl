@@ -1,7 +1,7 @@
 # Functions used for SLATEC Solvers like DDEABM
 
 """
-Some solvers have the conecpt of continuation calls (CC). This can be used
+Some solvers have the concept of continuation calls (CC). This can be used
 to get some "kind" of dense output support. How does this work?
 
 Typically the solver "overshoots" beyond T for calculating the solution
@@ -14,7 +14,7 @@ at T (then with the help of interpolation):
 [Use `OPT_TSTOP` if the right-hand side is not defined for some t>T or
 if there are singularities.]
 
-If you do a CC and you want the solution at new Tₙ, then in the situtation
+If you do a CC and you want the solution at new Tₙ, then in the situation
 
      ──╫───┼────┼────┼─╫──╫┼─────
        t₀              T  Tₙ
@@ -33,7 +33,7 @@ const SLATEC_continuation_call = nothing
 ## License
 
 The solver ddeabm is part of the SLATEC Common Mathematical Library which
-is in the public domain. More informations can be found at
+is in the public domain. More information can be found at
 
      http://www.netlib.org/slatec/guide
 

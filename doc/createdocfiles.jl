@@ -108,7 +108,7 @@ function introHeader(io)
     write(
         io, "[ This file was auto-generated from the module's documentation ",
         "included in the doc-strings. Use julia's help system to get ",
-        "these informations in a nicer output format. ]", NL, NL
+        "these information in a nicer output format. ]", NL, NL
     )
     return nothing
 end

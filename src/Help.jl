@@ -69,7 +69,7 @@ end
      function help_solversupport()
 
 This function (when called) produces a (markdown) object with
-informations about the supported solvers.
+information about the supported solvers.
 """
 function help_solversupport()
     io = IOBuffer()
@@ -153,7 +153,7 @@ function help_solversupport()
     write(
         io, "     ╚═════════════╧═══════════════╧══════════",
         "╧═══════════════════════════════╝\n\n",
-        "For more informations: see result of `loadODESolvers`.\n"
+        "For more information: see result of `loadODESolvers`.\n"
     )
     return Markdown.parse(buf2str(io))
 end
@@ -167,7 +167,7 @@ to get them:
 
 * The package [ODEInterface_jll.jl](https://github.com/JuliaBinaryWrappers/ODEInterface_jll.jl) has precompiled solvers for different platforms. Julia 1.3 or newer is needed for this. This is the default behaviour for julia versions 1.3 or newer.
 * The build-script of this module: It tries to use `gfortran` and compile the solver libraries. This is the default behaviour for julia versions less than 1.3. A `gfortran` compiler is needed for this.
-* You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further informations (help topics) on how to compile the solvers and how to create shared libraries.
+* You compile the solvers yourself (perhaps with different options and/or a different compiler). In this case just call `ODEInterface.help_solversupport` for further information (help topics) on how to compile the solvers and how to create shared libraries.
 """
 function help_install()
     return Docs.doc(help_install)
@@ -177,7 +177,7 @@ end
 ## Loading the solvers
 
 All ODE solvers are dynamically loaded. See `help_install` for
-informations how to get or create such shared libraries for the solvers.
+information how to get or create such shared libraries for the solvers.
 
 Before using a solver for the 1st time, it has to be loaded by
 a call of `loadODESolvers`.
@@ -227,7 +227,7 @@ The input arguments are:
 The output arguments are:
 
 1. `t` the *last* time for which the solution has been computed
-   (if the whole computation was successfull, then `t==T`)
+   (if the whole computation was successful, then `t==T`)
 1. `x` the numerical solation at time `t`
 1. `retcode` the return code of the solver (interpretation is solver dependent)
 
@@ -392,7 +392,7 @@ A (julia) function that is called
    `eval_sol_fcn` a dummy function throwing an error if called,
    `extra_data` a `Dict` persistent until the last call of the output
    function. The return value is *ignored*.
-1. after every successfull integration step with
+1. after every successful integration step with
    `reason == OUTPUTFCN_CALL_STEP`, `[told,t]` the time interval of the
    last step, `x` the numerical solution at time `t`,
    `eval_sol_fcn` a function to evaluate the solution in `t1 ∊ [told,t]`, if
@@ -406,7 +406,7 @@ With `eval_sol_fcn`
 
         function eval_sol_fcn(t1::Float64) -> Vector{Float64}
 
-the numerical solution can be evaluted in the
+the numerical solution can be evaluated in the
 time interval `[told,t]` (if `OPT_OUTPUTMODE == OUTPUTFCN_DENSE`).
 
 If supported by the solver, the numerical solution may be changed

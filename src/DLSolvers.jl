@@ -34,7 +34,7 @@ struct SolverDLinfo
 end
 
 """
-global Dict saving informations of all loaded solvers.
+global Dict saving information of all loaded solvers.
 """
 global const dlSolversInfo = Dict{AbstractString, SolverDLinfo}()
 
@@ -138,7 +138,7 @@ method tries to (dynamically) load the libraries. Then in the
 extrapathas argument additional locations/paths to look at can be given.
 
 If the 1st argument is an empty Vector, then the method tries to
-find the path of the ODEInterface module and (if successfull)
+find the path of the ODEInterface module and (if successful)
 uses this path as `extrapaths`.
 
 ## load only some libraries
@@ -148,11 +148,11 @@ If it is an empty tuple, then all known solvers will be tried.
 If an solver is already successfully loaded, then it will *not* be
 loaded again.
 
-returns `Dict` with informations about the loaded solvers (and errors).
+returns `Dict` with information about the loaded solvers (and errors).
 
 If a solver cannot be found (or needed methods inside a dynamic library
 cannot be found) then the errors are not propagated to the caller. The
-errors and expections are saved in the returned `Dict`. Why? Using this
+errors and exceptions are saved in the returned `Dict`. Why? Using this
 way, it is possible to see with one call (and try to load all solvers)
 which solvers are found.
 

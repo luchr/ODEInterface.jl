@@ -88,12 +88,12 @@ immutable.
 For an explanation of the storage format, see the help of
 `BandedMatrix_storage`.
 
-There is a constructur, where you can give the entries array for
+There is a constructor, where you can give the entries array for
 the non-zero elements (diagonals) as input argument.
 """
 struct BandedMatrix{T} <: AbstractMatrix{T}
     m::Integer               # number of rows of banded matrix
-    n::Integer               # number of colums
+    n::Integer               # number of columns
     #    currently: n == size(entries,2)
     l::Integer               # lower bandwidth
     u::Integer               # upper bandwidth
@@ -127,7 +127,7 @@ end
 """
 ## How are the non-zero entries stored (in this type)?
 
-If M is a m×n matrix with upper bandwidth u and lower bandwith l, then
+If M is a m×n matrix with upper bandwidth u and lower bandwidth l, then
 the non-zero entries are saved in a (1+l+u)×n matrix N with
 
      N(i-j+u+1,j) = M(i,j) with
@@ -136,7 +136,7 @@ the non-zero entries are saved in a (1+l+u)×n matrix N with
                                    ⎬ ⇔ ⎨  1 ≤ i   ≤ m
       max(1,i-l) ≤ j ≤ max(n,u+i)  ⎭   ⎩  1 ≤ j   ≤ n
 
-This is the storage format described in the follwing URL.
+This is the storage format described in the following URL.
 
      http://www.netlib.org/lapack/lug/node124.html
 

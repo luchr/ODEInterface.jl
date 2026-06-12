@@ -91,11 +91,11 @@ generates a eval_sol_fcn for dopri5 and dop853.
 
 Why is a closure needed? We need a function `eval_sol_fcn`
 that calls `CONTD5_` or `CONTD8_` (with `ccall`).
-But `CONTD?_` needs the informations for the current state. This
-informations were saved by `unsafe_dopriSoloutCallback` in the
-`DopriInternalCallInfos`. `eval_sol_fcn` needs to get this informations.
+But `CONTD?_` needs the information for the current state. This
+information were saved by `unsafe_dopriSoloutCallback` in the
+`DopriInternalCallInfos`. `eval_sol_fcn` needs to get this information.
 Here comes `create_dopri_eval_sol_fcn_closure` into play: this function
-takes the call-informations and generates a `eval_sol_fcn` with this data.
+takes the call-information and generates a `eval_sol_fcn` with this data.
 
 Why doesn't `unsafe_dopriSoloutCallback` generate a closure (then
 the current state needs not to be saved in `DopriInternalCallInfos`)?
@@ -154,12 +154,12 @@ This is the solout given as callback to Fortran-dopri.
 The `unsafe` prefix in the name indicates that no validations are
 performed on the `Ptr`-pointers.
 
-This function saves the state informations of the solver in
+This function saves the state information of the solver in
 `DopriInternalCallInfos`, where they can be found by
 the `eval_sol_fcn`, see `create_dopri_eval_sol_fcn_closure`.
 
 Then the user-supplied `output_fcn` is called (which in turn can use
-`eval_sol_fcn`, to evalutate the solution at intermediate points).
+`eval_sol_fcn`, to evaluate the solution at intermediate points).
 
 The return value of the `output_fcn` is propagated to
 `DOPRI5_` or `DOP853_`.
@@ -205,7 +205,7 @@ function unsafe_dopriSoloutCallback(
     elseif ret == OUTPUTFCN_RET_CONTINUE_XCHANGED
         irtrn[1] = 2
     else
-        throw(InternalErrorODE(string("Unkown ret=", ret, " of output function")))
+        throw(InternalErrorODE(string("Unknown ret=", ret, " of output function")))
     end
 
     return nothing

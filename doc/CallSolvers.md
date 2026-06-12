@@ -1,4 +1,4 @@
-[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these information in a nicer output format. ]
 
 ## Calling the Solvers
 
@@ -33,7 +33,7 @@ The input arguments are:
 
 The output arguments are:
 
-1. `t` the *last* time for which the solution has been computed (if the whole computation was successfull, then `t==T`)
+1. `t` the *last* time for which the solution has been computed (if the whole computation was successful, then `t==T`)
 2. `x` the numerical solation at time `t`
 3. `retcode` the return code of the solver (interpretation is solver dependent)
 

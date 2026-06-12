@@ -38,7 +38,7 @@ Here is a picture, describing the (planned) version numbers:
 
 ```
 
-* julia ≥ 1.0: v0.5.0, v0.5.1 are the versions (with new featuers) 
+* julia ≥ 1.0: v0.5.0, v0.5.1 are the versions (with new features) 
   in the master branch
 * julia 0.7: v0.4.8 is the last "feature" version; v0.4.9, ... only bugfixes
 * julia 0.6: v0.3.1 is the last "feature" version; v0.3.2, ... only bugfixes
