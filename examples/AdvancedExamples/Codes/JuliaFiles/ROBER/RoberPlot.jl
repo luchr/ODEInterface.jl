@@ -33,7 +33,7 @@ end
 printFlag = true;
 
 # Initial conditions
-t0 = 0.0; T = 10.^[0.0:11.0;]; x0=[1.0,0.0,0.0];
+t0 = 0.0; T = 10.0 .^ [0.0:11.0;]; x0=[1.0,0.0,0.0];
 
 # Get "reference solution"
 # TolMin < 1e-14 gives error "TOLERANCES ARE TOO SMALL" 
