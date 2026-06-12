@@ -3,15 +3,16 @@ using ODEInterface
 
 loadODESolvers()
 
-opt=OptionsODE(
-  OPT_RTOL => 1e-8,
-  OPT_ATOL => 1e-3)
+opt = OptionsODE(
+    OPT_RTOL => 1.0e-8,
+    OPT_ATOL => 1.0e-3
+)
 
-(t,x,retcode,stats) = odecall( dopri5, (t,x) -> x, [0,1],[1,2], opt)
+(t, x, retcode, stats) = odecall(dopri5, (t, x) -> x, [0, 1], [1, 2], opt)
 
 println("retcode=$retcode")
 println("t=$t");
-println("x=",x);
+println("x=", x);
 println("stats:");display(stats);println();
 
 
