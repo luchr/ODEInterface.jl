@@ -1,8 +1,7 @@
 # ODEInterface
 
-[![Travis](https://travis-ci.org/luchr/ODEInterface.jl.svg?branch=master)](https://travis-ci.org/luchr/ODEInterface.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/bu702cga2ovlio5x/branch/master?svg=true)](https://ci.appveyor.com/project/luchr/odeinterface-jl/branch/master)
-[![Coverage Status](https://coveralls.io/repos/github/luchr/ODEInterface.jl/badge.svg?branch=master)](https://coveralls.io/github/luchr/ODEInterface.jl?branch=master)
+[![Tests](https://github.com/luchr/ODEInterface.jl/actions/workflows/Tests.yml/badge.svg?branch=master)](https://github.com/luchr/ODEInterface.jl/actions/workflows/Tests.yml)
+[![codecov](https://codecov.io/gh/luchr/ODEInterface.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/luchr/ODEInterface.jl)
 
 
 This julia module provides an interface to solvers for 
