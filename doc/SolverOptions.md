@@ -1,4 +1,4 @@
-[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these informations in a nicer output format. ]
+[ This file was auto-generated from the module's documentation included in the doc-strings. Use julia's help system to get these information in a nicer output format. ]
 
 # dopri5
 
@@ -694,7 +694,7 @@ In `opt` the following options are used:
 <tr><td><pre> MASSMATRIX
 </pre></td>
 <td><pre> the mass matrix of the problem&#46; If not
- given &#40;nothing&#41; then the identiy matrix
+ given &#40;nothing&#41; then the identity matrix
  is used&#46;
  The size has to be &#40;d&#45;M1&#41;&#215;&#40;d&#45;M1&#41;&#46;
  It can be an full matrix or a banded
@@ -956,7 +956,7 @@ In `opt` the following options are used:
 <tr><td><pre> MASSMATRIX
 </pre></td>
 <td><pre> the mass matrix of the problem&#46; If not
- given &#40;nothing&#41; then the identiy matrix
+ given &#40;nothing&#41; then the identity matrix
  is used&#46;
  The size has to be &#40;d&#45;M1&#41;&#215;&#40;d&#45;M1&#41;&#46;
  It can be an full matrix or a banded
@@ -1022,7 +1022,7 @@ main call for using Fortran-ddeabm solver. In `opt` the following options are us
  OUTPUTFCN&#95;WODENSE
    call OPT&#95;OUTPUTFCN either
    &#40;a&#41; either for all intermediate steps
-       choosen by the solver or
+       chosen by the solver or
    &#40;b&#41; at the times given in the option
        OPT&#95;OUTPUTATTIMES
  OUTPUTFCN&#95;DENSE
@@ -1050,7 +1050,7 @@ main call for using Fortran-ddeabm solver. In `opt` the following options are us
 <tr><td><pre> TSTOP
 </pre></td>
 <td><pre> tell the solver&#44; that it is not
- permissable to integrate past the point
+ permissible to integrate past the point
  TSTOP&#46; If TSTOP is NaN then the solver
  may integrate past T and interpolate the
  result at T&#46; Sometimes there are
@@ -1130,7 +1130,7 @@ main call for using Fortran-ddebdf solver. In `opt` the following options are us
  OUTPUTFCN&#95;WODENSE
    call OPT&#95;OUTPUTFCN either
    &#40;a&#41; either for all intermediate steps
-       choosen by the solver or
+       chosen by the solver or
    &#40;b&#41; at the times given in the option
        OPT&#95;OUTPUTATTIMES
  OUTPUTFCN&#95;DENSE
@@ -1158,7 +1158,7 @@ main call for using Fortran-ddebdf solver. In `opt` the following options are us
 <tr><td><pre> TSTOP
 </pre></td>
 <td><pre> tell the solver&#44; that it is not
- permissable to integrate past the point
+ permissible to integrate past the point
  TSTOP&#46; If TSTOP is NaN then the solver
  may integrate past T and interpolate the
  result at T&#46; Sometimes there are
@@ -1491,7 +1491,7 @@ In `opt` the following options are used:
 <tr><td><pre> MASSMATRIX
 </pre></td>
 <td><pre> the mass matrix of the problem&#46; If not
- given &#40;nothing&#41; then the identiy matrix
+ given &#40;nothing&#41; then the identity matrix
  is used&#46;
  The size has to be &#40;d&#45;M1&#41;&#215;&#40;d&#45;M1&#41;&#46;
  It can be an full matrix or a banded
@@ -1591,7 +1591,7 @@ It has to calculate the residual for the boundary conditions and save them in `r
   -3: Integrator failed to complete the trajectory
   -4: Gauss Newton method failed to converge
   -5: Given initial values inconsistent with separable linear bc
-  -6:        Iterative refinement faild to converge for OPT_SOLMETHOD==0
+  -6:        Iterative refinement failed to converge for OPT_SOLMETHOD==0
              Termination since multiple shooting condition or
              condition of Jacobian is too bad for OPT_SOLMETHOD==1
   -7: wrong EPS (should not happen; checked by ODEInterface module)
@@ -1614,7 +1614,7 @@ In `opt` the following options are used:
 </tr>
 <tr><td><pre> RTOL
 </pre></td>
-<td><pre> relative accuracy for soltuion
+<td><pre> relative accuracy for solution
 </pre></td>
 <td><pre>    1e&#45;6
 </pre></td>
@@ -2084,7 +2084,7 @@ The following table shows possible actions and the state-transitions initiated b
 </tr>
 </table>
 
-There are functions that take an Bvpm2-object `obj_in` as input, perhaps change `obj_in` and create an additonal `obj_out`.
+There are functions that take an Bvpm2-object `obj_in` as input, perhaps change `obj_in` and create an additional `obj_out`.
 
 The following table shows possible actions, the change of the state of `obj_in` and which `obj_out` object is created:
 
@@ -2166,7 +2166,7 @@ creates bvpm2 object.
    parameters::Vector=[], max_num_subintervals=3000)
 ```
 
-initialize Bvpm2 object with a constant intial guess.
+initialize Bvpm2 object with a constant initial guess.
 
 
 
@@ -2260,7 +2260,7 @@ where
 
 Inside the function, the values of the boundary conditions must be saved in `bca` and `bcb`.
 
-## Derivatives of the boundary conditons: `Dbc`
+## Derivatives of the boundary conditions: `Dbc`
 
 The function `Dbc` is optional. If not given finite differences are used to approximate the derivatives. If `Dbc` is given it must have the form:
 

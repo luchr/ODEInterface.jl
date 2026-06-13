@@ -1,0 +1,26 @@
+# The Fortran sources are vendored upstream solver codes (Hairer/Wanner,
+# SLATEC, ZIB, COLNEW, BVP_M-2); their text (and LICENSE.md, which collects
+# their license terms) must be preserved verbatim. The tex/ipynb/mw files
+# under examples/ are generated/exported artifacts of the example codes.
+[files]
+extend-exclude = [
+    "*.f",
+    "*.f90",
+    "LICENSE.md",
+    "examples/AdvancedExamples/texFiles",
+    "*.ipynb",
+    "*.mw",
+]
+
+[default.extend-words]
+# Fortran routine names (dense-output routines of odex and rodas)
+contex = "contex"
+contro = "contro"
+# Fortran argument/variable names
+nd = "nd"
+implct = "implct"
+# OPT_RTOL with a subscript k is tokenized as RTO
+RTO = "RTO"
+# J. Stoer (author) and Numer. Math. (journal abbreviation)
+stoer = "stoer"
+numer = "numer"
