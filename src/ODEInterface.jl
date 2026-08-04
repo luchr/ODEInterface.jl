@@ -55,7 +55,7 @@ Also supported:
 * bvpsol: a boundary value problem solver for highly nonlinear two point
   boundary value problems using either a local linear solver or a global
   sparse linear solver. **Please note: The license for `bvpsol` only
-  covers non commercial use, see [License](./LICENSE.md).**
+  covers non commercial use, see [License](https://github.com/luchr/ODEInterface.jl/blob/master/LICENSE.md).**
   written by P. Deuflhard, G. Bader, L. Weimann, see
   [CodeLib at ZIB](http://elib.zib.de/pub/elib/codelib/en/bvpode.html).
 * colnew: a multi-point boundary value problem solver for mixed order
@@ -92,8 +92,10 @@ The author of this julia module is
 """
 module ODEInterface
 
-using LinearAlgebra
-using Unicode
+import LinearAlgebra
+import Markdown
+import ODEInterface_jll
+import Unicode
 
 include("./Error.jl")
 include("./Options.jl")
@@ -619,6 +621,22 @@ function __init__()
     return empty!(dlSolversInfo)
 end
 
+# `public` needs the Julia 1.11 parser, so while 1.10 is supported the
+# declaration cannot be written literally here. On 1.10 the names carry no
+# public marker, but they are reachable the same way
+# (`ODEInterface.dopri5`, `using ODEInterface: dopri5`).
+@static if VERSION ≥ v"1.11"
+    include_string(
+        @__MODULE__,
+        """
+        public OptionsODE, RHS_CALL_INSITU, OUTPUTFCN_CALL_REASON,
+            OUTPUTFCN_CALL_STEP, OUTPUTFCN_WODENSE, OUTPUTFCN_DENSE,
+            OUTPUTFCN_RET_CONTINUE, OUTPUTFCN_RET_CONTINUE_XCHANGED,
+            dopri5, dop853, odex, seulex, radau, radau5, rodas, ddeabm,
+            ddebdf
+        """
+    )
+end
 
 end
 

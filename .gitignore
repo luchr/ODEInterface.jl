@@ -5,4 +5,5 @@
 *.dll
 *.swp
 *.zip
-/Manifest.toml
+Manifest.toml
+/docs/build/

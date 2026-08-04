@@ -2,7 +2,8 @@
 
 import Base: show
 
-using Dates
+import Dates
+using Dates: DateTime, now
 
 """macro for importing OptionsODE and option handling."""
 macro import_options()

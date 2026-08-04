@@ -1,0 +1,9 @@
+[deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+ODEInterface = "54ca160b-1b9f-5127-a996-1867f4bc2a2c"
+SciMLTesting = "09d9d899-5365-40a9-917a-5f67fddea283"
+
+[compat]
+Aqua = "0.8"
+SciMLTesting = "2.4"
+julia = "1.10"

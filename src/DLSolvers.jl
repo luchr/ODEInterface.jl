@@ -1,6 +1,6 @@
 # Dynamic loading of ODE-Solvers for ODEInterface
 
-using Libdl
+import Libdl
 
 """
 macro for importing (un-)load functions.
@@ -170,13 +170,6 @@ function loadODESolvers(
         extrapaths = [@__DIR__]
     end
     use_jll = VERSION >= v"1.3" && !ignore_jll
-    if use_jll
-        # For Julia 1.12+, we need to import at module level, not inside @eval
-        # Store the loaded module in a local variable for use
-        @eval begin
-            import ODEInterface_jll
-        end
-    end
     for solver in solverInfo
         for variant in solver.variants
             libname = variant.libname
